@@ -47,6 +47,12 @@ class BriefNarrative:
     solution_sketch: str
 
 
+@dataclass(frozen=True)
+class EffortEstimate:
+    size: EffortSize
+    rationale: str
+
+
 class SourcePort(Protocol):
     """Reads new posts/comments from one community platform (Reddit, DevForum, ...)."""
 
@@ -72,9 +78,7 @@ class LLMSearchPort(Protocol):
 
     def check_competitors(self, problem_summary: str) -> str: ...
 
-    def estimate_effort(
-        self, problem_summary: str, solution_sketch: str
-    ) -> tuple[EffortSize, str]: ...
+    def estimate_effort(self, problem_summary: str, solution_sketch: str) -> EffortEstimate: ...
 
 
 class TrackerPort(Protocol):

@@ -216,8 +216,9 @@ def load_issue(conn: sqlite3.Connection, opportunity_id: str) -> OpportunityIssu
     )
 
 
-def solvable_undigested_opportunity_ids(conn: sqlite3.Connection, digest_date: str) -> list[str]:
-    """Solvable, non-Rejected Opportunities not yet included in the given digest_date, ranked by frequency desc."""
+def solvable_undigested_opportunity_ids(conn: sqlite3.Connection) -> list[str]:
+    """Solvable, non-Rejected Opportunities that are new or updated since they were last digested
+    (never digested, or touched again after their last_digested_at), ranked by frequency desc."""
     rejected = _rejected_opportunity_ids(conn)
     rows = conn.execute(
         """
@@ -225,18 +226,18 @@ def solvable_undigested_opportunity_ids(conn: sqlite3.Connection, digest_date: s
         FROM opportunities o
         JOIN opportunity_pain_points opp ON opp.opportunity_id = o.id
         WHERE o.solvable = 1
-          AND o.id NOT IN (
-              SELECT opportunity_id FROM digest_entries WHERE digest_date = ?
-          )
+          AND (o.last_digested_at IS NULL OR o.updated_at > o.last_digested_at)
         GROUP BY o.id
         ORDER BY frequency DESC, o.updated_at ASC
         """,
-        (digest_date,),
     ).fetchall()
     return [row["id"] for row in rows if row["id"] not in rejected]
 
 
-def record_digest_entry(conn: sqlite3.Connection, opportunity_id: str, digest_date: str) -> None:
+def mark_digested(conn: sqlite3.Connection, opportunity_id: str, digest_date: str, when: datetime) -> None:
+    conn.execute(
+        "UPDATE opportunities SET last_digested_at = ? WHERE id = ?", (when.isoformat(), opportunity_id)
+    )
     conn.execute(
         "INSERT OR IGNORE INTO digest_entries (opportunity_id, digest_date) VALUES (?, ?)",
         (opportunity_id, digest_date),

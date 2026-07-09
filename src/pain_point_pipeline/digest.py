@@ -33,11 +33,11 @@ def format_opportunity_entry(opportunity: Opportunity, brief: OpportunityBrief) 
 
 
 def format_digest_section(digest_date: str, entries: list[tuple[Opportunity, OpportunityBrief]]) -> str:
-    ranked = sorted(entries, key=lambda pair: pair[0].frequency, reverse=True)[:MAX_OPPORTUNITIES_PER_DIGEST]
+    """Formats `entries` as given — the caller is responsible for ranking and capping them."""
     header = f"## {digest_date}"
-    if not ranked:
+    if not entries:
         return f"{header}\n\nNo new Solvable Opportunities this week.\n"
-    body = "\n\n".join(format_opportunity_entry(opportunity, brief) for opportunity, brief in ranked)
+    body = "\n\n".join(format_opportunity_entry(opportunity, brief) for opportunity, brief in entries)
     return f"{header}\n\n{body}\n"
 
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from pain_point_pipeline.models import (
-    EffortSize,
     IssueStatus,
     OpportunityBrief,
     OpportunitySummary,
@@ -15,6 +14,7 @@ from pain_point_pipeline.models import (
 from pain_point_pipeline.ports import (
     BriefNarrative,
     ClusterMatch,
+    EffortEstimate,
     PainPointClassification,
     SolvabilityJudgement,
 )
@@ -70,8 +70,8 @@ class FakeLLMSearch:
     def check_competitors(self, problem_summary: str) -> str:
         return "No direct competitors found (fixture)."
 
-    def estimate_effort(self, problem_summary: str, solution_sketch: str) -> tuple[EffortSize, str]:
-        return "S", "Small, well-scoped tool (fixture)."
+    def estimate_effort(self, problem_summary: str, solution_sketch: str) -> EffortEstimate:
+        return EffortEstimate(size="S", rationale="Small, well-scoped tool (fixture).")
 
 
 class FakeTracker:

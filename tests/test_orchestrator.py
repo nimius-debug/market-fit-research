@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from pathlib import Path
 
 from fakes import FakeLLMSearch, FakeSource, FakeTracker
@@ -109,3 +110,30 @@ def test_rejected_opportunity_is_suppressed_from_digest(conn, now, make_item, di
 
     assert digest_result.included_opportunity_ids == []
     assert "No new Solvable Opportunities" in Path(digest_path).read_text(encoding="utf-8")
+
+
+def test_unchanged_opportunity_is_not_redigested_but_an_updated_one_is(conn, now, make_item, digest_path):
+    item = make_item("PAINPOINT scripting is painful")
+    source = FakeSource("reddit", [item])
+    llm = FakeLLMSearch()
+    tracker = FakeTracker()
+
+    ingest_result = run_ingestion_batch([source], llm, tracker, conn, now)
+    (opportunity_id,) = ingest_result.touched_opportunity_ids
+
+    first_digest = run_digest_build(conn, tracker, digest_path, now)
+    assert first_digest.included_opportunity_ids == [opportunity_id]
+
+    a_week_later = now + timedelta(days=7)
+    second_digest = run_digest_build(conn, tracker, digest_path, a_week_later)
+    assert second_digest.included_opportunity_ids == []
+
+    booster = make_item(
+        "PAINPOINT another dev agrees CLUSTER_WITH:PAINPOINT scripting is painful",
+        created_at=a_week_later,
+        author="bob",
+    )
+    run_ingestion_batch([FakeSource("reddit", [booster])], llm, tracker, conn, a_week_later)
+
+    third_digest = run_digest_build(conn, tracker, digest_path, a_week_later + timedelta(days=1))
+    assert third_digest.included_opportunity_ids == [opportunity_id]

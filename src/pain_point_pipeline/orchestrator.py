@@ -99,13 +99,13 @@ def _refresh_solvability_and_brief(
 
     narrative = llm.write_brief_narrative(opportunity.pain_points)
     competitor_check = llm.check_competitors(narrative.problem_summary)
-    effort_size, effort_rationale = llm.estimate_effort(narrative.problem_summary, narrative.solution_sketch)
+    effort = llm.estimate_effort(narrative.problem_summary, narrative.solution_sketch)
     brief = OpportunityBrief(
         opportunity_id=opportunity_id,
         problem_summary=narrative.problem_summary,
         solution_sketch=narrative.solution_sketch,
-        effort_size=effort_size,
-        effort_rationale=effort_rationale,
+        effort_size=effort.size,
+        effort_rationale=effort.rationale,
         competitor_check=competitor_check,
         generated_at=now,
     )
@@ -138,7 +138,7 @@ def run_digest_build(conn: sqlite3.Connection, tracker: TrackerPort, digest_path
     _refresh_all_issue_statuses(tracker=tracker, conn=conn, now=now)
 
     # already ranked by frequency desc (see repository.solvable_undigested_opportunity_ids)
-    candidate_ids = repository.solvable_undigested_opportunity_ids(conn, digest_date)
+    candidate_ids = repository.solvable_undigested_opportunity_ids(conn)
     included_ids = candidate_ids[:MAX_OPPORTUNITIES_PER_DIGEST]
 
     entries = []
@@ -147,7 +147,7 @@ def run_digest_build(conn: sqlite3.Connection, tracker: TrackerPort, digest_path
         brief = repository.load_brief(conn, opportunity_id)
         assert brief is not None
         entries.append((opportunity, brief))
-        repository.record_digest_entry(conn, opportunity_id, digest_date)
+        repository.mark_digested(conn, opportunity_id, digest_date, now)
 
     section = format_digest_section(digest_date, entries)
     append_digest(digest_path, section)

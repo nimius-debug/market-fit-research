@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS opportunities (
     solvable INTEGER,
     solvable_rationale TEXT,
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    last_digested_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS opportunity_pain_points (
