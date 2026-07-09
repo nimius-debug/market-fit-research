@@ -5,6 +5,9 @@ description = "Finds recurring pain points in Roblox/game-dev communities and su
 requires-python = ">=3.10"
 dependencies = ["anthropic>=0.100", "pydantic>=2", "praw>=7", "requests>=2.31", "PyGithub>=2"]
 
+[project.scripts]
+pain-point-pipeline = "pain_point_pipeline.cli:main"
+
 [project.optional-dependencies]
 dev = ["pytest>=8", "mypy>=1.10"]
 

@@ -1,0 +1,41 @@
+name: Weekly digest
+
+on:
+  schedule:
+    # Monday 15:23 UTC — well after that day's ingestion run, off the :00/:30 mark.
+    - cron: "23 15 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: read
+
+concurrency:
+  group: pipeline-state
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Build weekly digest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pain-point-pipeline digest
+
+      - name: Commit updated digest and pipeline state
+        run: |
+          git config user.name "pain-point-pipeline-bot"
+          git config user.email "actions@github.com"
+          git add DIGEST.md data/pipeline.sqlite3
+          git diff --cached --quiet || git commit -m "Weekly digest [skip ci]"
+          git push
