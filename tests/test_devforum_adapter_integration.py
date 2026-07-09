@@ -10,8 +10,10 @@ No credentials needed — the DevForum's latest-topics feed is public.
 from __future__ import annotations
 
 import pytest
+from fakes import FakeLLMSearch, FakeTracker
 
 from pain_point_pipeline.adapters.devforum import DevForumSource
+from pain_point_pipeline.orchestrator import run_ingestion_batch
 
 pytestmark = pytest.mark.integration
 
@@ -28,3 +30,12 @@ def test_fetch_new_pulls_at_least_one_real_topic() -> None:
         assert item.url.startswith("https://devforum.roblox.com/t/")
         assert item.external_id
         assert item.author
+
+
+def test_run_ingestion_batch_accepts_real_devforum_data(conn, now) -> None:
+    """Proves the orchestrator seam actually accepts DevForumSource, not just fetch_new() in isolation."""
+    source = DevForumSource()
+
+    result = run_ingestion_batch([source], FakeLLMSearch(), FakeTracker(), conn, now)
+
+    assert result.new_raw_items > 0

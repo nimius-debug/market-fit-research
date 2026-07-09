@@ -13,12 +13,14 @@ from __future__ import annotations
 
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
+from fakes import FakeLLMSearch, FakeSource
 
 from pain_point_pipeline.adapters.github_tracker import GitHubTracker
 from pain_point_pipeline.models import OpportunityBrief
+from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
 
 pytestmark = [
     pytest.mark.integration,
@@ -46,6 +48,33 @@ def test_create_issue_then_close_flips_status_to_rejected() -> None:
         repo.get_issue(issue_number).edit(state="closed")
 
         assert tracker.get_status(issue_number) == "rejected"
+    finally:
+        repo = tracker._get_repo()  # noqa: SLF001
+        issue = repo.get_issue(issue_number)
+        if issue.state != "closed":
+            issue.edit(state="closed")
+
+
+def test_pipeline_creates_real_issue_and_suppresses_after_rejection(conn, now, make_item, digest_path) -> None:
+    """Proves the orchestrator seam picks up a real Rejected status, not just get_status() in isolation."""
+    tracker = GitHubTracker()
+    llm = FakeLLMSearch()
+    item = make_item("PAINPOINT [integration test] scripting is painful")
+    source = FakeSource("reddit", [item])
+
+    ingest_result = run_ingestion_batch([source], llm, tracker, conn, now)
+    (opportunity_id,) = ingest_result.touched_opportunity_ids
+    issue_number = ingest_result.issues_created[opportunity_id]
+
+    try:
+        first_digest = run_digest_build(conn, tracker, digest_path, now)
+        assert first_digest.included_opportunity_ids == [opportunity_id]
+
+        repo = tracker._get_repo()  # noqa: SLF001 - test-only, to reject the issue we just created
+        repo.get_issue(issue_number).edit(state="closed")
+
+        second_digest = run_digest_build(conn, tracker, digest_path, now + timedelta(days=7))
+        assert second_digest.included_opportunity_ids == []
     finally:
         repo = tracker._get_repo()  # noqa: SLF001
         issue = repo.get_issue(issue_number)

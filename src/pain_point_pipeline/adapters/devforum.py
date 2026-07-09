@@ -3,6 +3,14 @@
 No authentication needed for public category reads, per ADR-0002/CONTEXT.md —
 no scraping, just the site's own JSON endpoints. `/latest.json?order=created`
 returns newest-first topics; we page until we cross `since` or the page limit.
+
+Scope limitation (v1): this reads new *topics* only, using the opening post's
+title + excerpt as the item text. It does not poll for new *replies* within
+already-seen topics, since that would need a per-topic request for every topic
+the pipeline has ever ingested. Most pain points surface in a topic's opening
+post or its earliest replies, so this is an acceptable v1 simplification, but
+it is a real scope gap against "new topics and posts" — flag for v2 if reply
+threads turn out to carry meaningful additional signal.
 """
 
 from __future__ import annotations
@@ -17,7 +25,7 @@ from pain_point_pipeline.models import RawItem
 
 BASE_URL = "https://devforum.roblox.com"
 _DEFAULT_USER_AGENT = "pain-point-pipeline/0.1 (Roblox/game-dev pain-point discovery)"
-_MAX_PAGES = 3
+_MAX_PAGES = 3  # ~90 topics; caps a first run's backfill and bounds worst-case request count per poll
 
 
 def _parse_created_at(created_at: str) -> datetime:
@@ -82,7 +90,10 @@ class DevForumSource:
                     continue
                 items.append(_topic_to_raw_item(topic, users_by_id, created_at))
 
-            if since is None or reached_known_topics:
+            # On a first run (since=None) there's no floor to stop at, so keep
+            # paging up to _MAX_PAGES; on later runs, stop as soon as we cross
+            # into topics we've already seen.
+            if reached_known_topics:
                 break
 
         return items
