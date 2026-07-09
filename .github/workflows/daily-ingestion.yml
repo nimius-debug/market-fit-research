@@ -1,0 +1,45 @@
+name: Daily ingestion
+
+on:
+  schedule:
+    # 08:17 UTC daily — off the :00/:30 mark to avoid the scheduler's busiest minutes.
+    - cron: "17 8 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: pipeline-state
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Run daily ingestion
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pain-point-pipeline ingest
+
+      - name: Commit updated pipeline state
+        run: |
+          git config user.name "pain-point-pipeline-bot"
+          git config user.email "actions@github.com"
+          git add data/pipeline.sqlite3
+          git diff --cached --quiet || git commit -m "Daily ingestion: update pipeline state [skip ci]"
+          git push
