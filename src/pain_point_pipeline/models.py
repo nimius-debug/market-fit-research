@@ -20,7 +20,7 @@ class RawItem:
     author: str
     url: str
     text: str
-    created_at: datetime
+    created_at: datetime  # naive, implicitly UTC — every SourcePort adapter must follow this convention
 
 
 @dataclass(frozen=True)
