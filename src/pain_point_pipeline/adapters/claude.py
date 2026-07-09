@@ -9,7 +9,7 @@ nothing outside this module knows it's Claude.
 from __future__ import annotations
 
 import os
-from typing import Any, Literal, TypeVar
+from typing import Any, TypeVar
 
 import anthropic
 from pydantic import BaseModel
@@ -26,6 +26,11 @@ from pain_point_pipeline.ports import (
 DEFAULT_MODEL = "claude-opus-4-8"
 _JUDGMENT_MAX_TOKENS = 1024
 _SEARCH_MAX_TOKENS = 2048
+_MAX_SEARCH_CONTINUATIONS = 3
+
+
+def model_from_env() -> str:
+    return os.environ.get("CLAUDE_MODEL", DEFAULT_MODEL)
 
 
 class _PainPointClassificationModel(BaseModel):
@@ -48,7 +53,7 @@ class _BriefNarrativeModel(BaseModel):
 
 
 class _EffortEstimateModel(BaseModel):
-    size: Literal["S", "M", "L", "XL"]
+    size: EffortSize
     rationale: str
 
 
@@ -97,8 +102,8 @@ def _pain_points_block(pain_points: list[PainPoint]) -> str:
     return "\n".join(f"- {pp.summary} (source: {pp.raw_item.url})" for pp in pain_points)
 
 
-class LLMRefusalError(RuntimeError):
-    """Raised when Claude declines a request or a structured response fails to parse."""
+class LLMResponseError(RuntimeError):
+    """Raised when Claude declines a request (refusal) or returns nothing usable."""
 
 
 _T = TypeVar("_T", bound=BaseModel)
@@ -106,26 +111,29 @@ _T = TypeVar("_T", bound=BaseModel)
 
 def _require_parsed(response: Any, parsed: _T | None) -> _T:
     if parsed is None:
-        raise LLMRefusalError(f"Claude did not return a parseable response (stop_reason={response.stop_reason!r})")
+        raise LLMResponseError(f"Claude did not return a parseable response (stop_reason={response.stop_reason!r})")
     return parsed
 
 
 class ClaudeLLMSearchAdapter:
     """LLMSearchPort implementation backed by the Anthropic API."""
 
-    def __init__(self, client: anthropic.Anthropic | None = None, model: str = DEFAULT_MODEL) -> None:
+    def __init__(self, client: anthropic.Anthropic | None = None, model: str | None = None) -> None:
         self._client = client or anthropic.Anthropic()
-        self._model = model
+        self._model = model or model_from_env()
 
-    def classify_pain_point(self, item: RawItem) -> PainPointClassification:
+    def _structured(self, system: str, prompt: str, response_model: type[_T]) -> _T:
         response = self._client.messages.parse(
             model=self._model,
             max_tokens=_JUDGMENT_MAX_TOKENS,
-            system=_CLASSIFY_SYSTEM,
-            messages=[{"role": "user", "content": item.text}],
-            output_format=_PainPointClassificationModel,
+            system=system,
+            messages=[{"role": "user", "content": prompt}],
+            output_format=response_model,
         )
-        parsed = _require_parsed(response, response.parsed_output)
+        return _require_parsed(response, response.parsed_output)
+
+    def classify_pain_point(self, item: RawItem) -> PainPointClassification:
+        parsed = self._structured(_CLASSIFY_SYSTEM, item.text, _PainPointClassificationModel)
         return PainPointClassification(is_pain_point=parsed.is_pain_point, summary=parsed.summary)
 
     def match_or_create_opportunity(
@@ -136,14 +144,8 @@ class ClaudeLLMSearchAdapter:
 
         candidate_block = "\n".join(f"- id={c.id}: {c.title}" for c in candidates)
         prompt = f"New Pain Point text:\n{item.text}\n\nExisting Opportunity candidates:\n{candidate_block}"
-        response = self._client.messages.parse(
-            model=self._model,
-            max_tokens=_JUDGMENT_MAX_TOKENS,
-            system=_MATCH_SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            output_format=_ClusterMatchModel,
-        )
-        matched_id = _require_parsed(response, response.parsed_output).matched_opportunity_id
+        parsed = self._structured(_MATCH_SYSTEM, prompt, _ClusterMatchModel)
+        matched_id = parsed.matched_opportunity_id
         # Defend against a hallucinated id that isn't one of the candidates offered.
         valid_ids = {c.id for c in candidates}
         if matched_id not in valid_ids:
@@ -152,52 +154,40 @@ class ClaudeLLMSearchAdapter:
 
     def judge_solvable(self, pain_points: list[PainPoint]) -> SolvabilityJudgement:
         prompt = f"Pain Points:\n{_pain_points_block(pain_points)}"
-        response = self._client.messages.parse(
-            model=self._model,
-            max_tokens=_JUDGMENT_MAX_TOKENS,
-            system=_SOLVABLE_SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            output_format=_SolvabilityJudgementModel,
-        )
-        parsed = _require_parsed(response, response.parsed_output)
+        parsed = self._structured(_SOLVABLE_SYSTEM, prompt, _SolvabilityJudgementModel)
         return SolvabilityJudgement(solvable=parsed.solvable, rationale=parsed.rationale)
 
     def write_brief_narrative(self, pain_points: list[PainPoint]) -> BriefNarrative:
         prompt = f"Pain Points:\n{_pain_points_block(pain_points)}"
-        response = self._client.messages.parse(
-            model=self._model,
-            max_tokens=_JUDGMENT_MAX_TOKENS,
-            system=_BRIEF_SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            output_format=_BriefNarrativeModel,
-        )
-        parsed = _require_parsed(response, response.parsed_output)
+        parsed = self._structured(_BRIEF_SYSTEM, prompt, _BriefNarrativeModel)
         return BriefNarrative(problem_summary=parsed.problem_summary, solution_sketch=parsed.solution_sketch)
 
     def check_competitors(self, problem_summary: str) -> str:
-        response = self._client.messages.create(
-            model=self._model,
-            max_tokens=_SEARCH_MAX_TOKENS,
-            system=_COMPETITOR_SYSTEM,
-            messages=[{"role": "user", "content": problem_summary}],
-            tools=[{"type": "web_search_20260209", "name": "web_search"}],
+        messages: list[Any] = [{"role": "user", "content": problem_summary}]
+        tools: list[Any] = [{"type": "web_search_20260209", "name": "web_search"}]
+
+        for _ in range(_MAX_SEARCH_CONTINUATIONS):
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=_SEARCH_MAX_TOKENS,
+                system=_COMPETITOR_SYSTEM,
+                messages=messages,
+                tools=tools,
+            )
+            if response.stop_reason == "refusal":
+                raise LLMResponseError("Claude declined the competitor-check web search request")
+            if response.stop_reason == "pause_turn":
+                # Server-side search hit its per-turn iteration limit; resend to resume.
+                messages = [*messages, {"role": "assistant", "content": response.content}]
+                continue
+            text_blocks = [block.text for block in response.content if block.type == "text"]
+            return " ".join(text_blocks).strip()
+
+        raise LLMResponseError(
+            f"Competitor search did not complete after {_MAX_SEARCH_CONTINUATIONS} continuations"
         )
-        text_blocks = [block.text for block in response.content if block.type == "text"]
-        return " ".join(text_blocks).strip()
 
     def estimate_effort(self, problem_summary: str, solution_sketch: str) -> EffortEstimate:
         prompt = f"Problem: {problem_summary}\n\nSolution sketch: {solution_sketch}"
-        response = self._client.messages.parse(
-            model=self._model,
-            max_tokens=_JUDGMENT_MAX_TOKENS,
-            system=_EFFORT_SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            output_format=_EffortEstimateModel,
-        )
-        parsed = _require_parsed(response, response.parsed_output)
-        size: EffortSize = parsed.size
-        return EffortEstimate(size=size, rationale=parsed.rationale)
-
-
-def model_from_env() -> str:
-    return os.environ.get("CLAUDE_MODEL", DEFAULT_MODEL)
+        parsed = self._structured(_EFFORT_SYSTEM, prompt, _EffortEstimateModel)
+        return EffortEstimate(size=parsed.size, rationale=parsed.rationale)
