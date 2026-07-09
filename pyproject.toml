@@ -1,0 +1,30 @@
+[project]
+name = "pain-point-pipeline"
+version = "0.1.0"
+description = "Finds recurring pain points in Roblox/game-dev communities and surfaces them as Opportunity Briefs."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "mypy>=1.10"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: hits a real external API; excluded from the default run",
+]
+addopts = "-m 'not integration'"
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+explicit_package_bases = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
