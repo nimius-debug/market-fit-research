@@ -32,6 +32,26 @@ When (if) approval lands: register the approved app's credentials as the two
 `REDDIT_*` secrets above. The pipeline detects them automatically and re-enables
 `RedditSource` on the next run — no code or workflow change needed.
 
+## Cost control: model selection
+
+The pipeline defaults to **`claude-haiku-4-5`**, Anthropic's cheapest tier (~5×
+cheaper than Opus), which handles the short classification/clustering judgments
+fine at this volume. To trade money for judgment quality, set a `CLAUDE_MODEL`
+repository **variable** (or add it to the workflow `env`) — e.g.
+`claude-sonnet-5` (mid) or `claude-opus-4-8` (max). The adapter picks the right
+web-search tool variant for whichever model is set.
+
+Two other things that keep costs down:
+
+- **The first run is the most expensive.** With an empty database, every
+  fetched item gets classified. After that, the `since` watermark means daily
+  runs only process genuinely new posts — typically a small fraction of the
+  backfill.
+- The competitor check runs a real web search per Solvable Opportunity refresh —
+  that's the priciest single call. If costs still bite, capping how often an
+  existing Opportunity's brief is regenerated is the next lever (not yet
+  implemented; ask for it if needed).
+
 ## Testing before the first scheduled run
 
 Both workflows also trigger on `workflow_dispatch`, so you can run either one manually from the Actions tab once secrets are set, rather than waiting for the next cron firing.

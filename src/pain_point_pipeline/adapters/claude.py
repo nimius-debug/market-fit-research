@@ -23,10 +23,31 @@ from pain_point_pipeline.ports import (
     SolvabilityJudgement,
 )
 
-DEFAULT_MODEL = "claude-opus-4-8"
+# Haiku: the cheapest tier (~5x cheaper than Opus), and plenty for short
+# classification/clustering judgments at this pipeline's volume. Set the
+# CLAUDE_MODEL env var (e.g. "claude-sonnet-5" or "claude-opus-4-8") to trade
+# money for judgment quality.
+DEFAULT_MODEL = "claude-haiku-4-5"
 _JUDGMENT_MAX_TOKENS = 1024
 _SEARCH_MAX_TOKENS = 2048
 _MAX_SEARCH_CONTINUATIONS = 3
+
+# The dynamic-filtering web search variant needs Opus 4.6+/Sonnet 4.6+; other
+# models (incl. Haiku 4.5) must use the basic variant.
+_DYNAMIC_SEARCH_MODEL_PREFIXES = (
+    "claude-opus-4-6",
+    "claude-opus-4-7",
+    "claude-opus-4-8",
+    "claude-sonnet-4-6",
+    "claude-sonnet-5",
+    "claude-fable-5",
+)
+
+
+def _web_search_tool_type(model: str) -> str:
+    if model.startswith(_DYNAMIC_SEARCH_MODEL_PREFIXES):
+        return "web_search_20260209"
+    return "web_search_20250305"
 
 
 def model_from_env() -> str:
@@ -164,7 +185,7 @@ class ClaudeLLMSearchAdapter:
 
     def check_competitors(self, problem_summary: str) -> str:
         messages: list[Any] = [{"role": "user", "content": problem_summary}]
-        tools: list[Any] = [{"type": "web_search_20260209", "name": "web_search"}]
+        tools: list[Any] = [{"type": _web_search_tool_type(self._model), "name": "web_search"}]
 
         for _ in range(_MAX_SEARCH_CONTINUATIONS):
             response = self._client.messages.create(
