@@ -13,11 +13,24 @@ Add these under **Settings → Secrets and variables → Actions**:
 
 | Secret | Used by | Notes |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | daily ingestion | Anthropic API key for Claude (classification, clustering, briefs, competitor search) |
-| `REDDIT_CLIENT_ID` | daily ingestion | From a registered Reddit OAuth "script" app |
-| `REDDIT_CLIENT_SECRET` | daily ingestion | Same app |
+| `ANTHROPIC_API_KEY` | daily ingestion | **Required.** Anthropic API key for Claude (classification, clustering, briefs, competitor search) |
+| `REDDIT_CLIENT_ID` | daily ingestion | **Optional — see below.** From a registered Reddit OAuth "script" app |
+| `REDDIT_CLIENT_SECRET` | daily ingestion | Optional, same app |
 
 `GITHUB_TOKEN` is provided automatically by GitHub Actions for every run — nothing to add. The workflows request `contents: write` and `issues: write`/`issues: read` permissions so that token can push commits and manage Issues.
+
+### Reddit is currently disabled (approval pending)
+
+Reddit's Responsible Builder Policy (2026) requires manual approval before new
+API credentials work — self-service registration alone is no longer enough, and
+the unauthenticated `.json` endpoints are blocked for datacenter IPs like GitHub
+Actions runners. A Data Access Request for this project has been submitted to
+Reddit; until it's approved, ingestion runs **DevForum-only**, which works with
+no credentials at all.
+
+When (if) approval lands: register the approved app's credentials as the two
+`REDDIT_*` secrets above. The pipeline detects them automatically and re-enables
+`RedditSource` on the next run — no code or workflow change needed.
 
 ## Testing before the first scheduled run
 
