@@ -1,14 +1,16 @@
 """CLI entry points for the two scheduled GitHub Actions workflows (ticket 6).
 
-`ingest` wires all four real adapters into the daily batch; `digest` only
-needs the Tracker (to refresh Rejected status) since briefs were already
-generated and stored during ingestion. Both commit their own state to the
-repo from the calling workflow, not from here (see .github/workflows/).
+`ingest` wires the real adapters into the daily batch (DevForum always; Reddit
+only when credentials exist — see _build_sources); `digest` only needs the
+Tracker (to refresh Rejected status) since briefs were already generated and
+stored during ingestion. Both commit their own state to the repo from the
+calling workflow, not from here (see .github/workflows/).
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import sqlite3
 import sys
 from datetime import datetime, timezone
@@ -36,10 +38,26 @@ def _connect(db_path: str) -> sqlite3.Connection:
     return db.connect(db_path)
 
 
+def _build_sources() -> list[SourcePort]:
+    """DevForum always; Reddit only when credentials exist.
+
+    Reddit's Responsible Builder Policy (2026) gates new API credentials behind
+    a manual approval that is pending for this project — until it lands, runs
+    are DevForum-only. Once approved, adding REDDIT_CLIENT_ID/SECRET as repo
+    secrets re-enables RedditSource with no code change.
+    """
+    sources: list[SourcePort] = [DevForumSource()]
+    if os.environ.get("REDDIT_CLIENT_ID") and os.environ.get("REDDIT_CLIENT_SECRET"):
+        sources.append(RedditSource())
+    else:
+        print("Reddit credentials not set - running DevForum-only (see docs/deployment.md)")
+    return sources
+
+
 def run_daily_ingestion(db_path: str = DB_PATH) -> None:
     conn = _connect(db_path)
     try:
-        sources: list[SourcePort] = [RedditSource(), DevForumSource()]
+        sources = _build_sources()
         llm = ClaudeLLMSearchAdapter()
         tracker = GitHubTracker()
         result = run_ingestion_batch(sources, llm, tracker, conn, _now())
