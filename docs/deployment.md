@@ -19,7 +19,8 @@ Add these under **Settings → Secrets and variables → Actions**:
 
 | Secret | Used by | Notes |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | ingestion | **Required.** Anthropic API key for Claude (classification, clustering, briefs, competitor search) |
+| `DEEPSEEK_API_KEY` | ingestion | **Required by default.** DeepSeek platform API key — the default LLM provider (classification, clustering, briefs, effort estimate, competitor check) |
+| `ANTHROPIC_API_KEY` | ingestion | **Optional — see below.** Only needed if `LLM_PROVIDER` is set to `claude` |
 | `REDDIT_CLIENT_ID` | ingestion | **Optional — see below.** From a registered Reddit OAuth "script" app |
 | `REDDIT_CLIENT_SECRET` | ingestion | Optional, same app |
 
@@ -51,25 +52,44 @@ over `ArcticShiftSource` whenever those are set.
 credentials only as GitHub Actions repository secrets or in a local, gitignored
 `.env`.
 
-## Cost control: model selection
+## LLM provider: DeepSeek (default) vs. Claude
 
-The pipeline defaults to **`claude-haiku-4-5`**, Anthropic's cheapest tier (~5×
-cheaper than Opus), which handles the short classification/clustering judgments
-fine at this volume. To trade money for judgment quality, set a `CLAUDE_MODEL`
-repository **variable** (or add it to the workflow `env`) — e.g.
-`claude-sonnet-5` (mid) or `claude-opus-4-8` (max). The adapter picks the right
-web-search tool variant for whichever model is set.
+`cli._build_llm` defaults to **`DeepSeekLLMSearchAdapter`** (`adapters/deepseek.py`,
+model `deepseek-v4-flash` by default), which is far cheaper than even Claude's
+Haiku tier at this pipeline's classification/clustering volume. It works by
+pointing the `anthropic` SDK at DeepSeek's Anthropic-API-compatible endpoint
+(`https://api.deepseek.com/anthropic`) — no separate SDK needed. Set a
+`DEEPSEEK_MODEL` repository variable (e.g. `deepseek-v4-pro`) to trade money for
+judgment quality, same idea as `CLAUDE_MODEL` below.
 
-Two other things that keep costs down:
+Set the `LLM_PROVIDER` repository variable to `claude` to use
+**`ClaudeLLMSearchAdapter`** instead (needs `ANTHROPIC_API_KEY`). The pipeline
+defaults that adapter to **`claude-haiku-4-5`**, Anthropic's cheapest tier; set
+`CLAUDE_MODEL` (e.g. `claude-sonnet-5` or `claude-opus-4-8`) to trade money for
+quality there too.
+
+**The one real trade-off: `check_competitors` loses live web search on
+DeepSeek.** Claude's competitor check uses Anthropic's server-side hosted
+`web_search` tool, which DeepSeek's compatible endpoint doesn't expose (it's
+Anthropic infrastructure, not part of the Messages API surface DeepSeek
+mirrors). DeepSeek's `check_competitors` instead asks the model to judge from
+its own training knowledge and say so explicitly in the brief — a knowingly
+weaker signal, accepted here for the cost savings on the other five, much
+higher-volume calls. Switch to `LLM_PROVIDER=claude` if you want live search
+back for that one field.
+
+Two other things that keep costs down regardless of provider:
 
 - **The first run is the most expensive.** With an empty database, every
   fetched item gets classified. After that, the `since` watermark means later
   runs only process genuinely new posts — typically a small fraction of the
-  backfill.
-- The competitor check runs a real web search per Solvable Opportunity refresh —
-  that's the priciest single call. If costs still bite, capping how often an
-  existing Opportunity's brief is regenerated is the next lever (not yet
-  implemented; ask for it if needed).
+  backfill. At the current 6 subreddits, expect roughly 1,200 items classified
+  on that first run (~200 per subreddit).
+- The competitor check is the priciest single call when using Claude (a real
+  web search per Solvable Opportunity refresh); DeepSeek's version is cheap
+  since it's a plain completion. If costs still bite on Claude, capping how
+  often an existing Opportunity's brief is regenerated is the next lever (not
+  yet implemented; ask for it if needed).
 
 ## Testing before the first scheduled run
 

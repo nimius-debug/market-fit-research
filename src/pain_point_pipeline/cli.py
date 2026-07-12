@@ -24,10 +24,11 @@ from pathlib import Path
 from pain_point_pipeline import db
 from pain_point_pipeline.adapters.arctic_shift import ArcticShiftSource
 from pain_point_pipeline.adapters.claude import ClaudeLLMSearchAdapter
+from pain_point_pipeline.adapters.deepseek import DeepSeekLLMSearchAdapter
 from pain_point_pipeline.adapters.github_tracker import GitHubTracker
 from pain_point_pipeline.adapters.reddit import RedditSource
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
-from pain_point_pipeline.ports import SourcePort
+from pain_point_pipeline.ports import LLMSearchPort, SourcePort
 
 DB_PATH = "data/pipeline.sqlite3"
 DIGEST_PATH = "DIGEST.md"
@@ -57,11 +58,20 @@ def _build_sources() -> list[SourcePort]:
     return [ArcticShiftSource()]
 
 
+def _build_llm() -> LLMSearchPort:
+    """DeepSeek by default (far cheaper at this volume); set LLM_PROVIDER=claude
+    to use Claude instead — e.g. to get check_competitors' live web search back.
+    """
+    if os.environ.get("LLM_PROVIDER", "").lower() == "claude":
+        return ClaudeLLMSearchAdapter()
+    return DeepSeekLLMSearchAdapter()
+
+
 def run_weekly_ingestion(db_path: str = DB_PATH) -> None:
     conn = _connect(db_path)
     try:
         sources = _build_sources()
-        llm = ClaudeLLMSearchAdapter()
+        llm = _build_llm()
         tracker = GitHubTracker()
         result = run_ingestion_batch(sources, llm, tracker, conn, _now())
         print(

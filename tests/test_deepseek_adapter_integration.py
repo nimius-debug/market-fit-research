@@ -1,11 +1,10 @@
-"""Live-API contract tests for ClaudeLLMSearchAdapter (ticket 4).
+"""Live-API contract tests for DeepSeekLLMSearchAdapter.
 
 Excluded from the default test run (see pyproject.toml `addopts`). Run explicitly with:
 
-    pytest -m integration tests/test_claude_adapter_integration.py
+    pytest -m integration tests/test_deepseek_adapter_integration.py
 
-Requires ANTHROPIC_API_KEY (or another credential source the Anthropic SDK
-resolves automatically) in the environment.
+Requires DEEPSEEK_API_KEY in the environment.
 """
 
 from __future__ import annotations
@@ -16,14 +15,12 @@ from datetime import datetime
 
 import pytest
 
-from pain_point_pipeline.adapters.claude import ClaudeLLMSearchAdapter
+from pain_point_pipeline.adapters.deepseek import DeepSeekLLMSearchAdapter
 from pain_point_pipeline.models import OpportunitySummary, PainPoint, RawItem
 
 pytestmark = [
     pytest.mark.integration,
-    pytest.mark.skipif(
-        not os.environ.get("ANTHROPIC_API_KEY"), reason="requires ANTHROPIC_API_KEY"
-    ),
+    pytest.mark.skipif(not os.environ.get("DEEPSEEK_API_KEY"), reason="requires DEEPSEEK_API_KEY"),
 ]
 
 
@@ -40,11 +37,11 @@ def _make_item(text: str) -> RawItem:
 
 
 @pytest.fixture
-def adapter() -> ClaudeLLMSearchAdapter:
-    return ClaudeLLMSearchAdapter()
+def adapter() -> DeepSeekLLMSearchAdapter:
+    return DeepSeekLLMSearchAdapter()
 
 
-def test_classify_pain_point_recognizes_a_real_pain_point(adapter: ClaudeLLMSearchAdapter) -> None:
+def test_classify_pain_point_recognizes_a_real_pain_point(adapter: DeepSeekLLMSearchAdapter) -> None:
     item = _make_item(
         "Every time my n8n workflow calls an LLM step, a model update silently changes the output "
         "format and the downstream nodes break. There's no way to pin a model version or get "
@@ -55,14 +52,14 @@ def test_classify_pain_point_recognizes_a_real_pain_point(adapter: ClaudeLLMSear
     assert result.summary
 
 
-def test_classify_pain_point_rejects_generic_venting(adapter: ClaudeLLMSearchAdapter) -> None:
+def test_classify_pain_point_rejects_generic_venting(adapter: DeepSeekLLMSearchAdapter) -> None:
     item = _make_item("lol AI twitter is wild today")
     result = adapter.classify_pain_point(item)
     assert result.is_pain_point is False
 
 
 def test_match_or_create_opportunity_matches_the_same_underlying_problem(
-    adapter: ClaudeLLMSearchAdapter,
+    adapter: DeepSeekLLMSearchAdapter,
 ) -> None:
     candidate = OpportunitySummary(
         id="opp-1", title="No-code automation flows break silently when an LLM step's output format changes"
@@ -75,7 +72,7 @@ def test_match_or_create_opportunity_matches_the_same_underlying_problem(
     assert match.opportunity_id == "opp-1"
 
 
-def test_judge_solvable_accepts_a_solo_dev_buildable_problem(adapter: ClaudeLLMSearchAdapter) -> None:
+def test_judge_solvable_accepts_a_solo_dev_buildable_problem(adapter: DeepSeekLLMSearchAdapter) -> None:
     pain_points = [
         PainPoint(
             id=str(uuid.uuid4()),
@@ -89,7 +86,7 @@ def test_judge_solvable_accepts_a_solo_dev_buildable_problem(adapter: ClaudeLLMS
     assert judgement.rationale
 
 
-def test_judge_solvable_rejects_a_platform_only_problem(adapter: ClaudeLLMSearchAdapter) -> None:
+def test_judge_solvable_rejects_a_platform_only_problem(adapter: DeepSeekLLMSearchAdapter) -> None:
     pain_points = [
         PainPoint(
             id=str(uuid.uuid4()),
@@ -102,7 +99,7 @@ def test_judge_solvable_rejects_a_platform_only_problem(adapter: ClaudeLLMSearch
     assert judgement.solvable is False
 
 
-def test_write_brief_narrative_produces_a_summary_and_sketch(adapter: ClaudeLLMSearchAdapter) -> None:
+def test_write_brief_narrative_produces_a_summary_and_sketch(adapter: DeepSeekLLMSearchAdapter) -> None:
     pain_points = [
         PainPoint(
             id=str(uuid.uuid4()),
@@ -116,14 +113,14 @@ def test_write_brief_narrative_produces_a_summary_and_sketch(adapter: ClaudeLLMS
     assert narrative.solution_sketch
 
 
-def test_check_competitors_returns_a_nonempty_summary(adapter: ClaudeLLMSearchAdapter) -> None:
+def test_check_competitors_returns_a_nonempty_summary(adapter: DeepSeekLLMSearchAdapter) -> None:
     summary = adapter.check_competitors(
         "AI/automation builders have no reliable way to detect silent LLM output-format drift."
     )
     assert summary
 
 
-def test_estimate_effort_returns_a_tshirt_size(adapter: ClaudeLLMSearchAdapter) -> None:
+def test_estimate_effort_returns_a_tshirt_size(adapter: DeepSeekLLMSearchAdapter) -> None:
     estimate = adapter.estimate_effort(
         problem_summary="No tool detects silent LLM output-format drift in automation pipelines.",
         solution_sketch="A monitoring service that snapshots LLM API responses and diffs their schema over time.",
