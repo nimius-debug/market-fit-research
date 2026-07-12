@@ -15,6 +15,7 @@ want it moved back to daily.
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import sqlite3
 import sys
@@ -32,6 +33,8 @@ from pain_point_pipeline.ports import LLMSearchPort, SourcePort
 
 DB_PATH = "data/pipeline.sqlite3"
 DIGEST_PATH = "DIGEST.md"
+
+logger = logging.getLogger(__name__)
 
 
 def _now() -> datetime:
@@ -63,20 +66,27 @@ def _build_llm() -> LLMSearchPort:
     to use Claude instead — e.g. to get check_competitors' live web search back.
     """
     if os.environ.get("LLM_PROVIDER", "").lower() == "claude":
-        return ClaudeLLMSearchAdapter()
-    return DeepSeekLLMSearchAdapter()
+        llm: LLMSearchPort = ClaudeLLMSearchAdapter()
+    else:
+        llm = DeepSeekLLMSearchAdapter()
+    logger.info("LLM provider: %s (model %s)", type(llm).__name__, getattr(llm, "_model", "unknown"))
+    return llm
 
 
 def run_weekly_ingestion(db_path: str = DB_PATH) -> None:
     conn = _connect(db_path)
     try:
         sources = _build_sources()
+        logger.info("Sources: %s", ", ".join(type(s).__name__ for s in sources))
         llm = _build_llm()
         tracker = GitHubTracker()
         result = run_ingestion_batch(sources, llm, tracker, conn, _now())
-        print(
-            f"Ingestion: {result.new_raw_items} new raw items, {result.new_pain_points} pain points, "
-            f"{result.new_opportunities} new opportunities, {len(result.issues_created)} issues created"
+        logger.info(
+            "Ingestion done: %d new raw items, %d pain points, %d new opportunities, %d issues created",
+            result.new_raw_items,
+            result.new_pain_points,
+            result.new_opportunities,
+            len(result.issues_created),
         )
     finally:
         conn.close()
@@ -87,12 +97,18 @@ def run_weekly_digest(db_path: str = DB_PATH, digest_path: str = DIGEST_PATH) ->
     try:
         tracker = GitHubTracker()
         result = run_digest_build(conn, tracker, digest_path, _now())
-        print(f"Digest {result.digest_date}: {len(result.included_opportunity_ids)} opportunities included")
+        logger.info(
+            "Digest %s: %d opportunities included", result.digest_date, len(result.included_opportunity_ids)
+        )
     finally:
         conn.close()
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    # httpx logs one INFO line per request — hundreds per ingestion run; the
+    # orchestrator's own per-batch progress lines carry the signal instead.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     parser = argparse.ArgumentParser(description="AI/automation pain-point discovery pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("ingest", help="Run the weekly ingestion batch against real sources")

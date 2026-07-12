@@ -16,6 +16,13 @@ def test_deepseek_model_env_var_overrides_default(monkeypatch: pytest.MonkeyPatc
     assert model_from_env() == "deepseek-v4-pro"
 
 
+def test_empty_deepseek_model_env_var_falls_back_to_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    # GitHub Actions passes undefined repository variables as empty strings —
+    # a live run once sent model="" to the API and got a 400 back.
+    monkeypatch.setenv("DEEPSEEK_MODEL", "")
+    assert model_from_env() == DEFAULT_MODEL
+
+
 def test_construction_without_api_key_or_client_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
 

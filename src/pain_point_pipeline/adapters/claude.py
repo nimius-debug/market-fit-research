@@ -52,7 +52,9 @@ def _web_search_tool_type(model: str) -> str:
 
 
 def model_from_env() -> str:
-    return os.environ.get("CLAUDE_MODEL", DEFAULT_MODEL)
+    # `or`, not a .get() default: GitHub Actions passes undefined repository
+    # variables as *empty strings*, which must fall back to the default too.
+    return os.environ.get("CLAUDE_MODEL") or DEFAULT_MODEL
 
 
 class ClaudeLLMSearchAdapter(StructuredJudgmentAdapter):
