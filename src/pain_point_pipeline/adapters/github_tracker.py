@@ -58,3 +58,11 @@ class GitHubTracker:
         if any(label.name == REJECTED_LABEL for label in issue.labels):
             return "rejected"
         return "open"
+
+    def update_issue_title(self, issue_number: int, title: str) -> None:
+        self._get_repo().get_issue(issue_number).edit(title=title)
+
+    def close_issue(self, issue_number: int, comment: str) -> None:
+        issue = self._get_repo().get_issue(issue_number)
+        issue.create_comment(comment)
+        issue.edit(state="closed", state_reason="not_planned")

@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS opportunities (
     solvable_rationale TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    last_digested_at TEXT
+    last_digested_at TEXT,
+    solvability_checked_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS opportunity_pain_points (
@@ -87,6 +88,16 @@ def _migrate(conn: sqlite3.Connection) -> None:
     if "processed_at" not in columns:
         conn.execute("ALTER TABLE raw_items ADD COLUMN processed_at TEXT")
         conn.execute("UPDATE raw_items SET processed_at = created_at")
+        conn.commit()
+
+    # solvability_checked_at (2026-07): opportunities judged before the column
+    # existed have solvable set (0 or 1); backfill them as checked so the first
+    # run after this migration only refreshes the genuinely unjudged backlog —
+    # the ones a timed-out phase 3 stranded with solvable still NULL.
+    opportunity_columns = {row["name"] for row in conn.execute("PRAGMA table_info(opportunities)")}
+    if "solvability_checked_at" not in opportunity_columns:
+        conn.execute("ALTER TABLE opportunities ADD COLUMN solvability_checked_at TEXT")
+        conn.execute("UPDATE opportunities SET solvability_checked_at = updated_at WHERE solvable IS NOT NULL")
         conn.commit()
 
 

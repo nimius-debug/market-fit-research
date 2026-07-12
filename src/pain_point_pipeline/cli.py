@@ -28,7 +28,7 @@ from pain_point_pipeline.adapters.claude import ClaudeLLMSearchAdapter
 from pain_point_pipeline.adapters.deepseek import DeepSeekLLMSearchAdapter
 from pain_point_pipeline.adapters.github_tracker import GitHubTracker
 from pain_point_pipeline.adapters.reddit import RedditSource
-from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
+from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster
 from pain_point_pipeline.ports import LLMSearchPort, SourcePort
 
 DB_PATH = "data/pipeline.sqlite3"
@@ -104,6 +104,22 @@ def run_weekly_digest(db_path: str = DB_PATH, digest_path: str = DIGEST_PATH) ->
         conn.close()
 
 
+def run_recluster_maintenance(db_path: str = DB_PATH) -> None:
+    conn = _connect(db_path)
+    try:
+        llm = _build_llm()
+        tracker = GitHubTracker()
+        result = run_recluster(llm, tracker, conn, _now())
+        logger.info(
+            "Recluster: %d pain points into %d opportunities, %d stale issues closed",
+            result.pain_points_reclustered,
+            result.opportunities_created,
+            result.issues_closed,
+        )
+    finally:
+        conn.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     # httpx logs one INFO line per request — hundreds per ingestion run; the
@@ -113,12 +129,18 @@ def main(argv: list[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("ingest", help="Run the weekly ingestion batch against real sources")
     subparsers.add_parser("digest", help="Build the weekly Digest from already-ingested Opportunities")
+    subparsers.add_parser(
+        "recluster",
+        help="Maintenance: re-derive all Opportunities from stored Pain Points under the current match criterion",
+    )
     args = parser.parse_args(argv)
 
     if args.command == "ingest":
         run_weekly_ingestion()
     elif args.command == "digest":
         run_weekly_digest()
+    elif args.command == "recluster":
+        run_recluster_maintenance()
     return 0
 
 

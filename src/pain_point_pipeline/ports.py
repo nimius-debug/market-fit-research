@@ -69,8 +69,12 @@ class LLMSearchPort(Protocol):
     def classify_pain_point(self, item: RawItem) -> PainPointClassification: ...
 
     def match_or_create_opportunity(
-        self, item: RawItem, candidates: list[OpportunitySummary]
-    ) -> ClusterMatch: ...
+        self, summary: str, candidates: list[OpportunitySummary]
+    ) -> ClusterMatch:
+        """Match a Pain Point's one-sentence summary (not raw post text: the
+        candidates are titles in the same register, so compare like with like)
+        against the candidate Opportunities."""
+        ...
 
     def judge_solvable(self, pain_points: list[PainPoint]) -> SolvabilityJudgement: ...
 
@@ -89,3 +93,12 @@ class TrackerPort(Protocol):
         ...
 
     def get_status(self, issue_number: int) -> IssueStatus: ...
+
+    def update_issue_title(self, issue_number: int, title: str) -> None:
+        """Keep the (N reports, M people) counts in the title current as an
+        Opportunity accretes Pain Points."""
+        ...
+
+    def close_issue(self, issue_number: int, comment: str) -> None:
+        """Close an issue that no longer tracks a live Opportunity (recluster cleanup)."""
+        ...

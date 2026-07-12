@@ -18,6 +18,15 @@ Classification — the highest-volume LLM call, one per fetched item — runs
 concurrently in a thread pool. Clustering stays sequential on purpose: each new
 Pain Point can create the very Opportunity the next one should match into, so
 the candidate list must be re-read between items.
+
+Phase 3 (solvability/brief/issue) is resumable and parallel the same way: its
+work list comes from opportunities.solvability_checked_at in the DB, not from
+an in-memory "touched this run" set — a run that dies mid-phase-3 leaves the
+unjudged remainder marked as such, and the next run picks it up. (The first
+live run stranded 114 of 181 opportunities exactly this way.) The LLM work per
+opportunity runs in the pool; all DB writes and issue creation stay on the
+main thread, one commit per opportunity, because the SQLite connection is
+single-threaded.
 """
 
 from __future__ import annotations
@@ -28,11 +37,20 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import partial
+from typing import TypeVar
 
 from pain_point_pipeline import repository
 from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, append_digest, format_digest_section
-from pain_point_pipeline.models import OpportunityBrief, OpportunityIssue, PainPoint, RawItem
-from pain_point_pipeline.ports import LLMSearchPort, SourcePort, TrackerPort
+from pain_point_pipeline.models import Opportunity, OpportunityBrief, OpportunityIssue, PainPoint
+from pain_point_pipeline.ports import (
+    BriefNarrative,
+    EffortEstimate,
+    LLMSearchPort,
+    SolvabilityJudgement,
+    SourcePort,
+    TrackerPort,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +58,22 @@ logger = logging.getLogger(__name__)
 # of in-flight classifications (they stay unprocessed and are retried next run).
 CLASSIFY_BATCH_SIZE = 25
 _CLASSIFY_MAX_WORKERS = 8
+
+# Refresh batches are smaller: each opportunity costs up to 4 sequential LLM
+# calls, so one batch is already ~30 concurrent-ish requests at the burstiest.
+REFRESH_BATCH_SIZE = 8
+_REFRESH_MAX_WORKERS = 8
+
+# Briefs and issues are the human review surface; a problem is only worth a
+# review slot once distinct people (not one person posting repeatedly) have hit
+# it. Below the gate an Opportunity is still clustered and judged for
+# solvability, but the expensive brief trio (narrative/competitor/effort) and
+# the GitHub Issue wait until the gate is crossed — both arrive automatically
+# on the refresh after the qualifying voice joins. Added when the first live
+# runs headed toward ~200 issues, nearly all single-mention singletons.
+MIN_DISTINCT_AUTHORS = 3
+
+_TBatch = TypeVar("_TBatch")
 
 
 @dataclass
@@ -57,8 +91,44 @@ class DigestResult:
     included_opportunity_ids: list[str] = field(default_factory=list)
 
 
-def _batches(items: list[RawItem], size: int) -> list[list[RawItem]]:
+@dataclass
+class ReclusterResult:
+    pain_points_reclustered: int = 0
+    opportunities_created: int = 0
+    issues_closed: int = 0
+
+
+def _batches(items: list[_TBatch], size: int) -> list[list[_TBatch]]:
     return [items[i : i + size] for i in range(0, len(items), size)]
+
+
+@dataclass(frozen=True)
+class _RefreshComputation:
+    """The pure-LLM half of an opportunity refresh, computed in a worker thread;
+    brief fields are None when the judgement came back not solvable."""
+
+    judgement: SolvabilityJudgement
+    narrative: BriefNarrative | None = None
+    competitor_check: str | None = None
+    effort: EffortEstimate | None = None
+
+
+def _compute_refresh(llm: LLMSearchPort, opportunity: Opportunity) -> _RefreshComputation:
+    judgement = llm.judge_solvable(opportunity.pain_points)
+    if not judgement.solvable or opportunity.distinct_authors < MIN_DISTINCT_AUTHORS:
+        # Solvability is always judged (one cheap call, keeps the bookkeeping
+        # current); the expensive brief trio waits for the author gate.
+        return _RefreshComputation(judgement=judgement)
+    narrative = llm.write_brief_narrative(opportunity.pain_points)
+    competitor_check = llm.check_competitors(narrative.problem_summary)
+    effort = llm.estimate_effort(narrative.problem_summary, narrative.solution_sketch)
+    return _RefreshComputation(
+        judgement=judgement, narrative=narrative, competitor_check=competitor_check, effort=effort
+    )
+
+
+def _issue_title(opportunity: Opportunity) -> str:
+    return f"{opportunity.title} ({opportunity.frequency} reports, {opportunity.distinct_authors} people)"
 
 
 def run_ingestion_batch(
@@ -111,15 +181,11 @@ def run_ingestion_batch(
                     repository.insert_pain_point(conn, pain_point)
                     result.new_pain_points += 1
 
-                    candidates = repository.list_open_opportunity_summaries(conn)
-                    match = llm.match_or_create_opportunity(item, candidates)
-                    opportunity_id = match.opportunity_id
-                    if opportunity_id is None:
-                        opportunity_id = str(uuid.uuid4())
-                        repository.create_opportunity(conn, opportunity_id, title=classification.summary, now=now)
+                    opportunity_id, created = _assign_to_opportunity(
+                        llm, conn, classification.summary, pain_point_id, now
+                    )
+                    if created:
                         result.new_opportunities += 1
-
-                    repository.add_pain_point_to_opportunity(conn, opportunity_id, pain_point_id, now)
                     result.touched_opportunity_ids.add(opportunity_id)
 
                 repository.mark_raw_item_processed(conn, item.id, now)
@@ -134,12 +200,27 @@ def run_ingestion_batch(
                 result.new_opportunities,
             )
 
-    # Phase 3 — solvability/brief/issue per touched Opportunity; each refresh is
-    # several LLM calls plus possibly an Issue create, so commit after each.
-    logger.info("Refreshing solvability/briefs for %d touched opportunities", len(result.touched_opportunity_ids))
-    for opportunity_id in result.touched_opportunity_ids:
-        _refresh_solvability_and_brief(opportunity_id, llm, tracker, conn, now, result)
-        conn.commit()
+    # Phase 3 — solvability/brief/issue, DB-driven like phase 2: the work list
+    # includes opportunities stranded unjudged by an earlier killed run, not
+    # just ones touched now. LLM calls run in the pool; DB writes and issue
+    # creation stay on this thread (SQLite connection is single-threaded),
+    # committed per opportunity.
+    pending_ids = repository.opportunities_needing_refresh(conn)
+    logger.info(
+        "Refreshing solvability/briefs for %d opportunities (%d touched this run, rest backlog)",
+        len(pending_ids),
+        len(result.touched_opportunity_ids),
+    )
+    refreshed = 0
+    with ThreadPoolExecutor(max_workers=_REFRESH_MAX_WORKERS) as pool:
+        for id_batch in _batches(pending_ids, REFRESH_BATCH_SIZE):
+            opportunities = [repository.load_opportunity(conn, oid) for oid in id_batch]
+            computations = list(pool.map(partial(_compute_refresh, llm), opportunities))
+            for opportunity, computation in zip(opportunities, computations):
+                _apply_refresh(opportunity, computation, tracker, conn, now, result)
+                conn.commit()
+            refreshed += len(id_batch)
+            logger.info("Refresh progress: %d/%d opportunities (committed)", refreshed, len(pending_ids))
 
     _refresh_all_issue_statuses(tracker=tracker, conn=conn, now=now)
 
@@ -147,45 +228,76 @@ def run_ingestion_batch(
     return result
 
 
-def _refresh_solvability_and_brief(
-    opportunity_id: str,
+def _assign_to_opportunity(
     llm: LLMSearchPort,
+    conn: sqlite3.Connection,
+    summary: str,
+    pain_point_id: str,
+    now: datetime,
+) -> tuple[str, bool]:
+    """Cluster one Pain Point: match its summary into an existing Opportunity or
+    create a new one. Returns (opportunity_id, created). Shared by ingestion's
+    phase 2 and the recluster replay so both use the identical criterion."""
+    candidates = repository.list_match_candidates(conn)
+    match = llm.match_or_create_opportunity(summary, candidates)
+    opportunity_id = match.opportunity_id
+    created = opportunity_id is None
+    if opportunity_id is None:
+        opportunity_id = str(uuid.uuid4())
+        repository.create_opportunity(conn, opportunity_id, title=summary, now=now)
+    repository.add_pain_point_to_opportunity(conn, opportunity_id, pain_point_id, now)
+    return opportunity_id, created
+
+
+def _apply_refresh(
+    opportunity: Opportunity,
+    computation: _RefreshComputation,
     tracker: TrackerPort,
     conn: sqlite3.Connection,
     now: datetime,
     result: IngestionResult,
 ) -> None:
-    opportunity = repository.load_opportunity(conn, opportunity_id)
-    judgement = llm.judge_solvable(opportunity.pain_points)
-    repository.update_opportunity_solvability(conn, opportunity_id, judgement.solvable, judgement.rationale)
+    judgement = computation.judgement
+    repository.update_opportunity_solvability(
+        conn, opportunity.id, judgement.solvable, judgement.rationale, checked_at=now
+    )
     logger.info(
-        "Opportunity %r (%d pain points): solvable=%s", opportunity.title[:70], opportunity.frequency, judgement.solvable
+        "Opportunity %r (%d reports, %d people): solvable=%s",
+        opportunity.title[:70],
+        opportunity.frequency,
+        opportunity.distinct_authors,
+        judgement.solvable,
     )
 
-    if not judgement.solvable:
+    if computation.narrative is None:
+        # Not solvable, or below the author gate — judged and recorded, but no
+        # brief or issue until enough distinct voices join.
         return
+    assert computation.competitor_check is not None
+    assert computation.effort is not None
 
-    narrative = llm.write_brief_narrative(opportunity.pain_points)
-    competitor_check = llm.check_competitors(narrative.problem_summary)
-    effort = llm.estimate_effort(narrative.problem_summary, narrative.solution_sketch)
     brief = OpportunityBrief(
-        opportunity_id=opportunity_id,
-        problem_summary=narrative.problem_summary,
-        solution_sketch=narrative.solution_sketch,
-        effort_size=effort.size,
-        effort_rationale=effort.rationale,
-        competitor_check=competitor_check,
+        opportunity_id=opportunity.id,
+        problem_summary=computation.narrative.problem_summary,
+        solution_sketch=computation.narrative.solution_sketch,
+        effort_size=computation.effort.size,
+        effort_rationale=computation.effort.rationale,
+        competitor_check=computation.competitor_check,
         generated_at=now,
     )
     repository.save_brief(conn, brief)
 
-    if repository.load_issue(conn, opportunity_id) is None:
-        issue_number = tracker.create_issue(opportunity_id, brief, title=opportunity.title)
+    issue = repository.load_issue(conn, opportunity.id)
+    if issue is None:
+        issue_number = tracker.create_issue(opportunity.id, brief, title=_issue_title(opportunity))
         repository.save_issue(
-            conn, OpportunityIssue(opportunity_id=opportunity_id, issue_number=issue_number, status="open", checked_at=now)
+            conn, OpportunityIssue(opportunity_id=opportunity.id, issue_number=issue_number, status="open", checked_at=now)
         )
-        result.issues_created[opportunity_id] = issue_number
+        result.issues_created[opportunity.id] = issue_number
         logger.info("Opened issue #%d for %r", issue_number, opportunity.title[:70])
+    else:
+        # Keep the counts in the title current — they're the scan signal.
+        tracker.update_issue_title(issue.issue_number, _issue_title(opportunity))
 
 
 def _refresh_all_issue_statuses(tracker: TrackerPort, conn: sqlite3.Connection, now: datetime) -> None:
@@ -223,3 +335,61 @@ def run_digest_build(conn: sqlite3.Connection, tracker: TrackerPort, digest_path
 
     conn.commit()
     return DigestResult(digest_date=digest_date, included_opportunity_ids=included_ids)
+
+
+def run_recluster(
+    llm: LLMSearchPort,
+    tracker: TrackerPort,
+    conn: sqlite3.Connection,
+    now: datetime,
+) -> ReclusterResult:
+    """One-time maintenance: rebuild the clustering layer under the current
+    match criterion. Closes every tracked GitHub issue (their opportunities are
+    about to be replaced), wipes Opportunities/briefs/issue links — Pain Points
+    and their classifications are kept, nothing is re-classified — then replays
+    every stored Pain Point summary through the matcher in arrival order.
+    Solvability marks start NULL, so the next ingestion's phase 3 rebuilds
+    briefs and issues under the current gates. Run via the manual
+    "Recluster" workflow whenever the criterion changes enough to warrant it.
+    """
+    result = ReclusterResult()
+
+    for opportunity_id in repository.list_tracked_opportunity_ids(conn):
+        issue = repository.load_issue(conn, opportunity_id)
+        assert issue is not None
+        if issue.status == "open":
+            tracker.close_issue(
+                issue.issue_number,
+                "Closing automatically: the clustering criterion changed and all Opportunities "
+                "are being re-derived. A recurring problem will resurface as a new issue once it "
+                "crosses the current gate.",
+            )
+            result.issues_closed += 1
+    logger.info("Closed %d tracked issues", result.issues_closed)
+
+    repository.delete_derived_clustering_state(conn)
+    conn.commit()
+
+    summaries = repository.list_pain_point_summaries(conn)
+    logger.info("Reclustering %d pain points under the current match criterion", len(summaries))
+    for pain_point_id, summary in summaries:
+        _, created = _assign_to_opportunity(llm, conn, summary, pain_point_id, now)
+        if created:
+            result.opportunities_created += 1
+        result.pain_points_reclustered += 1
+        if result.pain_points_reclustered % CLASSIFY_BATCH_SIZE == 0:
+            conn.commit()
+            logger.info(
+                "Recluster progress: %d/%d pain points into %d opportunities (committed)",
+                result.pain_points_reclustered,
+                len(summaries),
+                result.opportunities_created,
+            )
+
+    conn.commit()
+    logger.info(
+        "Recluster done: %d pain points into %d opportunities; run ingest to rebuild briefs/issues",
+        result.pain_points_reclustered,
+        result.opportunities_created,
+    )
+    return result

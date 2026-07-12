@@ -49,10 +49,10 @@ class FakeLLMSearch:
         )
 
     def match_or_create_opportunity(
-        self, item: RawItem, candidates: list[OpportunitySummary]
+        self, summary: str, candidates: list[OpportunitySummary]
     ) -> ClusterMatch:
         for candidate in candidates:
-            if f"CLUSTER_WITH:{candidate.title}" in item.text:
+            if f"CLUSTER_WITH:{candidate.title}" in summary:
                 return ClusterMatch(opportunity_id=candidate.id)
         return ClusterMatch(opportunity_id=None)
 
@@ -81,12 +81,15 @@ class FakeTracker:
         self._next_issue_number = 1
         self._issues: dict[int, IssueStatus] = {}
         self.created: dict[str, int] = {}
+        self.titles: dict[int, str] = {}
+        self.closed: list[int] = []
 
     def create_issue(self, opportunity_id: str, brief: OpportunityBrief, title: str) -> int:
         issue_number = self._next_issue_number
         self._next_issue_number += 1
         self._issues[issue_number] = "open"
         self.created[opportunity_id] = issue_number
+        self.titles[issue_number] = title
         return issue_number
 
     def get_status(self, issue_number: int) -> IssueStatus:
@@ -94,3 +97,10 @@ class FakeTracker:
 
     def set_status(self, issue_number: int, status: IssueStatus) -> None:
         self._issues[issue_number] = status
+
+    def update_issue_title(self, issue_number: int, title: str) -> None:
+        self.titles[issue_number] = title
+
+    def close_issue(self, issue_number: int, comment: str) -> None:
+        self._issues[issue_number] = "rejected"
+        self.closed.append(issue_number)
