@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS raw_items (
     url TEXT NOT NULL,
     text TEXT NOT NULL,
     created_at TEXT NOT NULL,
+    processed_at TEXT,
     UNIQUE (source, external_id)
 );
 
@@ -73,9 +74,26 @@ CREATE TABLE IF NOT EXISTS source_state (
 """
 
 
+def _migrate(conn: sqlite3.Connection) -> None:
+    """In-place migrations for databases created before a schema change.
+
+    processed_at (2026-07): rows written before the column existed were all
+    classified inline in the same run that inserted them (the pre-resumable
+    orchestrator committed all-or-nothing), so they are backfilled as processed
+    rather than left NULL — otherwise the first run after this migration would
+    re-classify the entire historical backlog.
+    """
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(raw_items)")}
+    if "processed_at" not in columns:
+        conn.execute("ALTER TABLE raw_items ADD COLUMN processed_at TEXT")
+        conn.execute("UPDATE raw_items SET processed_at = created_at")
+        conn.commit()
+
+
 def connect(path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn

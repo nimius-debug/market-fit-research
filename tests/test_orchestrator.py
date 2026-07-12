@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import threading
 from datetime import timedelta
 from pathlib import Path
 
+import pytest
 from fakes import FakeLLMSearch, FakeSource, FakeTracker
-from pain_point_pipeline import repository
+from pain_point_pipeline import orchestrator, repository
+from pain_point_pipeline.models import RawItem
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
+from pain_point_pipeline.ports import PainPointClassification
 
 
 def test_full_batch_creates_pain_point_opportunity_brief_issue_and_digest_entry(conn, now, make_item, digest_path):
@@ -94,6 +98,81 @@ def test_digest_is_capped_at_five_ranked_by_frequency(conn, now, make_item, dige
     boosted = repository.load_opportunity(conn, digest_result.included_opportunity_ids[0])
     assert boosted.title == "PAINPOINT unique claim 3"
     assert boosted.frequency == 2
+
+
+class _CountingLLM(FakeLLMSearch):
+    """FakeLLMSearch that counts classify calls (thread-safely, since Phase 2 is parallel)."""
+
+    def __init__(self) -> None:
+        self.classify_calls = 0
+        self._lock = threading.Lock()
+
+    def classify_pain_point(self, item: RawItem) -> PainPointClassification:
+        with self._lock:
+            self.classify_calls += 1
+        return super().classify_pain_point(item)
+
+
+def test_backlog_left_by_a_killed_run_is_processed_by_the_next_run(conn, now, make_item):
+    # Simulate a run killed after fetch: raw items committed, never classified.
+    leftover = make_item("PAINPOINT stranded by a timeout")
+    repository.insert_raw_item_if_new(conn, leftover)
+    conn.commit()
+
+    result = run_ingestion_batch([FakeSource("reddit", [])], FakeLLMSearch(), FakeTracker(), conn, now)
+
+    assert result.new_raw_items == 0  # nothing newly fetched...
+    assert result.new_pain_points == 1  # ...but the backlog item got classified
+
+
+def test_already_processed_items_are_not_reclassified(conn, now, make_item):
+    item = make_item("PAINPOINT scripting is painful")
+    source = FakeSource("reddit", [item])
+    llm = _CountingLLM()
+    tracker = FakeTracker()
+
+    run_ingestion_batch([source], llm, tracker, conn, now)
+    assert llm.classify_calls == 1
+
+    # Same source again: the item is refetched (FakeSource ignores dedup) but
+    # both the (source, external_id) uniqueness and processed_at skip it.
+    later = now + timedelta(days=7)
+    second = run_ingestion_batch([FakeSource("reddit", [item])], llm, tracker, conn, later)
+
+    assert llm.classify_calls == 1
+    assert second.new_pain_points == 0
+
+
+def test_crash_mid_run_keeps_all_previously_committed_batches(conn, now, make_item, monkeypatch):
+    monkeypatch.setattr(orchestrator, "CLASSIFY_BATCH_SIZE", 2)
+
+    class _ExplodingLLM(FakeLLMSearch):
+        def classify_pain_point(self, item: RawItem) -> PainPointClassification:
+            if "BOOM" in item.text:
+                raise RuntimeError("simulated mid-run crash")
+            return super().classify_pain_point(item)
+
+    items = [
+        make_item("PAINPOINT batch one, item one", external_id="a"),
+        make_item("PAINPOINT batch one, item two", external_id="b"),
+        make_item("BOOM batch two dies", external_id="c"),
+    ]
+
+    with pytest.raises(RuntimeError, match="simulated mid-run crash"):
+        run_ingestion_batch([FakeSource("reddit", items)], _ExplodingLLM(), FakeTracker(), conn, now)
+
+    # Discard the in-flight transaction, as a killed process would.
+    conn.rollback()
+
+    processed = conn.execute("SELECT COUNT(*) AS n FROM raw_items WHERE processed_at IS NOT NULL").fetchone()["n"]
+    pain_points = conn.execute("SELECT COUNT(*) AS n FROM pain_points").fetchone()["n"]
+    unprocessed = repository.list_unprocessed_raw_items(conn)
+
+    assert processed == 2  # batch one survived its commit
+    assert pain_points == 2
+    assert [item.external_id for item in unprocessed] == ["c"]  # retried next run
+    # The watermark also survived (committed during the fetch phase).
+    assert repository.get_last_fetched_at(conn, "reddit") == now
 
 
 def test_rejected_opportunity_is_suppressed_from_digest(conn, now, make_item, digest_path):

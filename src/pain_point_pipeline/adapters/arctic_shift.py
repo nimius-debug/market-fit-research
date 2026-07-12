@@ -29,7 +29,11 @@ from pain_point_pipeline.models import RawItem
 
 BASE_URL = "https://arctic-shift.photon-reddit.com"
 DEFAULT_SUBREDDITS = ["AI_Agents", "automation", "artificial", "nocode", "SaaS", "LocalLLaMA"]
-_PAGE_LIMIT = 100
+# 50, not the API max of "auto"/1000: fetch volume directly drives LLM
+# classification cost and run time (6 subreddits x posts+comments x limit
+# items on a cold start), and 50/listing/week comfortably covers these
+# subreddits' new-post rates.
+_PAGE_LIMIT = 50
 
 
 def _to_naive_utc(timestamp: float) -> datetime:
