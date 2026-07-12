@@ -1,9 +1,11 @@
-name: Daily ingestion
+name: Weekly ingestion
 
 on:
   schedule:
-    # 08:17 UTC daily — off the :00/:30 mark to avoid the scheduler's busiest minutes.
-    - cron: "17 8 * * *"
+    # Monday 08:17 UTC — well before that day's 15:23 UTC digest run, off the :00/:30 mark.
+    # Weekly, not daily: the RapidAPI reddit34 free tier caps at 50 requests/month, and this
+    # run costs 4 (2 subreddits x posts+comments) — see docs/deployment.md.
+    - cron: "17 8 * * 1"
   workflow_dispatch: {}
 
 permissions:
@@ -28,9 +30,10 @@ jobs:
       - name: Install dependencies
         run: pip install -e .
 
-      - name: Run daily ingestion
+      - name: Run weekly ingestion
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
           REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,5 +44,5 @@ jobs:
           git config user.name "pain-point-pipeline-bot"
           git config user.email "actions@github.com"
           git add data/pipeline.sqlite3
-          git diff --cached --quiet || git commit -m "Daily ingestion: update pipeline state [skip ci]"
+          git diff --cached --quiet || git commit -m "Weekly ingestion: update pipeline state [skip ci]"
           git push

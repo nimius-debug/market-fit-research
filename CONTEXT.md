@@ -5,13 +5,13 @@ Finds pain points expressed in online communities within niches the user has rea
 ## Language
 
 **Niche**:
-An industry or interest area the user has enough first-hand expertise in to judge whether a surfaced pain point is real and worth solving. Candidate niches: software engineering tooling, Roblox/game dev coaching, construction, electrical trade, daycare/childcare operations.
+An industry or interest area the user has enough first-hand expertise in to judge whether a surfaced pain point is real and worth solving. Candidate niches: software engineering tooling, AI/automation tooling, Roblox/game dev coaching, construction, electrical trade, daycare/childcare operations.
 
 **Target Niche (v1)**:
-Roblox / game dev coaching. Chosen as the v1 niche because it is Reddit/forum-native (easiest data access) and closest to the user's own software skill set, so a surfaced pain point can move quickly from brief to prototype.
+AI and automation (LLM apps, agents, no-code/workflow automation). Replaces the original Roblox/game-dev v1 niche — Roblox stayed blocked on Reddit's Responsible Builder Policy approval (see docs/deployment.md), and AI/automation is both Reddit-native and squarely inside the user's own software expertise, so a surfaced pain point can move quickly from brief to prototype.
 
 **Source**:
-A platform the system reads from to find pain points. v1 sources: Reddit (r/robloxgamedev, r/roblox_dev, r/RobloxDevelopers) and the Roblox DevForum (devforum.roblox.com). Discord is explicitly excluded from v1 due to access-permission and signal-noise concerns.
+A platform the system reads from to find pain points. v1 source: Reddit (r/AI_Agents, r/automation — see `DEFAULT_SUBREDDITS` in `adapters/reddit.py` and `adapters/reddit_rapidapi.py`), read via RedditRapidAPISource (a paid third-party proxy, unblocked immediately) with RedditSource (the official API) as the eventual replacement once Reddit's approval lands. Only two subreddits and a weekly (not daily) ingestion cadence, because RapidAPI's free tier caps at 50 requests/month — see docs/deployment.md. The Roblox DevForum source used in the original v1 niche has no AI/automation equivalent and is no longer wired into the pipeline (`adapters/devforum.py` is kept but unused, in case a Roblox-adjacent niche is added later). Discord is explicitly excluded from v1 due to access-permission and signal-noise concerns.
 
 **Pain Point**:
 A single post or comment, judged by an LLM classifier (not keyword matching), that expresses genuine frustration, an unmet need, or a workaround for a problem. Not every complaint qualifies — venting with no underlying unmet need is not a Pain Point.
