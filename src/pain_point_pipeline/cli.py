@@ -6,10 +6,10 @@ Rejected status) since briefs were already generated and stored during
 ingestion. Both commit their own state to the repo from the calling workflow,
 not from here (see .github/workflows/).
 
-Ingestion runs weekly, not daily, because the RapidAPI reddit34 free tier caps
-out at 50 requests/month — 2 subreddits x 2 endpoints (posts + comments) per
-run leaves headroom for manual `workflow_dispatch` reruns at weekly cadence,
-but would blow the quota within days at daily cadence (see docs/deployment.md).
+Ingestion still runs weekly (not daily) — that cadence was originally forced by
+a since-removed RapidAPI adapter's 50-requests/month quota, and hasn't been
+revisited now that ArcticShiftSource has no meaningful rate limit; ask if you
+want it moved back to daily.
 """
 
 from __future__ import annotations
@@ -22,10 +22,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pain_point_pipeline import db
+from pain_point_pipeline.adapters.arctic_shift import ArcticShiftSource
 from pain_point_pipeline.adapters.claude import ClaudeLLMSearchAdapter
 from pain_point_pipeline.adapters.github_tracker import GitHubTracker
 from pain_point_pipeline.adapters.reddit import RedditSource
-from pain_point_pipeline.adapters.reddit_rapidapi import RedditRapidAPISource
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
 from pain_point_pipeline.ports import SourcePort
 
@@ -44,21 +44,17 @@ def _connect(db_path: str) -> sqlite3.Connection:
 
 
 def _build_sources() -> list[SourcePort]:
-    """RapidAPI's reddit34 when RAPIDAPI_KEY is set; else the official Reddit API
-    when REDDIT_CLIENT_ID/SECRET are set; else no sources.
+    """The official Reddit API when REDDIT_CLIENT_ID/SECRET are set; else
+    ArcticShiftSource, which needs no credentials at all.
 
     Reddit's Responsible Builder Policy (2026) gates new official-API credentials
     behind a manual approval that is pending for this project (see
-    docs/deployment.md), so RedditRapidAPISource — a paid third-party proxy — is
-    the default unblock. If/when official approval lands, unset RAPIDAPI_KEY (or
-    just leave both set; RapidAPI takes priority) to prefer RedditSource instead.
+    docs/deployment.md); ArcticShiftSource is the zero-configuration default
+    until that lands, so ingestion always has a working source out of the box.
     """
-    if os.environ.get("RAPIDAPI_KEY"):
-        return [RedditRapidAPISource()]
     if os.environ.get("REDDIT_CLIENT_ID") and os.environ.get("REDDIT_CLIENT_SECRET"):
         return [RedditSource()]
-    print("No Reddit credentials set (RAPIDAPI_KEY or REDDIT_CLIENT_ID/SECRET) - no sources to ingest from")
-    return []
+    return [ArcticShiftSource()]
 
 
 def run_weekly_ingestion(db_path: str = DB_PATH) -> None:

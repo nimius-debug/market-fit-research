@@ -1,31 +1,25 @@
-"""Live-API contract test for RedditRapidAPISource.
+"""Live-API contract test for ArcticShiftSource.
 
 Excluded from the default test run. Run explicitly with:
 
-    pytest -m integration tests/test_reddit_rapidapi_adapter_integration.py
+    pytest -m integration tests/test_arctic_shift_adapter_integration.py
 
-Requires RAPIDAPI_KEY (a RapidAPI Hub subscription key for reddit34) in the
-environment.
+No credentials needed — Arctic Shift's search endpoints are public.
 """
 
 from __future__ import annotations
 
-import os
-
 import pytest
 from fakes import FakeLLMSearch, FakeTracker
 
-from pain_point_pipeline.adapters.reddit_rapidapi import RedditRapidAPISource
+from pain_point_pipeline.adapters.arctic_shift import ArcticShiftSource
 from pain_point_pipeline.orchestrator import run_ingestion_batch
 
-pytestmark = [
-    pytest.mark.integration,
-    pytest.mark.skipif(not os.environ.get("RAPIDAPI_KEY"), reason="requires RAPIDAPI_KEY"),
-]
+pytestmark = pytest.mark.integration
 
 
 def test_fetch_new_pulls_at_least_one_real_item_from_each_subreddit() -> None:
-    source = RedditRapidAPISource(subreddits=["AI_Agents"])
+    source = ArcticShiftSource(subreddits=["AI_Agents"])
 
     items = source.fetch_new(since=None)
 
@@ -39,8 +33,8 @@ def test_fetch_new_pulls_at_least_one_real_item_from_each_subreddit() -> None:
 
 
 def test_run_ingestion_batch_accepts_real_reddit_data(conn, now) -> None:
-    """Proves the orchestrator seam actually accepts RedditRapidAPISource, not just fetch_new() in isolation."""
-    source = RedditRapidAPISource(subreddits=["AI_Agents"])
+    """Proves the orchestrator seam actually accepts ArcticShiftSource, not just fetch_new() in isolation."""
+    source = ArcticShiftSource(subreddits=["AI_Agents"])
 
     result = run_ingestion_batch([source], FakeLLMSearch(), FakeTracker(), conn, now)
 

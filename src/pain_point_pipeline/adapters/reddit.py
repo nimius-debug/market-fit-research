@@ -6,8 +6,8 @@ client_id + client_secret + user_agent gives PRAW a read-only, client-credential
 token; no username/password needed. No scraping, per ADR-0002/CONTEXT.md.
 
 Gated behind Reddit's Responsible Builder Policy approval (see
-docs/deployment.md) — until that lands, adapters/reddit_rapidapi.py's
-RedditRapidAPISource covers the same subreddits as a paid stopgap.
+docs/deployment.md) — until that lands, adapters/arctic_shift.py's
+ArcticShiftSource covers the same subreddits with no credentials needed.
 """
 
 from __future__ import annotations

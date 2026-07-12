@@ -3,8 +3,8 @@ name: Weekly ingestion
 on:
   schedule:
     # Monday 08:17 UTC — well before that day's 15:23 UTC digest run, off the :00/:30 mark.
-    # Weekly, not daily: the RapidAPI reddit34 free tier caps at 50 requests/month, and this
-    # run costs 4 (2 subreddits x posts+comments) — see docs/deployment.md.
+    # Weekly is a leftover from a since-removed RapidAPI adapter's quota, not a
+    # constraint of the current default source (Arctic Shift) — see docs/deployment.md.
     - cron: "17 8 * * 1"
   workflow_dispatch: {}
 
@@ -33,7 +33,6 @@ jobs:
       - name: Run weekly ingestion
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
           REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

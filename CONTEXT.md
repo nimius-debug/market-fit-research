@@ -11,7 +11,7 @@ An industry or interest area the user has enough first-hand expertise in to judg
 AI and automation (LLM apps, agents, no-code/workflow automation). Replaces the original Roblox/game-dev v1 niche — Roblox stayed blocked on Reddit's Responsible Builder Policy approval (see docs/deployment.md), and AI/automation is both Reddit-native and squarely inside the user's own software expertise, so a surfaced pain point can move quickly from brief to prototype.
 
 **Source**:
-A platform the system reads from to find pain points. v1 source: Reddit (r/AI_Agents, r/automation — see `DEFAULT_SUBREDDITS` in `adapters/reddit.py` and `adapters/reddit_rapidapi.py`), read via RedditRapidAPISource (a paid third-party proxy, unblocked immediately) with RedditSource (the official API) as the eventual replacement once Reddit's approval lands. Only two subreddits and a weekly (not daily) ingestion cadence, because RapidAPI's free tier caps at 50 requests/month — see docs/deployment.md. The Roblox DevForum source used in the original v1 niche has no AI/automation equivalent and is no longer wired into the pipeline (`adapters/devforum.py` is kept but unused, in case a Roblox-adjacent niche is added later). Discord is explicitly excluded from v1 due to access-permission and signal-noise concerns.
+A platform the system reads from to find pain points. v1 source: Reddit (r/AI_Agents, r/automation — see `DEFAULT_SUBREDDITS` in `adapters/reddit.py` and `adapters/arctic_shift.py`), read via ArcticShiftSource (a free, no-auth, community-run API, unblocked immediately) with RedditSource (the official API) as the eventual replacement once Reddit's approval lands — see docs/deployment.md. The Roblox DevForum source used in the original v1 niche has no AI/automation equivalent and is no longer wired into the pipeline (`adapters/devforum.py` is kept but unused, in case a Roblox-adjacent niche is added later). Discord is explicitly excluded from v1 due to access-permission and signal-noise concerns.
 
 **Pain Point**:
 A single post or comment, judged by an LLM classifier (not keyword matching), that expresses genuine frustration, an unmet need, or a workaround for a problem. Not every complaint qualifies — venting with no underlying unmet need is not a Pain Point.
@@ -27,7 +27,7 @@ An Opportunity is Solvable if the LLM judges the underlying problem to be addres
 The report the system produces for a single Opportunity, given to the user for a build/no-build decision. Contains: problem summary, evidence (representative quotes/links), frequency signal, solution sketch, solvability rationale, competitor check, and solo-dev effort estimate.
 
 **Digest**:
-The weekly, append-only markdown file the user actually reads. Each week's section lists the Opportunity Briefs that are new or meaningfully updated since the last Digest. The ingestion pipeline itself still runs daily; the Digest is just the weekly reading cadence layered on top.
+The weekly, append-only markdown file the user actually reads. Each week's section lists the Opportunity Briefs that are new or meaningfully updated since the last Digest. The ingestion pipeline currently runs on the same weekly cadence (see docs/deployment.md).
 
 **Rejected**:
 A status the user can apply to an Opportunity to suppress it from future Digests. Applied by closing (or labeling) the GitHub Issue auto-created for that Opportunity. The system does not otherwise learn from rejections in v1 — no ranking bias, just suppression.
