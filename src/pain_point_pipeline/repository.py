@@ -101,12 +101,27 @@ def add_pain_point_to_opportunity(
 
 
 def update_opportunity_solvability(
-    conn: sqlite3.Connection, opportunity_id: str, solvable: bool, rationale: str
+    conn: sqlite3.Connection, opportunity_id: str, solvable: bool, rationale: str, checked_at: datetime
 ) -> None:
     conn.execute(
-        "UPDATE opportunities SET solvable = ?, solvable_rationale = ? WHERE id = ?",
-        (1 if solvable else 0, rationale, opportunity_id),
+        "UPDATE opportunities SET solvable = ?, solvable_rationale = ?, solvability_checked_at = ? WHERE id = ?",
+        (1 if solvable else 0, rationale, checked_at.isoformat(), opportunity_id),
     )
+
+
+def opportunities_needing_refresh(conn: sqlite3.Connection) -> list[str]:
+    """Opportunities whose solvability/brief is stale: never judged (including
+    those stranded by a run that died mid-phase-3), or touched by a new Pain
+    Point since they were last judged. Oldest-created first, so a repeatedly
+    interrupted backlog still drains front-to-back."""
+    rows = conn.execute(
+        """
+        SELECT id FROM opportunities
+        WHERE solvability_checked_at IS NULL OR updated_at > solvability_checked_at
+        ORDER BY created_at, rowid
+        """
+    ).fetchall()
+    return [row["id"] for row in rows]
 
 
 def _rejected_opportunity_ids(conn: sqlite3.Connection) -> set[str]:

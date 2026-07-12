@@ -7,21 +7,26 @@ from pathlib import Path
 import pytest
 from fakes import FakeLLMSearch, FakeSource, FakeTracker
 from pain_point_pipeline import orchestrator, repository
-from pain_point_pipeline.models import RawItem
+from pain_point_pipeline.models import PainPoint, RawItem
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
 from pain_point_pipeline.ports import PainPointClassification
 
 
 def test_full_batch_creates_pain_point_opportunity_brief_issue_and_digest_entry(conn, now, make_item, digest_path):
-    item = make_item("PAINPOINT scripting is painful")
-    source = FakeSource("reddit", [item])
+    # Two pain points about the same problem: recurring, so it crosses the
+    # MIN_PAIN_POINTS_FOR_ISSUE gate as well as getting a brief.
+    first = make_item("PAINPOINT scripting is painful", author="alice")
+    second = make_item(
+        "PAINPOINT another dev agrees CLUSTER_WITH:PAINPOINT scripting is painful", author="bob"
+    )
+    source = FakeSource("reddit", [first, second])
     llm = FakeLLMSearch()
     tracker = FakeTracker()
 
     ingest_result = run_ingestion_batch([source], llm, tracker, conn, now)
 
-    assert ingest_result.new_raw_items == 1
-    assert ingest_result.new_pain_points == 1
+    assert ingest_result.new_raw_items == 2
+    assert ingest_result.new_pain_points == 2
     assert ingest_result.new_opportunities == 1
     assert len(ingest_result.issues_created) == 1
 
@@ -32,6 +37,30 @@ def test_full_batch_creates_pain_point_opportunity_brief_issue_and_digest_entry(
     assert "Recurring problem" in digest_text
     assert "No direct competitors found" in digest_text
     assert "S — Small, well-scoped tool" in digest_text
+
+
+def test_solvable_singleton_gets_a_brief_but_no_issue_until_a_second_pain_point_joins(
+    conn, now, make_item
+):
+    item = make_item("PAINPOINT scripting is painful")
+    tracker = FakeTracker()
+
+    first_run = run_ingestion_batch([FakeSource("reddit", [item])], FakeLLMSearch(), tracker, conn, now)
+
+    assert first_run.issues_created == {}
+    (opportunity_id,) = first_run.touched_opportunity_ids
+    assert repository.load_brief(conn, opportunity_id) is not None  # briefed, just not surfaced yet
+
+    booster = make_item(
+        "PAINPOINT another dev agrees CLUSTER_WITH:PAINPOINT scripting is painful",
+        author="bob",
+        created_at=now + timedelta(days=3),
+    )
+    second_run = run_ingestion_batch(
+        [FakeSource("reddit", [booster])], FakeLLMSearch(), tracker, conn, now + timedelta(days=7)
+    )
+
+    assert opportunity_id in second_run.issues_created
 
 
 def test_non_pain_point_items_are_ignored(conn, now, make_item, digest_path):
@@ -143,6 +172,47 @@ def test_already_processed_items_are_not_reclassified(conn, now, make_item):
     assert second.new_pain_points == 0
 
 
+def test_opportunities_stranded_unjudged_by_a_killed_run_are_refreshed_next_run(conn, now, make_item):
+    # Run 1 gets through classification/clustering but dies before phase 3
+    # reaches this opportunity: pain point + opportunity committed, solvable
+    # still NULL. Simulate by doing phase 2's writes directly.
+    repository.create_opportunity(conn, "opp-stranded", title="stranded", now=now)
+    for n, author in enumerate(["alice", "bob"], start=1):
+        item = make_item(f"PAINPOINT stranded before solvability {n}", author=author)
+        repository.insert_raw_item_if_new(conn, item)
+        repository.insert_pain_point(
+            conn, PainPoint(id=f"pp-{n}", raw_item=item, summary="stranded", created_at=now)
+        )
+        repository.add_pain_point_to_opportunity(conn, "opp-stranded", f"pp-{n}", now)
+        repository.mark_raw_item_processed(conn, item.id, now)
+    conn.commit()
+
+    tracker = FakeTracker()
+    later = now + timedelta(days=7)
+    result = run_ingestion_batch([FakeSource("reddit", [])], FakeLLMSearch(), tracker, conn, later)
+
+    # Nothing new was fetched or classified, but the stranded opportunity got judged and surfaced.
+    assert result.new_pain_points == 0
+    assert "opp-stranded" in result.issues_created
+    opportunity = repository.load_opportunity(conn, "opp-stranded")
+    assert opportunity.solvable is True
+
+
+def test_already_judged_opportunities_are_not_rejudged(conn, now, make_item):
+    item = make_item("PAINPOINT scripting is painful")
+    tracker = FakeTracker()
+    run_ingestion_batch([FakeSource("reddit", [item])], FakeLLMSearch(), tracker, conn, now)
+
+    class _NoJudgingLLM(FakeLLMSearch):
+        def judge_solvable(self, pain_points):
+            raise AssertionError("judge_solvable should not run for an unchanged opportunity")
+
+    later = now + timedelta(days=7)
+    result = run_ingestion_batch([FakeSource("reddit", [])], _NoJudgingLLM(), tracker, conn, later)
+
+    assert result.issues_created == {}
+
+
 def test_crash_mid_run_keeps_all_previously_committed_batches(conn, now, make_item, monkeypatch):
     monkeypatch.setattr(orchestrator, "CLASSIFY_BATCH_SIZE", 2)
 
@@ -176,8 +246,11 @@ def test_crash_mid_run_keeps_all_previously_committed_batches(conn, now, make_it
 
 
 def test_rejected_opportunity_is_suppressed_from_digest(conn, now, make_item, digest_path):
-    item = make_item("PAINPOINT scripting is painful")
-    source = FakeSource("reddit", [item])
+    items = [
+        make_item("PAINPOINT scripting is painful", author="alice"),
+        make_item("PAINPOINT me too CLUSTER_WITH:PAINPOINT scripting is painful", author="bob"),
+    ]
+    source = FakeSource("reddit", items)
     tracker = FakeTracker()
 
     ingest_result = run_ingestion_batch([source], FakeLLMSearch(), tracker, conn, now)

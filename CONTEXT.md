@@ -30,4 +30,4 @@ The report the system produces for a single Opportunity, given to the user for a
 The weekly, append-only markdown file the user actually reads. Each week's section lists the Opportunity Briefs that are new or meaningfully updated since the last Digest. The ingestion pipeline currently runs on the same weekly cadence (see docs/deployment.md).
 
 **Rejected**:
-A status the user can apply to an Opportunity to suppress it from future Digests. Applied by closing (or labeling) the GitHub Issue auto-created for that Opportunity. The system does not otherwise learn from rejections in v1 — no ranking bias, just suppression.
+A status the user can apply to an Opportunity to suppress it from future Digests. Applied by closing (or labeling) the GitHub Issue auto-created for that Opportunity. Issues are only auto-created once an Opportunity has **2+ Pain Points** (a recurring problem, not a single complaint) — solvable singletons still get judged and briefed, and their Issue opens automatically if a second Pain Point later joins. The system does not otherwise learn from rejections in v1 — no ranking bias, just suppression.

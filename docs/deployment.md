@@ -91,6 +91,41 @@ Two other things that keep costs down regardless of provider:
   often an existing Opportunity's brief is regenerated is the next lever (not
   yet implemented; ask for it if needed).
 
+## Run time, timeouts, and resumability
+
+The first live 6-subreddit run exceeded the job timeout: ~1,200 fetched items
+classified one sequential LLM call at a time, committed once at the very end —
+the kill discarded everything including the `since` watermark, so the next run
+would have refetched and re-timed-out identically, forever. The design that
+fixes this class of problem:
+
+- **Fetch is capped at 50 items per (subreddit, endpoint)** — fetch volume
+  directly drives LLM call count, which is what actually costs time and money.
+  Worst case ~600 items on a cold start, a fraction of that on later runs
+  thanks to the watermark.
+- **Classification runs in a thread pool** (8 concurrent calls, batches of 25).
+  Clustering stays sequential by design: each new Pain Point can create the
+  Opportunity the next one should match.
+- **Runs are resumable — both LLM phases.** Ingestion commits after every
+  fetch, classification batch, and Opportunity refresh. Classification is
+  driven by a `processed_at` marker on each raw item, and the
+  solvability/brief phase by a `solvability_checked_at` marker on each
+  Opportunity — neither works off "what did this run fetch", so a killed run
+  keeps everything it finished and the next run picks up only the remainder.
+  (The first live run proved why the second marker matters: it timed out
+  mid-refresh and stranded 114 of 181 opportunities that an in-memory work
+  list would never have revisited.) The workflow puts the timeout on the
+  *ingest step* (25 min) rather than only the job, so the `always()` commit
+  step still pushes partial state to the repo when ingestion runs long.
+- **The solvability/brief phase is also parallel**: the up-to-4 LLM calls per
+  Opportunity run in a thread pool (batches of 8), with all SQLite writes and
+  issue creation kept on the main thread.
+- **Issues open only for recurring problems.** A GitHub Issue is created once
+  an Opportunity reaches 2+ Pain Points (`MIN_PAIN_POINTS_FOR_ISSUE`);
+  solvable singletons are still judged and briefed, and their Issue opens
+  automatically if a second Pain Point joins later. Without this gate the
+  first live runs were heading toward ~200 open issues, nearly all singletons.
+
 ## Testing before the first scheduled run
 
 Both workflows also trigger on `workflow_dispatch`, so you can run either one manually from the Actions tab once secrets are set, rather than waiting for the next cron firing.

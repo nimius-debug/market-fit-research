@@ -18,6 +18,15 @@ Classification — the highest-volume LLM call, one per fetched item — runs
 concurrently in a thread pool. Clustering stays sequential on purpose: each new
 Pain Point can create the very Opportunity the next one should match into, so
 the candidate list must be re-read between items.
+
+Phase 3 (solvability/brief/issue) is resumable and parallel the same way: its
+work list comes from opportunities.solvability_checked_at in the DB, not from
+an in-memory "touched this run" set — a run that dies mid-phase-3 leaves the
+unjudged remainder marked as such, and the next run picks it up. (The first
+live run stranded 114 of 181 opportunities exactly this way.) The LLM work per
+opportunity runs in the pool; all DB writes and issue creation stay on the
+main thread, one commit per opportunity, because the SQLite connection is
+single-threaded.
 """
 
 from __future__ import annotations
@@ -28,11 +37,20 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import partial
+from typing import TypeVar
 
 from pain_point_pipeline import repository
 from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, append_digest, format_digest_section
-from pain_point_pipeline.models import OpportunityBrief, OpportunityIssue, PainPoint, RawItem
-from pain_point_pipeline.ports import LLMSearchPort, SourcePort, TrackerPort
+from pain_point_pipeline.models import Opportunity, OpportunityBrief, OpportunityIssue, PainPoint
+from pain_point_pipeline.ports import (
+    BriefNarrative,
+    EffortEstimate,
+    LLMSearchPort,
+    SolvabilityJudgement,
+    SourcePort,
+    TrackerPort,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +58,19 @@ logger = logging.getLogger(__name__)
 # of in-flight classifications (they stay unprocessed and are retried next run).
 CLASSIFY_BATCH_SIZE = 25
 _CLASSIFY_MAX_WORKERS = 8
+
+# Refresh batches are smaller: each opportunity costs up to 4 sequential LLM
+# calls, so one batch is already ~30 concurrent-ish requests at the burstiest.
+REFRESH_BATCH_SIZE = 8
+_REFRESH_MAX_WORKERS = 8
+
+# An issue is the human review surface; a problem one single person mentioned
+# once isn't worth a review slot yet. Singletons still get judged and briefed —
+# the issue opens automatically if a second Pain Point ever joins. Added when
+# the first live run headed toward ~200 issues, nearly all singletons.
+MIN_PAIN_POINTS_FOR_ISSUE = 2
+
+_TBatch = TypeVar("_TBatch")
 
 
 @dataclass
@@ -57,8 +88,31 @@ class DigestResult:
     included_opportunity_ids: list[str] = field(default_factory=list)
 
 
-def _batches(items: list[RawItem], size: int) -> list[list[RawItem]]:
+def _batches(items: list[_TBatch], size: int) -> list[list[_TBatch]]:
     return [items[i : i + size] for i in range(0, len(items), size)]
+
+
+@dataclass(frozen=True)
+class _RefreshComputation:
+    """The pure-LLM half of an opportunity refresh, computed in a worker thread;
+    brief fields are None when the judgement came back not solvable."""
+
+    judgement: SolvabilityJudgement
+    narrative: BriefNarrative | None = None
+    competitor_check: str | None = None
+    effort: EffortEstimate | None = None
+
+
+def _compute_refresh(llm: LLMSearchPort, opportunity: Opportunity) -> _RefreshComputation:
+    judgement = llm.judge_solvable(opportunity.pain_points)
+    if not judgement.solvable:
+        return _RefreshComputation(judgement=judgement)
+    narrative = llm.write_brief_narrative(opportunity.pain_points)
+    competitor_check = llm.check_competitors(narrative.problem_summary)
+    effort = llm.estimate_effort(narrative.problem_summary, narrative.solution_sketch)
+    return _RefreshComputation(
+        judgement=judgement, narrative=narrative, competitor_check=competitor_check, effort=effort
+    )
 
 
 def run_ingestion_batch(
@@ -134,12 +188,27 @@ def run_ingestion_batch(
                 result.new_opportunities,
             )
 
-    # Phase 3 — solvability/brief/issue per touched Opportunity; each refresh is
-    # several LLM calls plus possibly an Issue create, so commit after each.
-    logger.info("Refreshing solvability/briefs for %d touched opportunities", len(result.touched_opportunity_ids))
-    for opportunity_id in result.touched_opportunity_ids:
-        _refresh_solvability_and_brief(opportunity_id, llm, tracker, conn, now, result)
-        conn.commit()
+    # Phase 3 — solvability/brief/issue, DB-driven like phase 2: the work list
+    # includes opportunities stranded unjudged by an earlier killed run, not
+    # just ones touched now. LLM calls run in the pool; DB writes and issue
+    # creation stay on this thread (SQLite connection is single-threaded),
+    # committed per opportunity.
+    pending_ids = repository.opportunities_needing_refresh(conn)
+    logger.info(
+        "Refreshing solvability/briefs for %d opportunities (%d touched this run, rest backlog)",
+        len(pending_ids),
+        len(result.touched_opportunity_ids),
+    )
+    refreshed = 0
+    with ThreadPoolExecutor(max_workers=_REFRESH_MAX_WORKERS) as pool:
+        for id_batch in _batches(pending_ids, REFRESH_BATCH_SIZE):
+            opportunities = [repository.load_opportunity(conn, oid) for oid in id_batch]
+            computations = list(pool.map(partial(_compute_refresh, llm), opportunities))
+            for opportunity, computation in zip(opportunities, computations):
+                _apply_refresh(opportunity, computation, tracker, conn, now, result)
+                conn.commit()
+            refreshed += len(id_batch)
+            logger.info("Refresh progress: %d/%d opportunities (committed)", refreshed, len(pending_ids))
 
     _refresh_all_issue_statuses(tracker=tracker, conn=conn, now=now)
 
@@ -147,44 +216,45 @@ def run_ingestion_batch(
     return result
 
 
-def _refresh_solvability_and_brief(
-    opportunity_id: str,
-    llm: LLMSearchPort,
+def _apply_refresh(
+    opportunity: Opportunity,
+    computation: _RefreshComputation,
     tracker: TrackerPort,
     conn: sqlite3.Connection,
     now: datetime,
     result: IngestionResult,
 ) -> None:
-    opportunity = repository.load_opportunity(conn, opportunity_id)
-    judgement = llm.judge_solvable(opportunity.pain_points)
-    repository.update_opportunity_solvability(conn, opportunity_id, judgement.solvable, judgement.rationale)
+    judgement = computation.judgement
+    repository.update_opportunity_solvability(
+        conn, opportunity.id, judgement.solvable, judgement.rationale, checked_at=now
+    )
     logger.info(
         "Opportunity %r (%d pain points): solvable=%s", opportunity.title[:70], opportunity.frequency, judgement.solvable
     )
 
     if not judgement.solvable:
         return
+    assert computation.narrative is not None
+    assert computation.competitor_check is not None
+    assert computation.effort is not None
 
-    narrative = llm.write_brief_narrative(opportunity.pain_points)
-    competitor_check = llm.check_competitors(narrative.problem_summary)
-    effort = llm.estimate_effort(narrative.problem_summary, narrative.solution_sketch)
     brief = OpportunityBrief(
-        opportunity_id=opportunity_id,
-        problem_summary=narrative.problem_summary,
-        solution_sketch=narrative.solution_sketch,
-        effort_size=effort.size,
-        effort_rationale=effort.rationale,
-        competitor_check=competitor_check,
+        opportunity_id=opportunity.id,
+        problem_summary=computation.narrative.problem_summary,
+        solution_sketch=computation.narrative.solution_sketch,
+        effort_size=computation.effort.size,
+        effort_rationale=computation.effort.rationale,
+        competitor_check=computation.competitor_check,
         generated_at=now,
     )
     repository.save_brief(conn, brief)
 
-    if repository.load_issue(conn, opportunity_id) is None:
-        issue_number = tracker.create_issue(opportunity_id, brief, title=opportunity.title)
+    if opportunity.frequency >= MIN_PAIN_POINTS_FOR_ISSUE and repository.load_issue(conn, opportunity.id) is None:
+        issue_number = tracker.create_issue(opportunity.id, brief, title=opportunity.title)
         repository.save_issue(
-            conn, OpportunityIssue(opportunity_id=opportunity_id, issue_number=issue_number, status="open", checked_at=now)
+            conn, OpportunityIssue(opportunity_id=opportunity.id, issue_number=issue_number, status="open", checked_at=now)
         )
-        result.issues_created[opportunity_id] = issue_number
+        result.issues_created[opportunity.id] = issue_number
         logger.info("Opened issue #%d for %r", issue_number, opportunity.title[:70])
 
 
