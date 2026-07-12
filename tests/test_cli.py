@@ -28,41 +28,31 @@ def test_digest_dispatches_to_run_weekly_digest(monkeypatch: pytest.MonkeyPatch)
 
 
 def _clear_reddit_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for var in ("RAPIDAPI_KEY", "RAPIDAPI_HOST", "REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET"):
+    for var in ("REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET"):
         monkeypatch.delenv(var, raising=False)
 
 
-def test_no_sources_without_any_reddit_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_arctic_shift_used_without_official_reddit_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     _clear_reddit_env(monkeypatch)
 
     sources = cli._build_sources()
 
-    assert sources == []
+    assert [source.name for source in sources] == ["reddit"]
+    assert isinstance(sources[0], cli.ArcticShiftSource)
 
 
-def test_empty_credentials_also_mean_no_sources(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_arctic_shift_used_when_credentials_are_empty_strings(monkeypatch: pytest.MonkeyPatch) -> None:
     # GitHub Actions passes empty strings for unset secrets, not missing env vars.
     _clear_reddit_env(monkeypatch)
-    monkeypatch.setenv("RAPIDAPI_KEY", "")
     monkeypatch.setenv("REDDIT_CLIENT_ID", "")
     monkeypatch.setenv("REDDIT_CLIENT_SECRET", "")
 
     sources = cli._build_sources()
 
-    assert sources == []
+    assert isinstance(sources[0], cli.ArcticShiftSource)
 
 
-def test_rapidapi_reddit_used_when_key_set(monkeypatch: pytest.MonkeyPatch) -> None:
-    _clear_reddit_env(monkeypatch)
-    monkeypatch.setenv("RAPIDAPI_KEY", "test-key")
-
-    sources = cli._build_sources()
-
-    assert [source.name for source in sources] == ["reddit"]
-    assert isinstance(sources[0], cli.RedditRapidAPISource)
-
-
-def test_official_reddit_used_when_only_official_credentials_set(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_official_reddit_used_when_official_credentials_set(monkeypatch: pytest.MonkeyPatch) -> None:
     _clear_reddit_env(monkeypatch)
     monkeypatch.setenv("REDDIT_CLIENT_ID", "test-id")
     monkeypatch.setenv("REDDIT_CLIENT_SECRET", "test-secret")
@@ -71,17 +61,6 @@ def test_official_reddit_used_when_only_official_credentials_set(monkeypatch: py
 
     assert [source.name for source in sources] == ["reddit"]
     assert isinstance(sources[0], cli.RedditSource)
-
-
-def test_rapidapi_takes_priority_when_both_credential_sets_exist(monkeypatch: pytest.MonkeyPatch) -> None:
-    _clear_reddit_env(monkeypatch)
-    monkeypatch.setenv("RAPIDAPI_KEY", "test-key")
-    monkeypatch.setenv("REDDIT_CLIENT_ID", "test-id")
-    monkeypatch.setenv("REDDIT_CLIENT_SECRET", "test-secret")
-
-    sources = cli._build_sources()
-
-    assert isinstance(sources[0], cli.RedditRapidAPISource)
 
 
 def test_missing_command_exits_nonzero() -> None:
