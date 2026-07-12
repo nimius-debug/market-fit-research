@@ -8,27 +8,33 @@ import pytest
 from fakes import FakeLLMSearch, FakeSource, FakeTracker
 from pain_point_pipeline import orchestrator, repository
 from pain_point_pipeline.models import PainPoint, RawItem
-from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
-from pain_point_pipeline.ports import PainPointClassification
+from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster
+from pain_point_pipeline.ports import ClusterMatch, PainPointClassification
+
+
+def _clustered_items(make_item, base: str, authors: list[str], **kwargs):
+    """First item defines the Opportunity (title = its summary); the rest cluster into it."""
+    items = [make_item(f"PAINPOINT {base}", author=authors[0], **kwargs)]
+    for author in authors[1:]:
+        items.append(make_item(f"PAINPOINT agree CLUSTER_WITH:PAINPOINT {base}", author=author, **kwargs))
+    return items
 
 
 def test_full_batch_creates_pain_point_opportunity_brief_issue_and_digest_entry(conn, now, make_item, digest_path):
-    # Two pain points about the same problem: recurring, so it crosses the
-    # MIN_PAIN_POINTS_FOR_ISSUE gate as well as getting a brief.
-    first = make_item("PAINPOINT scripting is painful", author="alice")
-    second = make_item(
-        "PAINPOINT another dev agrees CLUSTER_WITH:PAINPOINT scripting is painful", author="bob"
-    )
-    source = FakeSource("reddit", [first, second])
+    # Three distinct authors on the same problem: crosses MIN_DISTINCT_AUTHORS,
+    # so it gets the brief, the issue, and a digest entry.
+    source = FakeSource("reddit", _clustered_items(make_item, "scripting is painful", ["alice", "bob", "carol"]))
     llm = FakeLLMSearch()
     tracker = FakeTracker()
 
     ingest_result = run_ingestion_batch([source], llm, tracker, conn, now)
 
-    assert ingest_result.new_raw_items == 2
-    assert ingest_result.new_pain_points == 2
+    assert ingest_result.new_raw_items == 3
+    assert ingest_result.new_pain_points == 3
     assert ingest_result.new_opportunities == 1
     assert len(ingest_result.issues_created) == 1
+    (issue_number,) = ingest_result.issues_created.values()
+    assert tracker.titles[issue_number] == "PAINPOINT scripting is painful (3 reports, 3 people)"
 
     digest_result = run_digest_build(conn, tracker, digest_path, now)
 
@@ -39,28 +45,47 @@ def test_full_batch_creates_pain_point_opportunity_brief_issue_and_digest_entry(
     assert "S — Small, well-scoped tool" in digest_text
 
 
-def test_solvable_singleton_gets_a_brief_but_no_issue_until_a_second_pain_point_joins(
-    conn, now, make_item
-):
-    item = make_item("PAINPOINT scripting is painful")
+def test_below_the_author_gate_no_brief_or_issue_until_the_third_voice_joins(conn, now, make_item):
     tracker = FakeTracker()
-
-    first_run = run_ingestion_batch([FakeSource("reddit", [item])], FakeLLMSearch(), tracker, conn, now)
-
-    assert first_run.issues_created == {}
-    (opportunity_id,) = first_run.touched_opportunity_ids
-    assert repository.load_brief(conn, opportunity_id) is not None  # briefed, just not surfaced yet
-
-    booster = make_item(
-        "PAINPOINT another dev agrees CLUSTER_WITH:PAINPOINT scripting is painful",
-        author="bob",
+    first, second = _clustered_items(make_item, "scripting is painful", ["alice", "bob"])
+    third = make_item(
+        "PAINPOINT agree CLUSTER_WITH:PAINPOINT scripting is painful",
+        author="carol",
         created_at=now + timedelta(days=3),
     )
+
+    first_run = run_ingestion_batch([FakeSource("reddit", [first, second])], FakeLLMSearch(), tracker, conn, now)
+
+    # Two voices: judged solvable, but no brief and no issue yet.
+    assert first_run.issues_created == {}
+    (opportunity_id,) = first_run.touched_opportunity_ids
+    assert repository.load_opportunity(conn, opportunity_id).solvable is True
+    assert repository.load_brief(conn, opportunity_id) is None
+
     second_run = run_ingestion_batch(
-        [FakeSource("reddit", [booster])], FakeLLMSearch(), tracker, conn, now + timedelta(days=7)
+        [FakeSource("reddit", [third])], FakeLLMSearch(), tracker, conn, now + timedelta(days=7)
     )
 
+    # Third distinct voice crosses the gate: brief and issue arrive together.
     assert opportunity_id in second_run.issues_created
+    assert repository.load_brief(conn, opportunity_id) is not None
+
+
+def test_issue_title_counts_refresh_as_the_opportunity_grows(conn, now, make_item):
+    tracker = FakeTracker()
+    items = _clustered_items(make_item, "scripting is painful", ["alice", "bob", "carol"])
+    result = run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+    (issue_number,) = result.issues_created.values()
+    assert tracker.titles[issue_number] == "PAINPOINT scripting is painful (3 reports, 3 people)"
+
+    fourth = make_item(
+        "PAINPOINT agree CLUSTER_WITH:PAINPOINT scripting is painful",
+        author="dave",
+        created_at=now + timedelta(days=3),
+    )
+    run_ingestion_batch([FakeSource("reddit", [fourth])], FakeLLMSearch(), tracker, conn, now + timedelta(days=7))
+
+    assert tracker.titles[issue_number] == "PAINPOINT scripting is painful (4 reports, 4 people)"
 
 
 def test_non_pain_point_items_are_ignored(conn, now, make_item, digest_path):
@@ -113,10 +138,13 @@ def test_unsolvable_opportunity_gets_no_brief_or_issue_and_is_excluded_from_dige
 
 
 def test_digest_is_capped_at_five_ranked_by_frequency(conn, now, make_item, digest_path):
-    items = [make_item(f"PAINPOINT unique claim {n}", external_id=f"item-{n}") for n in range(1, 7)]
-    booster = make_item(
-        "PAINPOINT extra vote CLUSTER_WITH:PAINPOINT unique claim 3", external_id="booster"
-    )
+    # Six gate-crossing opportunities (3 authors each); claim 3 gets a fourth voice.
+    items = []
+    for n in range(1, 7):
+        items.extend(
+            _clustered_items(make_item, f"unique claim {n}", [f"alice{n}", f"bob{n}", f"carol{n}"])
+        )
+    booster = make_item("PAINPOINT agree CLUSTER_WITH:PAINPOINT unique claim 3", author="dave")
     source = FakeSource("reddit", [*items, booster])
     tracker = FakeTracker()
 
@@ -126,7 +154,18 @@ def test_digest_is_capped_at_five_ranked_by_frequency(conn, now, make_item, dige
     assert len(digest_result.included_opportunity_ids) == 5
     boosted = repository.load_opportunity(conn, digest_result.included_opportunity_ids[0])
     assert boosted.title == "PAINPOINT unique claim 3"
-    assert boosted.frequency == 2
+    assert boosted.frequency == 4
+
+
+def test_digest_excludes_opportunities_below_the_author_gate(conn, now, make_item, digest_path):
+    # Solvable but only two voices: no brief, so no digest entry either.
+    items = _clustered_items(make_item, "quiet problem", ["alice", "bob"])
+    tracker = FakeTracker()
+
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+    digest_result = run_digest_build(conn, tracker, digest_path, now)
+
+    assert digest_result.included_opportunity_ids == []
 
 
 class _CountingLLM(FakeLLMSearch):
@@ -177,7 +216,7 @@ def test_opportunities_stranded_unjudged_by_a_killed_run_are_refreshed_next_run(
     # reaches this opportunity: pain point + opportunity committed, solvable
     # still NULL. Simulate by doing phase 2's writes directly.
     repository.create_opportunity(conn, "opp-stranded", title="stranded", now=now)
-    for n, author in enumerate(["alice", "bob"], start=1):
+    for n, author in enumerate(["alice", "bob", "carol"], start=1):
         item = make_item(f"PAINPOINT stranded before solvability {n}", author=author)
         repository.insert_raw_item_if_new(conn, item)
         repository.insert_pain_point(
@@ -246,10 +285,7 @@ def test_crash_mid_run_keeps_all_previously_committed_batches(conn, now, make_it
 
 
 def test_rejected_opportunity_is_suppressed_from_digest(conn, now, make_item, digest_path):
-    items = [
-        make_item("PAINPOINT scripting is painful", author="alice"),
-        make_item("PAINPOINT me too CLUSTER_WITH:PAINPOINT scripting is painful", author="bob"),
-    ]
+    items = _clustered_items(make_item, "scripting is painful", ["alice", "bob", "carol"])
     source = FakeSource("reddit", items)
     tracker = FakeTracker()
 
@@ -264,9 +300,66 @@ def test_rejected_opportunity_is_suppressed_from_digest(conn, now, make_item, di
     assert "No new Solvable Opportunities" in Path(digest_path).read_text(encoding="utf-8")
 
 
+def test_recluster_rebuilds_opportunities_and_closes_stale_issues(conn, now, make_item):
+    # Two separate opportunities under the old criterion, one with an issue.
+    items = [
+        *_clustered_items(make_item, "problem A", ["alice", "bob", "carol"]),
+        make_item("PAINPOINT problem B standalone", author="dana"),
+    ]
+    tracker = FakeTracker()
+    ingest = run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+    assert len(ingest.issues_created) == 1
+
+    class _MergeEverythingLLM(FakeLLMSearch):
+        """Simulates a looser criterion: every pain point matches the first candidate."""
+
+        def match_or_create_opportunity(self, summary, candidates):
+            if candidates:
+                return ClusterMatch(opportunity_id=candidates[0].id)
+            return super().match_or_create_opportunity(summary, candidates)
+
+    result = run_recluster(_MergeEverythingLLM(), tracker, conn, now + timedelta(days=1))
+
+    assert result.issues_closed == 1
+    assert tracker.closed  # the stale issue was closed on GitHub's side too
+    assert result.pain_points_reclustered == 4
+    assert result.opportunities_created == 1  # everything merged under the looser criterion
+
+    # Pain points survived untouched; the derived layer was rebuilt from them.
+    pain_points = conn.execute("SELECT COUNT(*) AS n FROM pain_points").fetchone()["n"]
+    assert pain_points == 4
+    assert conn.execute("SELECT COUNT(*) AS n FROM opportunity_issues").fetchone()["n"] == 0
+    # Everything awaits solvability judgment on the next ingest run.
+    assert len(repository.opportunities_needing_refresh(conn)) == 1
+
+
+def test_match_candidates_are_capped_by_recency_but_heavy_hitters_never_age_out(conn, now, make_item):
+    # Five opportunities created oldest-to-newest; "old-heavy" is oldest but has
+    # the most pain points.
+    for i, opportunity_id in enumerate(["old-heavy", "a", "b", "c", "d"]):
+        created = now + timedelta(minutes=i)
+        repository.create_opportunity(conn, opportunity_id, title=opportunity_id, now=created)
+    for n in range(3):
+        item = make_item(f"heavy pain {n}", author=f"user{n}")
+        repository.insert_raw_item_if_new(conn, item)
+        repository.insert_pain_point(
+            conn, PainPoint(id=f"heavy-pp-{n}", raw_item=item, summary="heavy", created_at=now)
+        )
+        # Link without bumping updated_at, so "old-heavy" stays the least recent.
+        conn.execute(
+            "INSERT INTO opportunity_pain_points (opportunity_id, pain_point_id) VALUES (?, ?)",
+            ("old-heavy", f"heavy-pp-{n}"),
+        )
+    conn.commit()
+
+    candidates = repository.list_match_candidates(conn, recent_limit=3, top_limit=1)
+    candidate_ids = {c.id for c in candidates}
+
+    assert candidate_ids == {"d", "c", "b", "old-heavy"}  # 3 most recent ∪ top-1 by frequency
+
+
 def test_unchanged_opportunity_is_not_redigested_but_an_updated_one_is(conn, now, make_item, digest_path):
-    item = make_item("PAINPOINT scripting is painful")
-    source = FakeSource("reddit", [item])
+    source = FakeSource("reddit", _clustered_items(make_item, "scripting is painful", ["alice", "bob", "carol"]))
     llm = FakeLLMSearch()
     tracker = FakeTracker()
 
@@ -281,9 +374,9 @@ def test_unchanged_opportunity_is_not_redigested_but_an_updated_one_is(conn, now
     assert second_digest.included_opportunity_ids == []
 
     booster = make_item(
-        "PAINPOINT another dev agrees CLUSTER_WITH:PAINPOINT scripting is painful",
+        "PAINPOINT agree CLUSTER_WITH:PAINPOINT scripting is painful",
         created_at=a_week_later,
-        author="bob",
+        author="dave",
     )
     run_ingestion_batch([FakeSource("reddit", [booster])], llm, tracker, conn, a_week_later)
 

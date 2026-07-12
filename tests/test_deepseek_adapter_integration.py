@@ -64,11 +64,10 @@ def test_match_or_create_opportunity_matches_the_same_underlying_problem(
     candidate = OpportunitySummary(
         id="opp-1", title="No-code automation flows break silently when an LLM step's output format changes"
     )
-    item = _make_item(
-        "My Zapier AI step just changed its output shape overnight and broke three zaps — "
-        "same issue as everyone else is describing with silent model updates."
+    summary = (
+        "A Zapier AI step changed its output shape after a silent model update, breaking downstream zaps."
     )
-    match = adapter.match_or_create_opportunity(item, [candidate])
+    match = adapter.match_or_create_opportunity(summary, [candidate])
     assert match.opportunity_id == "opp-1"
 
 

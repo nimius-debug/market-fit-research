@@ -131,10 +131,34 @@ def _rejected_opportunity_ids(conn: sqlite3.Connection) -> set[str]:
     return {row["opportunity_id"] for row in rows}
 
 
-def list_open_opportunity_summaries(conn: sqlite3.Connection) -> list[OpportunitySummary]:
-    """Non-Rejected Opportunities, as candidates for a new Pain Point to match against."""
+# Candidate caps keep the match prompt bounded as opportunities accumulate:
+# recent activity is what a new pain point most likely belongs to, and the
+# heaviest opportunities are the ones we least want duplicated, so they stay
+# candidates forever regardless of recency.
+MATCH_CANDIDATES_RECENT = 150
+MATCH_CANDIDATES_TOP = 50
+
+
+def list_match_candidates(
+    conn: sqlite3.Connection,
+    recent_limit: int = MATCH_CANDIDATES_RECENT,
+    top_limit: int = MATCH_CANDIDATES_TOP,
+) -> list[OpportunitySummary]:
+    """Non-Rejected Opportunities a new Pain Point may match into: the union of
+    the most recently touched and the largest by pain-point count, deduped."""
     rejected = _rejected_opportunity_ids(conn)
-    rows = conn.execute("SELECT id, title FROM opportunities").fetchall()
+    rows = conn.execute(
+        """
+        SELECT id, title FROM opportunities
+        WHERE id IN (SELECT id FROM opportunities ORDER BY updated_at DESC, rowid DESC LIMIT ?)
+           OR id IN (
+                SELECT opportunity_id FROM opportunity_pain_points
+                GROUP BY opportunity_id ORDER BY COUNT(*) DESC LIMIT ?
+           )
+        ORDER BY updated_at DESC, rowid DESC
+        """,
+        (recent_limit, top_limit),
+    ).fetchall()
     return [OpportunitySummary(id=row["id"], title=row["title"]) for row in rows if row["id"] not in rejected]
 
 
@@ -261,14 +285,17 @@ def load_issue(conn: sqlite3.Connection, opportunity_id: str) -> OpportunityIssu
 
 
 def solvable_undigested_opportunity_ids(conn: sqlite3.Connection) -> list[str]:
-    """Solvable, non-Rejected Opportunities that are new or updated since they were last digested
-    (never digested, or touched again after their last_digested_at), ranked by frequency desc."""
+    """Solvable, briefed, non-Rejected Opportunities that are new or updated since they were
+    last digested (never digested, or touched again after their last_digested_at), ranked by
+    frequency desc. Requiring a brief keeps the Digest to gate-crossers (briefs are only
+    generated at MIN_DISTINCT_AUTHORS) — recurring concerns, not singletons."""
     rejected = _rejected_opportunity_ids(conn)
     rows = conn.execute(
         """
         SELECT o.id, COUNT(opp.pain_point_id) AS frequency
         FROM opportunities o
         JOIN opportunity_pain_points opp ON opp.opportunity_id = o.id
+        JOIN opportunity_briefs b ON b.opportunity_id = o.id
         WHERE o.solvable = 1
           AND (o.last_digested_at IS NULL OR o.updated_at > o.last_digested_at)
         GROUP BY o.id
@@ -276,6 +303,24 @@ def solvable_undigested_opportunity_ids(conn: sqlite3.Connection) -> list[str]:
         """,
     ).fetchall()
     return [row["id"] for row in rows if row["id"] not in rejected]
+
+
+def list_pain_point_summaries(conn: sqlite3.Connection) -> list[tuple[str, str]]:
+    """(pain_point_id, summary) for every stored Pain Point, in arrival order —
+    the replay input for a recluster."""
+    rows = conn.execute("SELECT id, summary FROM pain_points ORDER BY created_at, rowid").fetchall()
+    return [(row["id"], row["summary"]) for row in rows]
+
+
+def delete_derived_clustering_state(conn: sqlite3.Connection) -> None:
+    """Wipe everything downstream of classification — Opportunities, their pain-point
+    links, briefs, issue links, and digest bookkeeping — for a recluster. Raw items,
+    Pain Points, and source watermarks are untouched: nothing gets re-classified."""
+    conn.execute("DELETE FROM digest_entries")
+    conn.execute("DELETE FROM opportunity_issues")
+    conn.execute("DELETE FROM opportunity_briefs")
+    conn.execute("DELETE FROM opportunity_pain_points")
+    conn.execute("DELETE FROM opportunities")
 
 
 def mark_digested(conn: sqlite3.Connection, opportunity_id: str, digest_date: str, when: datetime) -> None:

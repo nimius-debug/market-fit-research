@@ -120,11 +120,30 @@ fixes this class of problem:
 - **The solvability/brief phase is also parallel**: the up-to-4 LLM calls per
   Opportunity run in a thread pool (batches of 8), with all SQLite writes and
   issue creation kept on the main thread.
-- **Issues open only for recurring problems.** A GitHub Issue is created once
-  an Opportunity reaches 2+ Pain Points (`MIN_PAIN_POINTS_FOR_ISSUE`);
-  solvable singletons are still judged and briefed, and their Issue opens
-  automatically if a second Pain Point joins later. Without this gate the
-  first live runs were heading toward ~200 open issues, nearly all singletons.
+- **Briefs and issues open only for recurring problems.** Both the expensive
+  brief trio (narrative/competitor/effort) and the GitHub Issue wait until an
+  Opportunity reaches **3+ distinct authors** (`MIN_DISTINCT_AUTHORS`) — one
+  person posting repeatedly never qualifies. Below the gate an Opportunity is
+  still clustered and judged Solvable (one cheap call); the brief and Issue
+  arrive automatically on the refresh after the third voice joins. The Digest
+  draws only from briefed Opportunities, so it too shows recurring concerns
+  only. Issue titles carry live counts — `… (13 reports, 5 people)` —
+  refreshed whenever the Opportunity changes. Without this gate the first
+  live runs were heading toward ~200 open issues, nearly all singletons.
+
+## Reclustering after a criterion change
+
+Clustering happens incrementally at ingest time, so a change to the match
+criterion only affects *future* Pain Points — the existing Opportunity layer
+stays clustered under the old rules. The manual-only **"Recluster
+(maintenance)"** workflow (`.github/workflows/recluster.yml`) re-derives it:
+closes every tracked GitHub issue (with an explanatory comment), wipes
+Opportunities/briefs/issue links — stored Pain Points and their
+classifications are kept, so nothing is re-classified — and replays every
+Pain Point summary through the current matcher in arrival order. Solvability
+marks start out empty, so trigger **"Weekly ingestion"** afterwards to rebuild
+briefs and issues under the current gates. The operation is idempotent: if it
+dies partway, just run it again.
 
 ## Testing before the first scheduled run
 

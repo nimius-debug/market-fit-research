@@ -67,11 +67,14 @@ plain-language summary of the underlying problem."""
 
 MATCH_SYSTEM = """\
 You cluster Pain Points from AI/automation communities into Opportunities — \
-groups of Pain Points that describe the same recurring underlying problem. Given a \
-new Pain Point and a list of existing Opportunity candidates (id and title), decide \
-whether the new Pain Point matches one of them. Return that candidate's exact id if \
-it matches, or null if this is a novel problem that should start a new Opportunity. \
-Only match when the underlying problem is genuinely the same, not merely similar."""
+groups of Pain Points that one piece of software could address. Given a new \
+Pain Point summary and a list of existing Opportunity candidates (id and title), \
+decide whether the new Pain Point belongs with one of them. The test is: could \
+one well-scoped tool plausibly address both this Pain Point and the candidate's \
+problem? Surface phrasing may differ — match on the underlying need, not the \
+wording. Return that candidate's exact id if one matches, or null if no single \
+tool would plausibly cover this and any candidate, so it should start a new \
+Opportunity."""
 
 SOLVABLE_SYSTEM = """\
 An Opportunity is Solvable if a solo software developer could plausibly build a \
@@ -188,13 +191,13 @@ class StructuredJudgmentAdapter:
         return PainPointClassification(is_pain_point=parsed.is_pain_point, summary=parsed.summary)
 
     def match_or_create_opportunity(
-        self, item: RawItem, candidates: list[OpportunitySummary]
+        self, summary: str, candidates: list[OpportunitySummary]
     ) -> ClusterMatch:
         if not candidates:
             return ClusterMatch(opportunity_id=None)
 
         candidate_block = "\n".join(f"- id={c.id}: {c.title}" for c in candidates)
-        prompt = f"New Pain Point text:\n{item.text}\n\nExisting Opportunity candidates:\n{candidate_block}"
+        prompt = f"New Pain Point summary:\n{summary}\n\nExisting Opportunity candidates:\n{candidate_block}"
         parsed = self._structured(MATCH_SYSTEM, prompt, ClusterMatchModel)
         matched_id = parsed.matched_opportunity_id
         # Defend against a hallucinated id that isn't one of the candidates offered.

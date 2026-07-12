@@ -1,0 +1,56 @@
+name: Recluster (maintenance)
+
+# Manual-only: re-derives every Opportunity from the stored Pain Points under
+# the current match criterion. Closes all tracked GitHub issues first (their
+# opportunities are being replaced), keeps Pain Points/classifications (no
+# re-classification cost), and leaves solvability unmarked so the next
+# "Weekly ingestion" run rebuilds briefs and issues under the current gates.
+# Trigger this after changing the clustering criterion, then trigger
+# "Weekly ingestion" to rebuild the review surface.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: pipeline-state
+  cancel-in-progress: false
+
+jobs:
+  recluster:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Run recluster
+        timeout-minutes: 25
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: ${{ vars.DEEPSEEK_MODEL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pain-point-pipeline recluster
+
+      - name: Commit updated pipeline state
+        # always(): recluster commits incrementally like ingestion does, so a
+        # timed-out run still pushes its progress. data/ (not just the .sqlite3)
+        # so a hot -journal file left by a killed process is committed too.
+        if: always()
+        run: |
+          git config user.name "pain-point-pipeline-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "Recluster: re-derive opportunities [skip ci]"
+          git push
