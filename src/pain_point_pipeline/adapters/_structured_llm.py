@@ -9,10 +9,11 @@ deepseek.py) subclass `StructuredJudgmentAdapter` and only supply `_client`/
 
 from __future__ import annotations
 
+import logging
 from typing import Any, TypeVar
 
 import anthropic
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from pain_point_pipeline.models import EffortSize, OpportunitySummary, PainPoint, RawItem
 from pain_point_pipeline.ports import (
@@ -23,7 +24,10 @@ from pain_point_pipeline.ports import (
     SolvabilityJudgement,
 )
 
+logger = logging.getLogger(__name__)
+
 _JUDGMENT_MAX_TOKENS = 1024
+_MAX_STRUCTURED_ATTEMPTS = 2
 
 
 class PainPointClassificationModel(BaseModel):
@@ -32,7 +36,10 @@ class PainPointClassificationModel(BaseModel):
 
 
 class ClusterMatchModel(BaseModel):
-    matched_opportunity_id: str | None
+    # Defaulted, not required: when the answer is "no match", DeepSeek omits
+    # the field entirely instead of sending an explicit null the way Claude
+    # does (observed live 2026-07-12: tool input was {}). Omitted means None.
+    matched_opportunity_id: str | None = None
 
 
 class SolvabilityJudgementModel(BaseModel):
@@ -126,6 +133,28 @@ class StructuredJudgmentAdapter:
     _model: str
 
     def _structured(self, system: str, prompt: str, response_model: type[_T]) -> _T:
+        """One retry on a malformed response: at hundreds of unattended calls
+        per run, a single bad reply (schema-violating tool input, missing tool
+        call) shouldn't cost a week's run — but a *second* failure raises, since
+        that points at a systematic problem worth surfacing, not noise."""
+        last_error: Exception | None = None
+        for attempt in range(1, _MAX_STRUCTURED_ATTEMPTS + 1):
+            try:
+                return self._structured_once(system, prompt, response_model)
+            except (ValidationError, LLMResponseError) as error:
+                last_error = error
+                if attempt < _MAX_STRUCTURED_ATTEMPTS:
+                    logger.warning(
+                        "Malformed %s response (attempt %d/%d), retrying: %s",
+                        response_model.__name__,
+                        attempt,
+                        _MAX_STRUCTURED_ATTEMPTS,
+                        error,
+                    )
+        assert last_error is not None
+        raise last_error
+
+    def _structured_once(self, system: str, prompt: str, response_model: type[_T]) -> _T:
         tool_name = _tool_name(response_model)
         tool: dict[str, Any] = {
             "name": tool_name,
