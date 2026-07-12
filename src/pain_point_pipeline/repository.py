@@ -45,6 +45,35 @@ def insert_raw_item_if_new(conn: sqlite3.Connection, item: RawItem) -> bool:
     return cursor.rowcount > 0
 
 
+def list_unprocessed_raw_items(conn: sqlite3.Connection) -> list[RawItem]:
+    """Raw items not yet classified — the backlog a resumed run picks up.
+
+    Ordered oldest-first (rowid tiebreak preserves insertion order) so that
+    clustering sees pain points in the same order they arrived.
+    """
+    rows = conn.execute(
+        "SELECT * FROM raw_items WHERE processed_at IS NULL ORDER BY created_at, rowid"
+    ).fetchall()
+    return [
+        RawItem(
+            id=row["id"],
+            source=row["source"],
+            external_id=row["external_id"],
+            author=row["author"],
+            url=row["url"],
+            text=row["text"],
+            created_at=datetime.fromisoformat(row["created_at"]),
+        )
+        for row in rows
+    ]
+
+
+def mark_raw_item_processed(conn: sqlite3.Connection, raw_item_id: str, when: datetime) -> None:
+    conn.execute(
+        "UPDATE raw_items SET processed_at = ? WHERE id = ?", (when.isoformat(), raw_item_id)
+    )
+
+
 def insert_pain_point(conn: sqlite3.Connection, pain_point: PainPoint) -> None:
     conn.execute(
         "INSERT INTO pain_points (id, raw_item_id, summary, created_at) VALUES (?, ?, ?, ?)",

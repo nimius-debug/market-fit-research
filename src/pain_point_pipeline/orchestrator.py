@@ -1,21 +1,42 @@
 """Wires Source -> classify -> cluster -> solvability -> brief -> issue, and separately, Digest build.
 
 Two entry points mirror the two GitHub Actions schedules (see docs/specs/0001-v1-pipeline.md):
-`run_ingestion_batch` daily, `run_digest_build` weekly. Both operate purely through the
+`run_ingestion_batch` weekly, `run_digest_build` weekly. Both operate purely through the
 SourcePort/LLMSearchPort/TrackerPort seams so tests can drive them with fakes.
+
+Ingestion is resumable: the first live 6-subreddit run was killed by the GitHub
+Actions job timeout, and because the old design committed once at the very end,
+the whole run (including the `since` watermark) was discarded — the next run
+would refetch and reclassify everything and time out the same way, forever. Now
+the run commits incrementally (after each source's fetch, after each
+classification batch, after each opportunity refresh), and classification is
+driven by raw_items.processed_at rather than by "inserted this run": whatever a
+killed run already classified stays classified, and the next run picks up only
+the unprocessed remainder.
+
+Classification — the highest-volume LLM call, one per fetched item — runs
+concurrently in a thread pool. Clustering stays sequential on purpose: each new
+Pain Point can create the very Opportunity the next one should match into, so
+the candidate list must be re-read between items.
 """
 
 from __future__ import annotations
 
 import sqlite3
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from pain_point_pipeline import repository
 from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, append_digest, format_digest_section
-from pain_point_pipeline.models import OpportunityBrief, OpportunityIssue, PainPoint
+from pain_point_pipeline.models import OpportunityBrief, OpportunityIssue, PainPoint, RawItem
 from pain_point_pipeline.ports import LLMSearchPort, SourcePort, TrackerPort
+
+# One classification batch = one commit; a killed run loses at most one batch
+# of in-flight classifications (they stay unprocessed and are retried next run).
+CLASSIFY_BATCH_SIZE = 25
+_CLASSIFY_MAX_WORKERS = 8
 
 
 @dataclass
@@ -33,6 +54,10 @@ class DigestResult:
     included_opportunity_ids: list[str] = field(default_factory=list)
 
 
+def _batches(items: list[RawItem], size: int) -> list[list[RawItem]]:
+    return [items[i : i + size] for i in range(0, len(items), size)]
+
+
 def run_ingestion_batch(
     sources: list[SourcePort],
     llm: LLMSearchPort,
@@ -42,39 +67,53 @@ def run_ingestion_batch(
 ) -> IngestionResult:
     result = IngestionResult()
 
+    # Phase 1 — fetch. Cheap (no LLM calls); committed per source so the
+    # watermark and raw rows survive whatever happens later in the run.
     for source in sources:
         since = repository.get_last_fetched_at(conn, source.name)
         for item in source.fetch_new(since):
-            if not repository.insert_raw_item_if_new(conn, item):
-                continue
-            result.new_raw_items += 1
-
-            classification = llm.classify_pain_point(item)
-            if not classification.is_pain_point:
-                continue
-
-            pain_point_id = str(uuid.uuid4())
-            pain_point = PainPoint(
-                id=pain_point_id, raw_item=item, summary=classification.summary, created_at=now
-            )
-            repository.insert_pain_point(conn, pain_point)
-            result.new_pain_points += 1
-
-            candidates = repository.list_open_opportunity_summaries(conn)
-            match = llm.match_or_create_opportunity(item, candidates)
-            opportunity_id = match.opportunity_id
-            if opportunity_id is None:
-                opportunity_id = str(uuid.uuid4())
-                repository.create_opportunity(conn, opportunity_id, title=classification.summary, now=now)
-                result.new_opportunities += 1
-
-            repository.add_pain_point_to_opportunity(conn, opportunity_id, pain_point_id, now)
-            result.touched_opportunity_ids.add(opportunity_id)
-
+            if repository.insert_raw_item_if_new(conn, item):
+                result.new_raw_items += 1
         repository.set_last_fetched_at(conn, source.name, now)
+        conn.commit()
 
+    # Phase 2 — classify (parallel) + cluster (sequential), in committed batches.
+    # Reads the unprocessed backlog from the DB, not this run's fetch, so items
+    # a killed run left behind are picked up here.
+    unprocessed = repository.list_unprocessed_raw_items(conn)
+    with ThreadPoolExecutor(max_workers=_CLASSIFY_MAX_WORKERS) as pool:
+        for batch in _batches(unprocessed, CLASSIFY_BATCH_SIZE):
+            classifications = list(pool.map(llm.classify_pain_point, batch))
+
+            for item, classification in zip(batch, classifications):
+                if classification.is_pain_point:
+                    pain_point_id = str(uuid.uuid4())
+                    pain_point = PainPoint(
+                        id=pain_point_id, raw_item=item, summary=classification.summary, created_at=now
+                    )
+                    repository.insert_pain_point(conn, pain_point)
+                    result.new_pain_points += 1
+
+                    candidates = repository.list_open_opportunity_summaries(conn)
+                    match = llm.match_or_create_opportunity(item, candidates)
+                    opportunity_id = match.opportunity_id
+                    if opportunity_id is None:
+                        opportunity_id = str(uuid.uuid4())
+                        repository.create_opportunity(conn, opportunity_id, title=classification.summary, now=now)
+                        result.new_opportunities += 1
+
+                    repository.add_pain_point_to_opportunity(conn, opportunity_id, pain_point_id, now)
+                    result.touched_opportunity_ids.add(opportunity_id)
+
+                repository.mark_raw_item_processed(conn, item.id, now)
+
+            conn.commit()
+
+    # Phase 3 — solvability/brief/issue per touched Opportunity; each refresh is
+    # several LLM calls plus possibly an Issue create, so commit after each.
     for opportunity_id in result.touched_opportunity_ids:
         _refresh_solvability_and_brief(opportunity_id, llm, tracker, conn, now, result)
+        conn.commit()
 
     _refresh_all_issue_statuses(tracker=tracker, conn=conn, now=now)
 

@@ -75,7 +75,7 @@ class RedditSource:
         self,
         subreddits: list[str] | None = None,
         client: praw.Reddit | None = None,
-        limit: int = 100,
+        limit: int = 50,
     ) -> None:
         self.name = "reddit"
         self._subreddits = subreddits or DEFAULT_SUBREDDITS

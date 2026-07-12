@@ -51,6 +51,31 @@ over `ArcticShiftSource` whenever those are set.
 credentials only as GitHub Actions repository secrets or in a local, gitignored
 `.env`.
 
+## Run time, timeouts, and resumability
+
+The first live 6-subreddit run exceeded the job's 20-minute timeout: ~1,200
+fetched items were classified one LLM call at a time, sequentially, and because
+the run committed its SQLite state once at the very end, the kill discarded
+*everything* — including the `since` watermark, so the next run would have
+refetched and re-timed-out identically, forever. Three changes fix this class
+of problem:
+
+- **Fetch is capped at 50 items per (subreddit, endpoint)** (down from 100) —
+  fetch volume directly drives LLM call count, which is what actually costs
+  time and money. Worst case is now ~600 items on a cold start, a fraction of
+  that on later runs thanks to the watermark.
+- **Classification runs in a thread pool** (8 concurrent calls, batches of 25),
+  cutting wall-clock time roughly 5-8x. Clustering stays sequential by design:
+  each new Pain Point can create the Opportunity the next one should match.
+- **Runs are resumable.** Ingestion commits after every fetch, classification
+  batch, and Opportunity refresh, and classification is driven by a
+  `processed_at` marker on each raw item rather than by "what did this run
+  fetch". A killed run keeps everything it finished; the next run picks up
+  only the unprocessed remainder — items are never re-classified once marked.
+  The workflow puts the timeout on the *ingest step* (25 min) rather than only
+  the job, so the `always()` commit step still pushes partial state to the
+  repo when ingestion runs long.
+
 ## Cost control: model selection
 
 The pipeline defaults to **`claude-haiku-4-5`**, Anthropic's cheapest tier (~5×
