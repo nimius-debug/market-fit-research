@@ -21,7 +21,7 @@ import praw.models
 
 from pain_point_pipeline.models import RawItem
 
-DEFAULT_SUBREDDITS = ["AI_Agents", "automation"]
+DEFAULT_SUBREDDITS = ["AI_Agents", "automation", "artificial", "nocode", "SaaS", "LocalLLaMA"]
 _DEFAULT_USER_AGENT = "pain-point-pipeline/0.1 (AI/automation pain-point discovery)"
 
 

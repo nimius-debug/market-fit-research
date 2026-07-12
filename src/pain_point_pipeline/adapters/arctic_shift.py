@@ -28,7 +28,7 @@ import requests
 from pain_point_pipeline.models import RawItem
 
 BASE_URL = "https://arctic-shift.photon-reddit.com"
-DEFAULT_SUBREDDITS = ["AI_Agents", "automation"]
+DEFAULT_SUBREDDITS = ["AI_Agents", "automation", "artificial", "nocode", "SaaS", "LocalLLaMA"]
 _PAGE_LIMIT = 100
 
 
