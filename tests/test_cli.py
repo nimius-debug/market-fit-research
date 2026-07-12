@@ -63,6 +63,30 @@ def test_official_reddit_used_when_official_credentials_set(monkeypatch: pytest.
     assert isinstance(sources[0], cli.RedditSource)
 
 
+def _clear_llm_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for var in ("LLM_PROVIDER", "DEEPSEEK_API_KEY", "ANTHROPIC_API_KEY"):
+        monkeypatch.delenv(var, raising=False)
+
+
+def test_deepseek_used_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    _clear_llm_env(monkeypatch)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+
+    llm = cli._build_llm()
+
+    assert isinstance(llm, cli.DeepSeekLLMSearchAdapter)
+
+
+def test_claude_used_when_llm_provider_is_claude(monkeypatch: pytest.MonkeyPatch) -> None:
+    _clear_llm_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "claude")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+
+    llm = cli._build_llm()
+
+    assert isinstance(llm, cli.ClaudeLLMSearchAdapter)
+
+
 def test_missing_command_exits_nonzero() -> None:
     with pytest.raises(SystemExit):
         cli.main([])
