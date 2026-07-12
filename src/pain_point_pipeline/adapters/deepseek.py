@@ -42,7 +42,10 @@ class _CompetitorCheckModel(BaseModel):
 
 
 def model_from_env() -> str:
-    return os.environ.get("DEEPSEEK_MODEL", DEFAULT_MODEL)
+    # `or`, not a .get() default: GitHub Actions passes undefined repository
+    # variables as *empty strings*, which must fall back to the default too —
+    # a live run once sent model="" and got a 400 back from the API.
+    return os.environ.get("DEEPSEEK_MODEL") or DEFAULT_MODEL
 
 
 def _build_client(client: anthropic.Anthropic | None, api_key: str | None) -> anthropic.Anthropic:

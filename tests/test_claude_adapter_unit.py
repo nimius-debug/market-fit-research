@@ -16,6 +16,12 @@ def test_claude_model_env_var_overrides_default(monkeypatch: pytest.MonkeyPatch)
     assert model_from_env() == "claude-opus-4-8"
 
 
+def test_empty_claude_model_env_var_falls_back_to_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    # GitHub Actions passes undefined repository variables as empty strings.
+    monkeypatch.setenv("CLAUDE_MODEL", "")
+    assert model_from_env() == DEFAULT_MODEL
+
+
 def test_haiku_uses_the_basic_web_search_variant() -> None:
     assert _web_search_tool_type("claude-haiku-4-5") == "web_search_20250305"
 

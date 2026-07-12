@@ -22,6 +22,7 @@ the candidate list must be re-read between items.
 
 from __future__ import annotations
 
+import logging
 import sqlite3
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -32,6 +33,8 @@ from pain_point_pipeline import repository
 from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, append_digest, format_digest_section
 from pain_point_pipeline.models import OpportunityBrief, OpportunityIssue, PainPoint, RawItem
 from pain_point_pipeline.ports import LLMSearchPort, SourcePort, TrackerPort
+
+logger = logging.getLogger(__name__)
 
 # One classification batch = one commit; a killed run loses at most one batch
 # of in-flight classifications (they stay unprocessed and are retried next run).
@@ -71,18 +74,32 @@ def run_ingestion_batch(
     # watermark and raw rows survive whatever happens later in the run.
     for source in sources:
         since = repository.get_last_fetched_at(conn, source.name)
-        for item in source.fetch_new(since):
+        fetched = source.fetch_new(since)
+        new_from_source = 0
+        for item in fetched:
             if repository.insert_raw_item_if_new(conn, item):
-                result.new_raw_items += 1
+                new_from_source += 1
+        result.new_raw_items += new_from_source
         repository.set_last_fetched_at(conn, source.name, now)
         conn.commit()
+        logger.info(
+            "%s: fetched %d items since %s, %d new", source.name, len(fetched), since or "the beginning", new_from_source
+        )
 
     # Phase 2 — classify (parallel) + cluster (sequential), in committed batches.
     # Reads the unprocessed backlog from the DB, not this run's fetch, so items
     # a killed run left behind are picked up here.
     unprocessed = repository.list_unprocessed_raw_items(conn)
+    batches = _batches(unprocessed, CLASSIFY_BATCH_SIZE)
+    logger.info(
+        "Classifying %d unprocessed items in %d batches of up to %d",
+        len(unprocessed),
+        len(batches),
+        CLASSIFY_BATCH_SIZE,
+    )
+    done = 0
     with ThreadPoolExecutor(max_workers=_CLASSIFY_MAX_WORKERS) as pool:
-        for batch in _batches(unprocessed, CLASSIFY_BATCH_SIZE):
+        for batch in batches:
             classifications = list(pool.map(llm.classify_pain_point, batch))
 
             for item, classification in zip(batch, classifications):
@@ -108,9 +125,18 @@ def run_ingestion_batch(
                 repository.mark_raw_item_processed(conn, item.id, now)
 
             conn.commit()
+            done += len(batch)
+            logger.info(
+                "Progress: %d/%d items classified — %d pain points, %d opportunities so far (committed)",
+                done,
+                len(unprocessed),
+                result.new_pain_points,
+                result.new_opportunities,
+            )
 
     # Phase 3 — solvability/brief/issue per touched Opportunity; each refresh is
     # several LLM calls plus possibly an Issue create, so commit after each.
+    logger.info("Refreshing solvability/briefs for %d touched opportunities", len(result.touched_opportunity_ids))
     for opportunity_id in result.touched_opportunity_ids:
         _refresh_solvability_and_brief(opportunity_id, llm, tracker, conn, now, result)
         conn.commit()
@@ -132,6 +158,9 @@ def _refresh_solvability_and_brief(
     opportunity = repository.load_opportunity(conn, opportunity_id)
     judgement = llm.judge_solvable(opportunity.pain_points)
     repository.update_opportunity_solvability(conn, opportunity_id, judgement.solvable, judgement.rationale)
+    logger.info(
+        "Opportunity %r (%d pain points): solvable=%s", opportunity.title[:70], opportunity.frequency, judgement.solvable
+    )
 
     if not judgement.solvable:
         return
@@ -156,6 +185,7 @@ def _refresh_solvability_and_brief(
             conn, OpportunityIssue(opportunity_id=opportunity_id, issue_number=issue_number, status="open", checked_at=now)
         )
         result.issues_created[opportunity_id] = issue_number
+        logger.info("Opened issue #%d for %r", issue_number, opportunity.title[:70])
 
 
 def _refresh_all_issue_statuses(tracker: TrackerPort, conn: sqlite3.Connection, now: datetime) -> None:
