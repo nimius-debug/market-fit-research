@@ -1,7 +1,7 @@
 [project]
 name = "pain-point-pipeline"
 version = "0.1.0"
-description = "Finds recurring pain points in Roblox/game-dev communities and surfaces them as Opportunity Briefs."
+description = "Finds recurring pain points in AI/automation communities and surfaces them as Opportunity Briefs."
 requires-python = ">=3.10"
 dependencies = ["anthropic>=0.100", "pydantic>=2", "praw>=7", "requests>=2.31", "PyGithub>=2"]
 

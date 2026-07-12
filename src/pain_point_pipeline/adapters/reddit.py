@@ -4,6 +4,10 @@ Reads new submissions and comments from the v1 Target Niche's subreddits
 (CONTEXT.md: Source). Authenticates as a registered OAuth "script" app —
 client_id + client_secret + user_agent gives PRAW a read-only, client-credentials
 token; no username/password needed. No scraping, per ADR-0002/CONTEXT.md.
+
+Gated behind Reddit's Responsible Builder Policy approval (see
+docs/deployment.md) — until that lands, adapters/reddit_rapidapi.py's
+RedditRapidAPISource covers the same subreddits as a paid stopgap.
 """
 
 from __future__ import annotations
@@ -17,8 +21,8 @@ import praw.models
 
 from pain_point_pipeline.models import RawItem
 
-DEFAULT_SUBREDDITS = ["robloxgamedev", "roblox_dev", "RobloxDevelopers"]
-_DEFAULT_USER_AGENT = "pain-point-pipeline/0.1 (Roblox/game-dev pain-point discovery)"
+DEFAULT_SUBREDDITS = ["AI_Agents", "automation"]
+_DEFAULT_USER_AGENT = "pain-point-pipeline/0.1 (AI/automation pain-point discovery)"
 
 
 def _to_naive_utc(timestamp: float) -> datetime:

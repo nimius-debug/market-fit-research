@@ -1,10 +1,15 @@
 """CLI entry points for the two scheduled GitHub Actions workflows (ticket 6).
 
-`ingest` wires the real adapters into the daily batch (DevForum always; Reddit
-only when credentials exist — see _build_sources); `digest` only needs the
-Tracker (to refresh Rejected status) since briefs were already generated and
-stored during ingestion. Both commit their own state to the repo from the
-calling workflow, not from here (see .github/workflows/).
+`ingest` wires the real adapters into the weekly batch — see _build_sources for
+the Reddit source priority; `digest` only needs the Tracker (to refresh
+Rejected status) since briefs were already generated and stored during
+ingestion. Both commit their own state to the repo from the calling workflow,
+not from here (see .github/workflows/).
+
+Ingestion runs weekly, not daily, because the RapidAPI reddit34 free tier caps
+out at 50 requests/month — 2 subreddits x 2 endpoints (posts + comments) per
+run leaves headroom for manual `workflow_dispatch` reruns at weekly cadence,
+but would blow the quota within days at daily cadence (see docs/deployment.md).
 """
 
 from __future__ import annotations
@@ -18,9 +23,9 @@ from pathlib import Path
 
 from pain_point_pipeline import db
 from pain_point_pipeline.adapters.claude import ClaudeLLMSearchAdapter
-from pain_point_pipeline.adapters.devforum import DevForumSource
 from pain_point_pipeline.adapters.github_tracker import GitHubTracker
 from pain_point_pipeline.adapters.reddit import RedditSource
+from pain_point_pipeline.adapters.reddit_rapidapi import RedditRapidAPISource
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch
 from pain_point_pipeline.ports import SourcePort
 
@@ -39,22 +44,24 @@ def _connect(db_path: str) -> sqlite3.Connection:
 
 
 def _build_sources() -> list[SourcePort]:
-    """DevForum always; Reddit only when credentials exist.
+    """RapidAPI's reddit34 when RAPIDAPI_KEY is set; else the official Reddit API
+    when REDDIT_CLIENT_ID/SECRET are set; else no sources.
 
-    Reddit's Responsible Builder Policy (2026) gates new API credentials behind
-    a manual approval that is pending for this project — until it lands, runs
-    are DevForum-only. Once approved, adding REDDIT_CLIENT_ID/SECRET as repo
-    secrets re-enables RedditSource with no code change.
+    Reddit's Responsible Builder Policy (2026) gates new official-API credentials
+    behind a manual approval that is pending for this project (see
+    docs/deployment.md), so RedditRapidAPISource — a paid third-party proxy — is
+    the default unblock. If/when official approval lands, unset RAPIDAPI_KEY (or
+    just leave both set; RapidAPI takes priority) to prefer RedditSource instead.
     """
-    sources: list[SourcePort] = [DevForumSource()]
+    if os.environ.get("RAPIDAPI_KEY"):
+        return [RedditRapidAPISource()]
     if os.environ.get("REDDIT_CLIENT_ID") and os.environ.get("REDDIT_CLIENT_SECRET"):
-        sources.append(RedditSource())
-    else:
-        print("Reddit credentials not set - running DevForum-only (see docs/deployment.md)")
-    return sources
+        return [RedditSource()]
+    print("No Reddit credentials set (RAPIDAPI_KEY or REDDIT_CLIENT_ID/SECRET) - no sources to ingest from")
+    return []
 
 
-def run_daily_ingestion(db_path: str = DB_PATH) -> None:
+def run_weekly_ingestion(db_path: str = DB_PATH) -> None:
     conn = _connect(db_path)
     try:
         sources = _build_sources()
@@ -80,14 +87,14 @@ def run_weekly_digest(db_path: str = DB_PATH, digest_path: str = DIGEST_PATH) ->
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Roblox/game-dev pain-point discovery pipeline")
+    parser = argparse.ArgumentParser(description="AI/automation pain-point discovery pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("ingest", help="Run the daily ingestion batch against real sources")
+    subparsers.add_parser("ingest", help="Run the weekly ingestion batch against real sources")
     subparsers.add_parser("digest", help="Build the weekly Digest from already-ingested Opportunities")
     args = parser.parse_args(argv)
 
     if args.command == "ingest":
-        run_daily_ingestion()
+        run_weekly_ingestion()
     elif args.command == "digest":
         run_weekly_digest()
     return 0
