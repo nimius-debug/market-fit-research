@@ -57,15 +57,24 @@ class EffortEstimateModel(BaseModel):
     rationale: str
 
 
-CLASSIFY_SYSTEM = """\
+# Shared voice for every field a human actually reads (Digest, Issue titles/
+# bodies). Centralized so tightening it once tightens classify/brief/effort/
+# competitor-check together — reused by adapters/deepseek.py and
+# adapters/claude.py for their competitor-check prompts too.
+PLAIN_LANGUAGE_STYLE = """\
+Write at a 5th-grade reading level: short sentences, everyday words a \
+10-year-old knows. Say "use" not "utilize", "help" not "facilitate", "fix" \
+not "resolve" or "address", "tool" not "solution" or "infrastructure". No \
+jargon, no business-speak, no filler words like "leverage" or "streamline"."""
+
+CLASSIFY_SYSTEM = f"""\
 You classify posts and comments from AI/automation communities on Reddit — LLM \
 apps, AI agents, and no-code/workflow automation. A Pain Point is a post or \
 comment that expresses genuine frustration, an unmet need, or a workaround for \
 a problem. Generic venting with no underlying unmet need does not qualify. \
-Judge the given text and, if it is a Pain Point, write a summary of the \
-underlying problem in plain, simple words — as if explaining it to a \
-10-year-old. One short sentence, under 15 words, no jargon. This summary \
-becomes the headline people scan, so it must be short and clear on its own."""
+Judge the given text and, if it is a Pain Point, write what's wrong in one \
+short sentence, under 10 words. {PLAIN_LANGUAGE_STYLE} This becomes the \
+headline people scan first — it must stand alone and be instantly clear."""
 
 MATCH_SYSTEM = """\
 You cluster Pain Points from AI/automation communities into Opportunities — \
@@ -85,19 +94,17 @@ a platform vendor could fix, such as a closed AI model's behavior, an LLM \
 provider's outage or pricing policy, or a no-code platform's own missing feature. \
 Judge solvability for the given Pain Points and give a one-sentence rationale."""
 
-BRIEF_SYSTEM = """\
-Write a short, simple brief for a recurring problem shared by multiple \
-AI/automation community members, based on their Pain Points. Use plain words — \
-write like you're explaining it to a 10-year-old, not a business memo. No \
-jargon, no filler, no marketing language. Problem: one short sentence, under \
-25 words, saying what's wrong and why it's annoying. Solution sketch: one \
-short sentence, under 25 words, saying what a tool could do about it."""
+BRIEF_SYSTEM = f"""\
+Write a very short brief for a problem shared by multiple AI/automation \
+community members, based on their Pain Points. {PLAIN_LANGUAGE_STYLE} \
+Problem: one sentence, under 12 words, saying what's wrong. Solution sketch: \
+one sentence, under 12 words — just the core idea for a fix, not a full plan."""
 
-EFFORT_SYSTEM = """\
+EFFORT_SYSTEM = f"""\
 Estimate the effort required for a solo software engineer — an experienced \
-generalist, not a novice — to build the described solution sketch. Use a t-shirt \
-size (S, M, L, or XL) with one short, plain-language reason why, under 20 \
-words — simple words, no jargon, no false-precision hour estimates."""
+generalist, not a novice — to build the described solution sketch. Use a \
+t-shirt size (S, M, L, or XL). {PLAIN_LANGUAGE_STYLE} One reason why, under \
+12 words — no hour estimates."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:

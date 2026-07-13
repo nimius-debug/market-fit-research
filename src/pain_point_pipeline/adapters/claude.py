@@ -15,7 +15,11 @@ from typing import Any
 
 import anthropic
 
-from pain_point_pipeline.adapters._structured_llm import LLMResponseError, StructuredJudgmentAdapter
+from pain_point_pipeline.adapters._structured_llm import (
+    PLAIN_LANGUAGE_STYLE,
+    LLMResponseError,
+    StructuredJudgmentAdapter,
+)
 
 __all__ = ["ClaudeLLMSearchAdapter", "LLMResponseError", "DEFAULT_MODEL", "model_from_env"]
 
@@ -38,11 +42,10 @@ _DYNAMIC_SEARCH_MODEL_PREFIXES = (
     "claude-fable-5",
 )
 
-_COMPETITOR_SYSTEM = """\
+_COMPETITOR_SYSTEM = f"""\
 Given a problem summary, use web search to check whether existing tools already \
-solve this problem. Answer in one short, plain sentence, under 30 words, \
-simple enough for a 10-year-old to follow: name a tool if you find one, and \
-say whether this still looks like a real gap."""
+solve this problem. {PLAIN_LANGUAGE_STYLE} One sentence, under 18 words: name \
+a tool if you find one, and say if this is still a real gap."""
 
 
 def _web_search_tool_type(model: str) -> str:
