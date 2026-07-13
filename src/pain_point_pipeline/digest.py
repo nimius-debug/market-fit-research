@@ -1,4 +1,9 @@
-"""Formats and appends the weekly Digest file (CONTEXT.md: Digest)."""
+"""Formats and prepends the weekly Digest file (CONTEXT.md: Digest).
+
+Entries are written in plain, simple words on purpose (see the brief/effort/
+competitor-check prompts in adapters/_structured_llm.py and adapters/deepseek.py) —
+this is the file meant to be read quickly, not a design doc.
+"""
 
 from __future__ import annotations
 
@@ -7,27 +12,27 @@ import os
 from pain_point_pipeline.models import Opportunity, OpportunityBrief
 
 MAX_OPPORTUNITIES_PER_DIGEST = 5
+_TITLE = "# Digest\n\n"
+_MAX_EVIDENCE_LINKS = 2
 
 
 def format_opportunity_entry(opportunity: Opportunity, brief: OpportunityBrief) -> str:
     lines = [
         f"### {opportunity.title}",
         "",
-        f"**Frequency:** {opportunity.frequency} Pain Points from {opportunity.distinct_authors} distinct users",
+        f"**{opportunity.frequency} reports from {opportunity.distinct_authors} people**",
         "",
         f"**Problem:** {brief.problem_summary}",
         "",
-        f"**Solution sketch:** {brief.solution_sketch}",
+        f"**Fix idea:** {brief.solution_sketch}",
         "",
-        f"**Solvability:** {opportunity.solvable_rationale}",
+        f"**Effort:** {brief.effort_size} — {brief.effort_rationale}",
         "",
-        f"**Competitor check:** {brief.competitor_check}",
+        f"**Already out there?** {brief.competitor_check}",
         "",
-        f"**Effort estimate:** {brief.effort_size} — {brief.effort_rationale}",
-        "",
-        "**Evidence:**",
+        "**Examples:**",
     ]
-    for pain_point in opportunity.pain_points[:3]:
+    for pain_point in opportunity.pain_points[:_MAX_EVIDENCE_LINKS]:
         lines.append(f"- [{pain_point.summary}]({pain_point.raw_item.url})")
     return "\n".join(lines)
 
@@ -41,10 +46,18 @@ def format_digest_section(digest_date: str, entries: list[tuple[Opportunity, Opp
     return f"{header}\n\n{body}\n"
 
 
-def append_digest(path: str, section: str) -> None:
-    is_new = not os.path.exists(path)
-    with open(path, "a", encoding="utf-8") as f:
-        if is_new:
-            f.write("# Digest\n\n")
+def prepend_digest(path: str, section: str) -> None:
+    """Newest section goes right under the title, so the newest week is always
+    what you see first — the file is append-*safe* (nothing is ever deleted),
+    not literally append-only."""
+    existing = ""
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            existing = f.read()
+        if existing.startswith(_TITLE):
+            existing = existing[len(_TITLE) :]
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(_TITLE)
         f.write(section)
         f.write("\n")
+        f.write(existing)

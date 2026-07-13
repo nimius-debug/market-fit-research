@@ -40,9 +40,9 @@ _DYNAMIC_SEARCH_MODEL_PREFIXES = (
 
 _COMPETITOR_SYSTEM = """\
 Given a problem summary, use web search to check whether existing tools already \
-solve this problem. Summarize what you find in 2-4 sentences: name any existing \
-tools or products, their rough positioning, and whether the problem still looks \
-underserved."""
+solve this problem. Answer in one short, plain sentence, under 30 words, \
+simple enough for a 10-year-old to follow: name a tool if you find one, and \
+say whether this still looks like a real gap."""
 
 
 def _web_search_tool_type(model: str) -> str:
