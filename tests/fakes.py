@@ -65,6 +65,7 @@ class FakeLLMSearch:
         return BriefNarrative(
             problem_summary=f"Recurring problem: {pain_points[0].summary}",
             solution_sketch="A small tool addressing the above.",
+            user_flow=("Open the tool (fixture).", "See the fix (fixture)."),
         )
 
     def check_competitors(self, problem_summary: str) -> str:

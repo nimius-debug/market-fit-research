@@ -52,7 +52,8 @@ CREATE TABLE IF NOT EXISTS opportunity_briefs (
     effort_size TEXT NOT NULL,
     effort_rationale TEXT NOT NULL,
     competitor_check TEXT NOT NULL,
-    generated_at TEXT NOT NULL
+    generated_at TEXT NOT NULL,
+    user_flow TEXT
 );
 
 CREATE TABLE IF NOT EXISTS opportunity_issues (
@@ -98,6 +99,14 @@ def _migrate(conn: sqlite3.Connection) -> None:
     if "solvability_checked_at" not in opportunity_columns:
         conn.execute("ALTER TABLE opportunities ADD COLUMN solvability_checked_at TEXT")
         conn.execute("UPDATE opportunities SET solvability_checked_at = updated_at WHERE solvable IS NOT NULL")
+        conn.commit()
+
+    # user_flow (2026-07): briefs written before this column existed just have
+    # no flow steps (NULL) — repository.load_brief treats that as an empty
+    # tuple, so the Digest/Issue simply omit the section rather than error.
+    brief_columns = {row["name"] for row in conn.execute("PRAGMA table_info(opportunity_briefs)")}
+    if "user_flow" not in brief_columns:
+        conn.execute("ALTER TABLE opportunity_briefs ADD COLUMN user_flow TEXT")
         conn.commit()
 
 

@@ -50,6 +50,7 @@ class SolvabilityJudgementModel(BaseModel):
 class BriefNarrativeModel(BaseModel):
     problem_summary: str
     solution_sketch: str
+    user_flow: list[str]
 
 
 class EffortEstimateModel(BaseModel):
@@ -98,7 +99,11 @@ BRIEF_SYSTEM = f"""\
 Write a very short brief for a problem shared by multiple AI/automation \
 community members, based on their Pain Points. {PLAIN_LANGUAGE_STYLE} \
 Problem: one sentence, under 12 words, saying what's wrong. Solution sketch: \
-one sentence, under 12 words — just the core idea for a fix, not a full plan."""
+one sentence, under 12 words — just the core idea for a fix, not a full plan. \
+User flow: 2 to 4 steps showing what someone would actually do to use that \
+fix, in order. Each step under 8 words, starting with a verb (e.g. "Paste \
+your API key.", "Get an alert when it breaks."). Skip steps a user wouldn't \
+notice, like backend setup."""
 
 EFFORT_SYSTEM = f"""\
 Estimate the effort required for a solo software engineer — an experienced \
@@ -225,7 +230,11 @@ class StructuredJudgmentAdapter:
     def write_brief_narrative(self, pain_points: list[PainPoint]) -> BriefNarrative:
         prompt = f"Pain Points:\n{pain_points_block(pain_points)}"
         parsed = self._structured(BRIEF_SYSTEM, prompt, BriefNarrativeModel)
-        return BriefNarrative(problem_summary=parsed.problem_summary, solution_sketch=parsed.solution_sketch)
+        return BriefNarrative(
+            problem_summary=parsed.problem_summary,
+            solution_sketch=parsed.solution_sketch,
+            user_flow=tuple(parsed.user_flow),
+        )
 
     def estimate_effort(self, problem_summary: str, solution_sketch: str) -> EffortEstimate:
         prompt = f"Problem: {problem_summary}\n\nSolution sketch: {solution_sketch}"

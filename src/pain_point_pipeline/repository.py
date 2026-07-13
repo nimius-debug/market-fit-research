@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import datetime
 
@@ -212,15 +213,16 @@ def save_brief(conn: sqlite3.Connection, brief: OpportunityBrief) -> None:
     conn.execute(
         """
         INSERT INTO opportunity_briefs
-            (opportunity_id, problem_summary, solution_sketch, effort_size, effort_rationale, competitor_check, generated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            (opportunity_id, problem_summary, solution_sketch, effort_size, effort_rationale, competitor_check, generated_at, user_flow)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (opportunity_id) DO UPDATE SET
             problem_summary = excluded.problem_summary,
             solution_sketch = excluded.solution_sketch,
             effort_size = excluded.effort_size,
             effort_rationale = excluded.effort_rationale,
             competitor_check = excluded.competitor_check,
-            generated_at = excluded.generated_at
+            generated_at = excluded.generated_at,
+            user_flow = excluded.user_flow
         """,
         (
             brief.opportunity_id,
@@ -230,6 +232,7 @@ def save_brief(conn: sqlite3.Connection, brief: OpportunityBrief) -> None:
             brief.effort_rationale,
             brief.competitor_check,
             brief.generated_at.isoformat(),
+            json.dumps(list(brief.user_flow)),
         ),
     )
 
@@ -248,6 +251,7 @@ def load_brief(conn: sqlite3.Connection, opportunity_id: str) -> OpportunityBrie
         effort_rationale=row["effort_rationale"],
         competitor_check=row["competitor_check"],
         generated_at=datetime.fromisoformat(row["generated_at"]),
+        user_flow=tuple(json.loads(row["user_flow"])) if row["user_flow"] else (),
     )
 
 
