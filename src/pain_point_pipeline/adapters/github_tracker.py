@@ -20,11 +20,16 @@ REJECTED_LABEL = "rejected"
 
 
 def _format_issue_body(opportunity_id: str, brief: OpportunityBrief) -> str:
+    flow = ""
+    if brief.user_flow:
+        steps = "\n".join(f"{n}. {step}" for n, step in enumerate(brief.user_flow, start=1))
+        flow = f"**How it would work:**\n{steps}\n\n"
     return (
         f"**Problem:** {brief.problem_summary}\n\n"
-        f"**Solution sketch:** {brief.solution_sketch}\n\n"
-        f"**Competitor check:** {brief.competitor_check}\n\n"
-        f"**Effort estimate:** {brief.effort_size} — {brief.effort_rationale}\n\n"
+        f"**Fix idea:** {brief.solution_sketch}\n\n"
+        f"{flow}"
+        f"**Already out there?** {brief.competitor_check}\n\n"
+        f"**Effort:** {brief.effort_size} — {brief.effort_rationale}\n\n"
         f"Close this issue, or label it `{REJECTED_LABEL}`, to reject this Opportunity "
         "and suppress it from future Digests.\n\n"
         f"<!-- opportunity_id: {opportunity_id} -->"

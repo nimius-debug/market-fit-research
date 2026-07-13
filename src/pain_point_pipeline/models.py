@@ -73,6 +73,8 @@ class OpportunityBrief:
     effort_rationale: str
     competitor_check: str
     generated_at: datetime
+    user_flow: tuple[str, ...] = ()
+    """2-4 short steps showing how someone would actually use the solution sketch."""
 
 
 @dataclass(frozen=True)

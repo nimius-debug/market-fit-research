@@ -45,6 +45,8 @@ class BriefNarrative:
 
     problem_summary: str
     solution_sketch: str
+    user_flow: tuple[str, ...] = ()
+    """2-4 short steps showing how someone would actually use the solution sketch."""
 
 
 @dataclass(frozen=True)

@@ -29,9 +29,14 @@ def format_opportunity_entry(opportunity: Opportunity, brief: OpportunityBrief) 
         f"**Effort:** {brief.effort_size} — {brief.effort_rationale}",
         "",
         f"**Already out there?** {brief.competitor_check}",
-        "",
-        "**Examples:**",
     ]
+    if brief.user_flow:
+        lines.append("")
+        lines.append("**How it would work:**")
+        for n, step in enumerate(brief.user_flow, start=1):
+            lines.append(f"{n}. {step}")
+    lines.append("")
+    lines.append("**Examples:**")
     for pain_point in opportunity.pain_points[:_MAX_EVIDENCE_LINKS]:
         lines.append(f"- [{pain_point.summary}]({pain_point.raw_item.url})")
     return "\n".join(lines)
