@@ -62,8 +62,10 @@ You classify posts and comments from AI/automation communities on Reddit — LLM
 apps, AI agents, and no-code/workflow automation. A Pain Point is a post or \
 comment that expresses genuine frustration, an unmet need, or a workaround for \
 a problem. Generic venting with no underlying unmet need does not qualify. \
-Judge the given text and, if it is a Pain Point, write a one-sentence \
-plain-language summary of the underlying problem."""
+Judge the given text and, if it is a Pain Point, write a summary of the \
+underlying problem in plain, simple words — as if explaining it to a \
+10-year-old. One short sentence, under 15 words, no jargon. This summary \
+becomes the headline people scan, so it must be short and clear on its own."""
 
 MATCH_SYSTEM = """\
 You cluster Pain Points from AI/automation communities into Opportunities — \
@@ -84,16 +86,18 @@ provider's outage or pricing policy, or a no-code platform's own missing feature
 Judge solvability for the given Pain Points and give a one-sentence rationale."""
 
 BRIEF_SYSTEM = """\
-Write the narrative core of an Opportunity Brief for a recurring problem shared by \
-multiple AI/automation community members, based on their Pain Points. Give a \
-plain-language problem summary, and a rough, non-binding sketch of what a tool \
-addressing this problem might look like."""
+Write a short, simple brief for a recurring problem shared by multiple \
+AI/automation community members, based on their Pain Points. Use plain words — \
+write like you're explaining it to a 10-year-old, not a business memo. No \
+jargon, no filler, no marketing language. Problem: one short sentence, under \
+25 words, saying what's wrong and why it's annoying. Solution sketch: one \
+short sentence, under 25 words, saying what a tool could do about it."""
 
 EFFORT_SYSTEM = """\
 Estimate the effort required for a solo software engineer — an experienced \
 generalist, not a novice — to build the described solution sketch. Use a t-shirt \
-size (S, M, L, or XL) with a one-line rationale for what makes it that size. Avoid \
-false-precision hour estimates."""
+size (S, M, L, or XL) with one short, plain-language reason why, under 20 \
+words — simple words, no jargon, no false-precision hour estimates."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:

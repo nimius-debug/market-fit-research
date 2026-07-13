@@ -30,11 +30,11 @@ DEFAULT_MODEL = "deepseek-v4-flash"
 _BASE_URL = "https://api.deepseek.com/anthropic"
 
 _COMPETITOR_SYSTEM = """\
-Given a problem summary, judge from your own training knowledge whether existing \
-tools likely already solve this problem — you do not have live web search, so \
-say so plainly rather than implying you checked. Summarize in 2-4 sentences: name \
-any existing tools or products you're aware of, their rough positioning, and \
-whether the problem still looks underserved."""
+Given a problem summary, judge from your own training knowledge (no live web \
+search — say so if you're not sure) whether tools like this already exist. \
+Answer in one short, plain sentence, under 25 words, simple enough for a \
+10-year-old to follow: name a tool if you know one, and say whether this \
+still looks like a real gap."""
 
 
 class _CompetitorCheckModel(BaseModel):

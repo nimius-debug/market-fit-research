@@ -41,7 +41,7 @@ from functools import partial
 from typing import TypeVar
 
 from pain_point_pipeline import repository
-from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, append_digest, format_digest_section
+from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, format_digest_section, prepend_digest
 from pain_point_pipeline.models import Opportunity, OpportunityBrief, OpportunityIssue, PainPoint
 from pain_point_pipeline.ports import (
     BriefNarrative,
@@ -331,7 +331,7 @@ def run_digest_build(conn: sqlite3.Connection, tracker: TrackerPort, digest_path
         repository.mark_digested(conn, opportunity_id, digest_date, now)
 
     section = format_digest_section(digest_date, entries)
-    append_digest(digest_path, section)
+    prepend_digest(digest_path, section)
 
     conn.commit()
     return DigestResult(digest_date=digest_date, included_opportunity_ids=included_ids)
