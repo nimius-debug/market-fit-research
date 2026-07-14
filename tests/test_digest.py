@@ -38,7 +38,7 @@ def _make_opportunity(pain_point_count: int) -> Opportunity:
     )
 
 
-def _make_brief() -> OpportunityBrief:
+def _make_brief(user_flow: tuple[str, ...] = ("Open the app.", "Click fix.")) -> OpportunityBrief:
     return OpportunityBrief(
         opportunity_id="opp-1",
         problem_summary="Short problem.",
@@ -47,6 +47,7 @@ def _make_brief() -> OpportunityBrief:
         effort_rationale="Small.",
         competitor_check="Not really.",
         generated_at=datetime(2026, 7, 13, 12, 0, 0),
+        user_flow=user_flow,
     )
 
 
@@ -55,6 +56,20 @@ def test_entry_caps_evidence_links_even_with_more_pain_points() -> None:
     entry = format_opportunity_entry(opportunity, _make_brief())
 
     assert entry.count("- [Summary") == _MAX_EVIDENCE_LINKS
+
+
+def test_entry_numbers_the_user_flow_steps_in_order() -> None:
+    entry = format_opportunity_entry(
+        _make_opportunity(1), _make_brief(user_flow=("Paste your key.", "Get an alert."))
+    )
+
+    assert "**How it would work:**\n1. Paste your key.\n2. Get an alert." in entry
+
+
+def test_entry_omits_the_flow_section_when_there_are_no_steps() -> None:
+    entry = format_opportunity_entry(_make_opportunity(1), _make_brief(user_flow=()))
+
+    assert "How it would work" not in entry
 
 
 def test_entry_uses_plain_field_labels() -> None:

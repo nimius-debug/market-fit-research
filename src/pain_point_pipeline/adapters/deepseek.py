@@ -22,19 +22,18 @@ import os
 import anthropic
 from pydantic import BaseModel
 
-from pain_point_pipeline.adapters._structured_llm import StructuredJudgmentAdapter
+from pain_point_pipeline.adapters._structured_llm import PLAIN_LANGUAGE_STYLE, StructuredJudgmentAdapter
 
 __all__ = ["DeepSeekLLMSearchAdapter", "DEFAULT_MODEL", "model_from_env"]
 
 DEFAULT_MODEL = "deepseek-v4-flash"
 _BASE_URL = "https://api.deepseek.com/anthropic"
 
-_COMPETITOR_SYSTEM = """\
+_COMPETITOR_SYSTEM = f"""\
 Given a problem summary, judge from your own training knowledge (no live web \
 search — say so if you're not sure) whether tools like this already exist. \
-Answer in one short, plain sentence, under 25 words, simple enough for a \
-10-year-old to follow: name a tool if you know one, and say whether this \
-still looks like a real gap."""
+{PLAIN_LANGUAGE_STYLE} One sentence, under 15 words: name a tool if you know \
+one, and say if this is still a real gap."""
 
 
 class _CompetitorCheckModel(BaseModel):

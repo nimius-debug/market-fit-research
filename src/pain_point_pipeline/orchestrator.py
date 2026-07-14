@@ -284,6 +284,7 @@ def _apply_refresh(
         effort_rationale=computation.effort.rationale,
         competitor_check=computation.competitor_check,
         generated_at=now,
+        user_flow=computation.narrative.user_flow,
     )
     repository.save_brief(conn, brief)
 
