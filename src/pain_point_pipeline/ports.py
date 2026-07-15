@@ -13,6 +13,7 @@ from typing import Protocol
 from pain_point_pipeline.models import (
     EffortSize,
     IssueStatus,
+    Opportunity,
     OpportunityBrief,
     OpportunitySummary,
     PainPoint,
@@ -55,6 +56,25 @@ class EffortEstimate:
     rationale: str
 
 
+@dataclass(frozen=True)
+class ViralPick:
+    """`opportunity_id` is None when nothing in the pool is worth a social post
+    this cycle — a valid answer, not a fallback to avoid."""
+
+    opportunity_id: str | None
+
+
+@dataclass(frozen=True)
+class SocialDraftCopy:
+    """Persuasive text only — no links. The orchestrator appends the real
+    evidence URL afterward so the LLM can never hallucinate or mangle one."""
+
+    x_hook: str
+    x_body: tuple[str, ...]
+    x_closer: str
+    linkedin_post: str
+
+
 class SourcePort(Protocol):
     """Reads new posts/comments from one community platform (Reddit, DevForum, ...)."""
 
@@ -85,6 +105,16 @@ class LLMSearchPort(Protocol):
     def check_competitors(self, problem_summary: str) -> str: ...
 
     def estimate_effort(self, problem_summary: str, solution_sketch: str) -> EffortEstimate: ...
+
+    def pick_viral_opportunity(
+        self, candidates: list[tuple[Opportunity, OpportunityBrief]]
+    ) -> ViralPick:
+        """Given already-qualifying candidates (solvable, briefed, enough
+        reports), judge which single one would make the best social post —
+        or that none of them would."""
+        ...
+
+    def write_social_draft(self, opportunity: Opportunity, brief: OpportunityBrief) -> SocialDraftCopy: ...
 
 
 class TrackerPort(Protocol):

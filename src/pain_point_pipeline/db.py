@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS opportunities (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     last_digested_at TEXT,
-    solvability_checked_at TEXT
+    solvability_checked_at TEXT,
+    social_posted_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS opportunity_pain_points (
@@ -107,6 +108,13 @@ def _migrate(conn: sqlite3.Connection) -> None:
     brief_columns = {row["name"] for row in conn.execute("PRAGMA table_info(opportunity_briefs)")}
     if "user_flow" not in brief_columns:
         conn.execute("ALTER TABLE opportunity_briefs ADD COLUMN user_flow TEXT")
+        conn.commit()
+
+    # social_posted_at (2026-07): no backfill needed -- NULL already means
+    # "never used for a social post", the correct state for every opportunity
+    # that existed before this feature shipped.
+    if "social_posted_at" not in opportunity_columns:
+        conn.execute("ALTER TABLE opportunities ADD COLUMN social_posted_at TEXT")
         conn.commit()
 
 

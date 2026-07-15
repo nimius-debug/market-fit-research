@@ -31,6 +31,11 @@ def digest_path(tmp_path: Path) -> str:
 
 
 @pytest.fixture
+def social_draft_path(tmp_path: Path) -> str:
+    return str(tmp_path / "SOCIAL_DRAFTS.md")
+
+
+@pytest.fixture
 def make_item() -> Callable[..., RawItem]:
     def _make_item(
         text: str,

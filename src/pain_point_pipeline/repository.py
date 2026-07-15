@@ -309,6 +309,40 @@ def solvable_undigested_opportunity_ids(conn: sqlite3.Connection) -> list[str]:
     return [row["id"] for row in rows if row["id"] not in rejected]
 
 
+# More than the Digest's issue-opening gate (MIN_DISTINCT_AUTHORS = 3 pain
+# points, not authors, coincidentally the same number): a social post is a
+# public, named, twice-published statement, so the bar for "worth it" is
+# higher than the bar for "worth a review slot."
+SOCIAL_MIN_REPORTS = 5
+
+
+def list_viral_candidates(conn: sqlite3.Connection, min_reports: int = SOCIAL_MIN_REPORTS) -> list[str]:
+    """Solvable, briefed, non-Rejected Opportunities with more than `min_reports`
+    Pain Points that have never been used for a social post. Requiring a brief
+    (inner join) means these already cleared MIN_DISTINCT_AUTHORS too."""
+    rejected = _rejected_opportunity_ids(conn)
+    rows = conn.execute(
+        """
+        SELECT o.id, COUNT(opp.pain_point_id) AS frequency
+        FROM opportunities o
+        JOIN opportunity_pain_points opp ON opp.opportunity_id = o.id
+        JOIN opportunity_briefs b ON b.opportunity_id = o.id
+        WHERE o.solvable = 1 AND o.social_posted_at IS NULL
+        GROUP BY o.id
+        HAVING COUNT(opp.pain_point_id) > ?
+        ORDER BY frequency DESC
+        """,
+        (min_reports,),
+    ).fetchall()
+    return [row["id"] for row in rows if row["id"] not in rejected]
+
+
+def mark_social_posted(conn: sqlite3.Connection, opportunity_id: str, when: datetime) -> None:
+    conn.execute(
+        "UPDATE opportunities SET social_posted_at = ? WHERE id = ?", (when.isoformat(), opportunity_id)
+    )
+
+
 def list_pain_point_summaries(conn: sqlite3.Connection) -> list[tuple[str, str]]:
     """(pain_point_id, summary) for every stored Pain Point, in arrival order —
     the replay input for a recluster."""
