@@ -8,7 +8,7 @@ import pytest
 from fakes import FakeLLMSearch, FakeSource, FakeTracker
 from pain_point_pipeline import orchestrator, repository
 from pain_point_pipeline.models import PainPoint, RawItem
-from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster
+from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster, run_social_draft
 from pain_point_pipeline.ports import ClusterMatch, PainPointClassification
 
 
@@ -382,3 +382,83 @@ def test_unchanged_opportunity_is_not_redigested_but_an_updated_one_is(conn, now
 
     third_digest = run_digest_build(conn, tracker, digest_path, a_week_later + timedelta(days=1))
     assert third_digest.included_opportunity_ids == [opportunity_id]
+
+
+def test_social_draft_picks_a_qualifying_opportunity_and_marks_it_used(
+    conn, now, make_item, social_draft_path
+):
+    # 6 distinct authors: crosses both the 3-author brief gate and the >5-report social bar.
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "APIs change without warning", authors)
+    tracker = FakeTracker()
+    ingest_result = run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+    (opportunity_id,) = ingest_result.touched_opportunity_ids
+    assert repository.list_viral_candidates(conn) == [opportunity_id]
+
+    result = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+
+    assert result.opportunity_id == opportunity_id
+    draft_text = Path(social_draft_path).read_text(encoding="utf-8")
+    assert "Hook (fixture): PAINPOINT APIs change without warning" in draft_text
+    # Marked used: no longer a candidate for a future run.
+    assert repository.list_viral_candidates(conn) == []
+
+
+def test_social_draft_requires_more_than_five_reports(conn, now, make_item, social_draft_path):
+    # Exactly 5 distinct authors/reports -- crosses the 3-author brief gate but not the >5 bar.
+    authors = ["alice", "bob", "carol", "dave", "erin"]
+    items = _clustered_items(make_item, "quiet problem", authors)
+    tracker = FakeTracker()
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+
+    assert repository.list_viral_candidates(conn) == []
+    result = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+
+    assert result.opportunity_id is None
+    assert not Path(social_draft_path).exists()
+
+
+def test_social_draft_writes_nothing_when_the_llm_picks_none(conn, now, make_item, social_draft_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "VIRAL_NONE marked problem", authors)
+    tracker = FakeTracker()
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+    assert len(repository.list_viral_candidates(conn)) == 1
+
+    result = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+
+    assert result.opportunity_id is None
+    assert not Path(social_draft_path).exists()
+    # Not marked used -- an LLM "not this one" isn't the same as "already posted".
+    assert len(repository.list_viral_candidates(conn)) == 1
+
+
+def test_social_draft_never_reuses_an_opportunity_across_runs(conn, now, make_item, social_draft_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "repeat-proof problem", authors)
+    tracker = FakeTracker()
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+
+    first = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+    assert first.opportunity_id is not None
+
+    later = now + timedelta(days=2)
+    second = run_social_draft(FakeLLMSearch(), conn, social_draft_path, later)
+
+    assert second.opportunity_id is None  # the only candidate was already used
+
+
+def test_list_viral_candidates_excludes_rejected_opportunities(conn, now, make_item, digest_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "rejected problem", authors)
+    tracker = FakeTracker()
+    ingest_result = run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
+    (opportunity_id,) = ingest_result.touched_opportunity_ids
+    issue_number = tracker.created[opportunity_id]
+    tracker.set_status(issue_number, "rejected")
+    # list_viral_candidates reads Rejected status from the DB, not the live
+    # tracker directly -- run_digest_build is what syncs the two (same as the
+    # existing Reject-suppression tests do).
+    run_digest_build(conn, tracker, digest_path, now)
+
+    assert repository.list_viral_candidates(conn) == []

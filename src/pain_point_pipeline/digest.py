@@ -7,8 +7,7 @@ this is the file meant to be read quickly, not a design doc.
 
 from __future__ import annotations
 
-import os
-
+from pain_point_pipeline.markdown_files import prepend_section
 from pain_point_pipeline.models import Opportunity, OpportunityBrief
 
 MAX_OPPORTUNITIES_PER_DIGEST = 5
@@ -52,17 +51,4 @@ def format_digest_section(digest_date: str, entries: list[tuple[Opportunity, Opp
 
 
 def prepend_digest(path: str, section: str) -> None:
-    """Newest section goes right under the title, so the newest week is always
-    what you see first — the file is append-*safe* (nothing is ever deleted),
-    not literally append-only."""
-    existing = ""
-    if os.path.exists(path):
-        with open(path, encoding="utf-8") as f:
-            existing = f.read()
-        if existing.startswith(_TITLE):
-            existing = existing[len(_TITLE) :]
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(_TITLE)
-        f.write(section)
-        f.write("\n")
-        f.write(existing)
+    prepend_section(path, _TITLE, section)

@@ -28,11 +28,12 @@ from pain_point_pipeline.adapters.claude import ClaudeLLMSearchAdapter
 from pain_point_pipeline.adapters.deepseek import DeepSeekLLMSearchAdapter
 from pain_point_pipeline.adapters.github_tracker import GitHubTracker
 from pain_point_pipeline.adapters.reddit import RedditSource
-from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster
+from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster, run_social_draft
 from pain_point_pipeline.ports import LLMSearchPort, SourcePort
 
 DB_PATH = "data/pipeline.sqlite3"
 DIGEST_PATH = "DIGEST.md"
+SOCIAL_DRAFT_PATH = "SOCIAL_DRAFTS.md"
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +121,19 @@ def run_recluster_maintenance(db_path: str = DB_PATH) -> None:
         conn.close()
 
 
+def run_social_draft_command(db_path: str = DB_PATH, draft_path: str = SOCIAL_DRAFT_PATH) -> None:
+    conn = _connect(db_path)
+    try:
+        llm = _build_llm()
+        result = run_social_draft(llm, conn, draft_path, _now())
+        if result.opportunity_id is None:
+            logger.info("No social draft written this run (empty pool, or none judged worth posting)")
+        else:
+            logger.info("Social draft written for opportunity %s", result.opportunity_id)
+    finally:
+        conn.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     # httpx logs one INFO line per request — hundreds per ingestion run; the
@@ -133,6 +147,10 @@ def main(argv: list[str] | None = None) -> int:
         "recluster",
         help="Maintenance: re-derive all Opportunities from stored Pain Points under the current match criterion",
     )
+    subparsers.add_parser(
+        "social-draft",
+        help="Pick at most one Opportunity worth a social post and write a draft to SOCIAL_DRAFTS.md",
+    )
     args = parser.parse_args(argv)
 
     if args.command == "ingest":
@@ -141,6 +159,8 @@ def main(argv: list[str] | None = None) -> int:
         run_weekly_digest()
     elif args.command == "recluster":
         run_recluster_maintenance()
+    elif args.command == "social-draft":
+        run_social_draft_command()
     return 0
 
 

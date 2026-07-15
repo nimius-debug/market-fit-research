@@ -15,13 +15,22 @@ from typing import Any, TypeVar
 import anthropic
 from pydantic import BaseModel, ValidationError
 
-from pain_point_pipeline.models import EffortSize, OpportunitySummary, PainPoint, RawItem
+from pain_point_pipeline.models import (
+    EffortSize,
+    Opportunity,
+    OpportunityBrief,
+    OpportunitySummary,
+    PainPoint,
+    RawItem,
+)
 from pain_point_pipeline.ports import (
     BriefNarrative,
     ClusterMatch,
     EffortEstimate,
     PainPointClassification,
+    SocialDraftCopy,
     SolvabilityJudgement,
+    ViralPick,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,6 +65,18 @@ class BriefNarrativeModel(BaseModel):
 class EffortEstimateModel(BaseModel):
     size: EffortSize
     rationale: str
+
+
+class ViralPickModel(BaseModel):
+    # Same DeepSeek omitted-field quirk as ClusterMatchModel — default None.
+    matched_opportunity_id: str | None = None
+
+
+class SocialDraftModel(BaseModel):
+    x_hook: str
+    x_body: list[str]
+    x_closer: str
+    linkedin_post: str
 
 
 # Shared voice for every field a human actually reads (Digest, Issue titles/
@@ -110,6 +131,37 @@ Estimate the effort required for a solo software engineer — an experienced \
 generalist, not a novice — to build the described solution sketch. Use a \
 t-shirt size (S, M, L, or XL). {PLAIN_LANGUAGE_STYLE} One reason why, under \
 12 words — no hour estimates."""
+
+VIRAL_PICK_SYSTEM = """\
+You are picking which ONE recurring AI/automation problem, from a list of \
+candidates that already qualify (multiple people reported it, a solo \
+developer could build a fix), would make the best social media post. Judge \
+by: how many people would instantly think "that's exactly my problem", how \
+sharp and specific the core tension is, and how easy the fix idea is to \
+picture. Given the candidates (id, title, problem, report/people counts), \
+return the id of the single best one — or null if none of them would \
+genuinely make a good post. Null is a valid answer; do not pick out of \
+obligation."""
+
+SOCIAL_DRAFT_SYSTEM = f"""\
+Write social media copy for a real recurring problem found in AI/automation \
+communities, based on its brief. {PLAIN_LANGUAGE_STYLE} Use direct-response \
+hook-writing: lead with the sharpest, most specific version of the problem — \
+use the real numbers you're given, never invent any. Short, punchy \
+sentences. No throat-clearing ("In today's post..." is banned). \
+Problem-agitate first, then hint at the fix. Write in first person, as \
+someone who runs a system that finds these problems systematically — not \
+as a neutral reporter.
+
+x_hook: the first tweet. Must stop the scroll on its own, under 20 words.
+x_body: 1 to 2 more tweets unpacking the pattern and the fix idea, each \
+under 25 words.
+x_closer: the last tweet, under 15 words, setting up "here's where I found \
+it" — do not write a link or URL yourself, one will be appended after.
+linkedin_post: one longer post, 3 to 5 short lines separated by blank \
+lines (LinkedIn's native style), same hook-first structure, under 120 \
+words total — no link inside it, one will be posted separately as a \
+comment."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:
@@ -243,3 +295,38 @@ class StructuredJudgmentAdapter:
 
     def check_competitors(self, problem_summary: str) -> str:
         raise NotImplementedError
+
+    def pick_viral_opportunity(
+        self, candidates: list[tuple[Opportunity, OpportunityBrief]]
+    ) -> ViralPick:
+        if not candidates:
+            return ViralPick(opportunity_id=None)
+
+        candidate_block = "\n".join(
+            f"- id={opportunity.id}: {opportunity.title} | {brief.problem_summary} | "
+            f"{opportunity.frequency} reports from {opportunity.distinct_authors} people"
+            for opportunity, brief in candidates
+        )
+        parsed = self._structured(VIRAL_PICK_SYSTEM, candidate_block, ViralPickModel)
+        matched_id = parsed.matched_opportunity_id
+        # Defend against a hallucinated id that isn't one of the candidates offered.
+        valid_ids = {opportunity.id for opportunity, _ in candidates}
+        if matched_id not in valid_ids:
+            matched_id = None
+        return ViralPick(opportunity_id=matched_id)
+
+    def write_social_draft(self, opportunity: Opportunity, brief: OpportunityBrief) -> SocialDraftCopy:
+        prompt = (
+            f"Title: {opportunity.title}\n"
+            f"Problem: {brief.problem_summary}\n"
+            f"Fix idea: {brief.solution_sketch}\n"
+            f"Reports: {opportunity.frequency} from {opportunity.distinct_authors} distinct people\n"
+            f"Effort: {brief.effort_size}"
+        )
+        parsed = self._structured(SOCIAL_DRAFT_SYSTEM, prompt, SocialDraftModel)
+        return SocialDraftCopy(
+            x_hook=parsed.x_hook,
+            x_body=tuple(parsed.x_body),
+            x_closer=parsed.x_closer,
+            linkedin_post=parsed.linkedin_post,
+        )

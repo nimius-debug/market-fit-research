@@ -51,6 +51,7 @@ from pain_point_pipeline.ports import (
     SourcePort,
     TrackerPort,
 )
+from pain_point_pipeline.social import format_social_draft, prepend_social_draft
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +97,13 @@ class ReclusterResult:
     pain_points_reclustered: int = 0
     opportunities_created: int = 0
     issues_closed: int = 0
+
+
+@dataclass
+class SocialDraftResult:
+    opportunity_id: str | None = None
+    """None means no draft was written this run — either the candidate pool
+    was empty, or the LLM judged none of it worth posting. Both are normal."""
 
 
 def _batches(items: list[_TBatch], size: int) -> list[list[_TBatch]]:
@@ -336,6 +344,40 @@ def run_digest_build(conn: sqlite3.Connection, tracker: TrackerPort, digest_path
 
     conn.commit()
     return DigestResult(digest_date=digest_date, included_opportunity_ids=included_ids)
+
+
+def run_social_draft(llm: LLMSearchPort, conn: sqlite3.Connection, draft_path: str, now: datetime) -> SocialDraftResult:
+    """Pick at most one Opportunity per run for a social post: from
+    repository.list_viral_candidates (>5 reports, solvable, briefed, never
+    used before), an LLM judges which single one is most worth posting — or
+    that none of them are. A pick is permanently marked used, so posts never
+    repeat even though the same underlying pool is re-queried every run."""
+    candidate_ids = repository.list_viral_candidates(conn)
+    if not candidate_ids:
+        logger.info("No social-draft candidates (need >5 reports, not yet used)")
+        return SocialDraftResult()
+
+    candidates = []
+    for opportunity_id in candidate_ids:
+        opportunity = repository.load_opportunity(conn, opportunity_id)
+        brief = repository.load_brief(conn, opportunity_id)
+        assert brief is not None  # inner join in list_viral_candidates guarantees this
+        candidates.append((opportunity, brief))
+
+    pick = llm.pick_viral_opportunity(candidates)
+    if pick.opportunity_id is None:
+        logger.info("Viral pick judged none of %d candidates worth posting this run", len(candidates))
+        return SocialDraftResult()
+
+    opportunity, brief = next((o, b) for o, b in candidates if o.id == pick.opportunity_id)
+    copy = llm.write_social_draft(opportunity, brief)
+    section = format_social_draft(now.date().isoformat(), opportunity, copy)
+    prepend_social_draft(draft_path, section)
+    repository.mark_social_posted(conn, opportunity.id, now)
+
+    conn.commit()
+    logger.info("Social draft written for %r (%d reports, %d people)", opportunity.title[:70], opportunity.frequency, opportunity.distinct_authors)
+    return SocialDraftResult(opportunity_id=opportunity.id)
 
 
 def run_recluster(

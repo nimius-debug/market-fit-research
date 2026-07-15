@@ -27,6 +27,18 @@ def test_digest_dispatches_to_run_weekly_digest(monkeypatch: pytest.MonkeyPatch)
     assert calls == ["digest"]
 
 
+def test_social_draft_dispatches_to_run_social_draft_command(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = []
+    monkeypatch.setattr(cli, "run_weekly_ingestion", lambda: calls.append("ingest"))
+    monkeypatch.setattr(cli, "run_weekly_digest", lambda: calls.append("digest"))
+    monkeypatch.setattr(cli, "run_social_draft_command", lambda: calls.append("social-draft"))
+
+    exit_code = cli.main(["social-draft"])
+
+    assert exit_code == 0
+    assert calls == ["social-draft"]
+
+
 def _clear_reddit_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for var in ("REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET"):
         monkeypatch.delenv(var, raising=False)

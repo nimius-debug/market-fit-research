@@ -6,6 +6,7 @@ from datetime import datetime
 
 from pain_point_pipeline.models import (
     IssueStatus,
+    Opportunity,
     OpportunityBrief,
     OpportunitySummary,
     PainPoint,
@@ -16,7 +17,9 @@ from pain_point_pipeline.ports import (
     ClusterMatch,
     EffortEstimate,
     PainPointClassification,
+    SocialDraftCopy,
     SolvabilityJudgement,
+    ViralPick,
 )
 
 
@@ -39,6 +42,9 @@ class FakeLLMSearch:
     - Text containing "PAINPOINT" classifies as a Pain Point; everything else does not.
     - Text containing "CLUSTER_WITH:<title>" matches the existing candidate with that title.
     - Text containing "UNSOLVABLE" makes the owning Opportunity judged not Solvable.
+    - pick_viral_opportunity: picks the first candidate, unless any candidate's
+      title contains "VIRAL_NONE", in which case it picks none (fixture for
+      "the LLM judged nothing worth posting").
     """
 
     def classify_pain_point(self, item: RawItem) -> PainPointClassification:
@@ -73,6 +79,21 @@ class FakeLLMSearch:
 
     def estimate_effort(self, problem_summary: str, solution_sketch: str) -> EffortEstimate:
         return EffortEstimate(size="S", rationale="Small, well-scoped tool (fixture).")
+
+    def pick_viral_opportunity(
+        self, candidates: list[tuple[Opportunity, OpportunityBrief]]
+    ) -> ViralPick:
+        if not candidates or any("VIRAL_NONE" in opportunity.title for opportunity, _ in candidates):
+            return ViralPick(opportunity_id=None)
+        return ViralPick(opportunity_id=candidates[0][0].id)
+
+    def write_social_draft(self, opportunity: Opportunity, brief: OpportunityBrief) -> SocialDraftCopy:
+        return SocialDraftCopy(
+            x_hook=f"Hook (fixture): {opportunity.title}",
+            x_body=("Body one (fixture).", "Body two (fixture)."),
+            x_closer="Closer (fixture).",
+            linkedin_post=f"LinkedIn post (fixture): {opportunity.title}",
+        )
 
 
 class FakeTracker:
