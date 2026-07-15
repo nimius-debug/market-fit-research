@@ -9,11 +9,12 @@ deepseek.py) subclass `StructuredJudgmentAdapter` and only supply `_client`/
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any, TypeVar
 
 import anthropic
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, field_validator
 
 from pain_point_pipeline.models import (
     EffortSize,
@@ -39,6 +40,20 @@ _JUDGMENT_MAX_TOKENS = 1024
 _MAX_STRUCTURED_ATTEMPTS = 2
 
 
+def _coerce_json_encoded_list(value: object) -> object:
+    """DeepSeek's tool-calling occasionally double-encodes a list field as a
+    JSON string instead of a real array — observed live 2026-07-15, 3 of 6
+    calls to SocialDraftModel.x_body. Transparently unwrap it instead of
+    burning a retry (or, at ~50% observed rate, both retries) on something
+    that's actually perfectly readable data."""
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return value
+    return value
+
+
 class PainPointClassificationModel(BaseModel):
     is_pain_point: bool
     summary: str
@@ -61,6 +76,8 @@ class BriefNarrativeModel(BaseModel):
     solution_sketch: str
     user_flow: list[str]
 
+    _coerce_user_flow = field_validator("user_flow", mode="before")(_coerce_json_encoded_list)
+
 
 class EffortEstimateModel(BaseModel):
     size: EffortSize
@@ -77,6 +94,8 @@ class SocialDraftModel(BaseModel):
     x_body: list[str]
     x_closer: str
     linkedin_post: str
+
+    _coerce_x_body = field_validator("x_body", mode="before")(_coerce_json_encoded_list)
 
 
 # Shared voice for every field a human actually reads (Digest, Issue titles/
@@ -160,16 +179,25 @@ cliffhanger ("here's how", "I'll show you", "stay tuned", a lone emoji \
 pointing at the link). A reader who never clicks the link must still walk \
 away knowing what the fix actually is, not just that one exists.
 
+Critical: nothing has been built yet — this is a pattern spotted in real \
+discussions, not a product. Frame the fix as a proposal ("a tool that \
+could...", "what if something just...") — never say "I built", "I'm \
+building", or "I've been working on". End on a direct, genuine question \
+asking whether it's worth building — e.g. "Worth building?" or "Would you \
+actually use this?" — don't assume the answer.
+
 x_hook: the first tweet. Must stop the scroll on its own, under 20 words.
 x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern \
-is. The second states the actual fix idea directly — not a tease. Each \
+is. The second states the proposed fix idea directly — not a tease. Each \
 under 25 words.
-x_closer: the last tweet, under 15 words, pointing to where this came from \
-— do not write a link or URL yourself, one will be appended after.
+x_closer: the last tweet, under 20 words — the validation question (worth \
+building? would you use it?), not a link tease. Do not write a link or URL \
+yourself, one will be appended after.
 linkedin_post: one longer post, 3 to 5 short lines separated by blank \
-lines (LinkedIn's native style), same hook-first structure, but must state \
-the fix idea directly rather than tease it, under 120 words total — no \
-link inside it, one will be posted separately as a comment."""
+lines (LinkedIn's native style), same hook-first structure, states the \
+proposed fix idea directly (never as something already built), ends on the \
+validation question, under 120 words total — no link inside it, one will \
+be posted separately as a comment."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:

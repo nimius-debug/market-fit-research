@@ -6,9 +6,13 @@ from types import SimpleNamespace
 
 import pytest
 
+import json
+
 from pain_point_pipeline.adapters._structured_llm import (
+    BriefNarrativeModel,
     ClusterMatchModel,
     LLMResponseError,
+    SocialDraftModel,
     StructuredJudgmentAdapter,
     SolvabilityJudgementModel,
 )
@@ -19,6 +23,35 @@ def test_cluster_match_tolerates_an_omitted_field() -> None:
     # (Claude sends an explicit null) — observed live: tool input was {}.
     parsed = ClusterMatchModel.model_validate({})
     assert parsed.matched_opportunity_id is None
+
+
+def test_social_draft_coerces_a_json_encoded_x_body() -> None:
+    # DeepSeek sometimes double-encodes a list field as a JSON string instead
+    # of a real array — observed live 2026-07-15, 3 of 6 calls to x_body.
+    raw = {
+        "x_hook": "Hook.",
+        "x_body": json.dumps(["Tweet one.", "Tweet two."]),
+        "x_closer": "Closer.",
+        "linkedin_post": "Post.",
+    }
+    parsed = SocialDraftModel.model_validate(raw)
+    assert parsed.x_body == ["Tweet one.", "Tweet two."]
+
+
+def test_social_draft_still_accepts_a_real_list_for_x_body() -> None:
+    raw = {"x_hook": "Hook.", "x_body": ["A.", "B."], "x_closer": "Closer.", "linkedin_post": "Post."}
+    parsed = SocialDraftModel.model_validate(raw)
+    assert parsed.x_body == ["A.", "B."]
+
+
+def test_brief_narrative_coerces_a_json_encoded_user_flow() -> None:
+    raw = {
+        "problem_summary": "Problem.",
+        "solution_sketch": "Fix.",
+        "user_flow": json.dumps(["Step one.", "Step two."]),
+    }
+    parsed = BriefNarrativeModel.model_validate(raw)
+    assert parsed.user_flow == ["Step one.", "Step two."]
 
 
 def _tool_use_response(tool_name: str, tool_input: dict) -> SimpleNamespace:
