@@ -149,19 +149,27 @@ communities, based on its brief. {PLAIN_LANGUAGE_STYLE} Use direct-response \
 hook-writing: lead with the sharpest, most specific version of the problem — \
 use the real numbers you're given, never invent any. Short, punchy \
 sentences. No throat-clearing ("In today's post..." is banned). \
-Problem-agitate first, then hint at the fix. Write in first person, as \
+Problem-agitate first, then state the fix. Write in first person, as \
 someone who runs a system that finds these problems systematically — not \
 as a neutral reporter.
 
+Critical: state the actual fix idea (given to you) plainly, in your own \
+words, somewhere in both the X thread and the LinkedIn post. Curiosity-gap \
+technique is for the problem setup only — never tease the fix as a \
+cliffhanger ("here's how", "I'll show you", "stay tuned", a lone emoji \
+pointing at the link). A reader who never clicks the link must still walk \
+away knowing what the fix actually is, not just that one exists.
+
 x_hook: the first tweet. Must stop the scroll on its own, under 20 words.
-x_body: 1 to 2 more tweets unpacking the pattern and the fix idea, each \
+x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern \
+is. The second states the actual fix idea directly — not a tease. Each \
 under 25 words.
-x_closer: the last tweet, under 15 words, setting up "here's where I found \
-it" — do not write a link or URL yourself, one will be appended after.
+x_closer: the last tweet, under 15 words, pointing to where this came from \
+— do not write a link or URL yourself, one will be appended after.
 linkedin_post: one longer post, 3 to 5 short lines separated by blank \
-lines (LinkedIn's native style), same hook-first structure, under 120 \
-words total — no link inside it, one will be posted separately as a \
-comment."""
+lines (LinkedIn's native style), same hook-first structure, but must state \
+the fix idea directly rather than tease it, under 120 words total — no \
+link inside it, one will be posted separately as a comment."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:
