@@ -1,5 +1,45 @@
 # Social Drafts
 
+## 2026-07-16 — [ca1a90b0-6ff6-4641-842e-3d1d6abb0f43] AI agents using paid tools face messy execution issues like needing to know costs upfront, handling failed payments despite successful transactions, avoiding double-spends on retries, proving intent before spending, and pausing for human approval — indicating a need for payment handling as a separate execution layer rather than just another API call.
+
+**9 reports from 8 people**
+
+### X (thread)
+
+1. 9 people this week: their AI agent double-charged on retry.
+
+2. They treat payment like an API call. It’s not. Agents retry → double-spend. No budget checks. No human pause. Just trust and duct tape.
+
+3. Fix: a spending middleware layer. Agents call one thing — spend() — it handles budgets, dedup, approval gates, audit logs. Infrastructure, not prompts.
+
+4. Worth building as a standalone tool? https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3n4lx/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+9 people told me the same thing this week.
+
+Their AI agent charged twice because it retried a failed payment. No budget check. No human approval. No audit trail.
+
+They're trying to fix this with better prompts. But prompts don't stop hallucination. They don't enforce idempotency.
+
+The fix is a spending middleware layer — a single `spend()` call that sits between the agent and any paid service. It handles pre-authorization, deduplication, approval workflows, and full audit logs.
+
+Spending permissions enforced at the infrastructure layer, not the prompt layer.
+
+Would you actually use something like this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3n4lx/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-16-ca1a90b0-6ff6-4641-842e-3d1d6abb0f43.mp4
+
 ## 2026-07-16 — [7fb8a9d7-fc98-40a3-a1a9-9c88c064aed3] Setting up automation workflows feels like more effort than just continuing to do repetitive manual tasks manually, especially when the automation tools require too much upfront work or make wrong assumptions that need fixing.
 
 **7 reports from 5 people**
