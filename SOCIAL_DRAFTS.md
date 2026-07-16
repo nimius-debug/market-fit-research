@@ -1,5 +1,45 @@
 # Social Drafts
 
+## 2026-07-16 — [7fb8a9d7-fc98-40a3-a1a9-9c88c064aed3] Setting up automation workflows feels like more effort than just continuing to do repetitive manual tasks manually, especially when the automation tools require too much upfront work or make wrong assumptions that need fixing.
+
+**7 reports from 5 people**
+
+### X (thread)
+
+1. 7 people this week: "I spent 3 hours setting up an automation that saved me 10 minutes."
+
+2. The setup takes longer than the manual work. That's the trap. Automation tools sell speed but demand API keys, auth screens, and constant fixing first.
+
+3. The fix: downloadable blueprints you deploy in one click. Community-built. Self-healing connectors. If it takes over 60 seconds, it failed.
+
+4. Worth building something that just works this way? https://reddit.com/r/nocode/comments/1uthoo2/whats_the_one_workflow_you_still_havent_automated/ox28u1q/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+7 people told me the same thing this week.
+
+"I spent 3 hours setting up an automation that saved me 10 minutes."
+
+The setup tax is real. API keys. Auth screens. Broken assumptions. Tools that promise speed but demand a project first.
+
+The idea: a blueprint marketplace for automations. Download one-click workflows built by the community. Zero-setup connectors that handle auth for you. Self-healing when things break.
+
+If it takes more than 60 seconds to deploy, it failed.
+
+Would you actually use this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/nocode/comments/1uthoo2/whats_the_one_workflow_you_still_havent_automated/ox28u1q/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-16-7fb8a9d7-fc98-40a3-a1a9-9c88c064aed3.mp4
+
 ## 2026-07-15 — A CS student feels that relying too heavily on AI coding tools and vibe coding has made them unable to write syntax from memory or pass technical interviews, and they're unsure whether to focus on practicing programming fundamentals or continue building with AI tools.
 
 **6 reports from 5 people**
