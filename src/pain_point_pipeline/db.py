@@ -74,6 +74,16 @@ CREATE TABLE IF NOT EXISTS source_state (
     source TEXT PRIMARY KEY,
     last_fetched_at TEXT
 );
+
+CREATE TABLE IF NOT EXISTS social_queue (
+    opportunity_id TEXT PRIMARY KEY REFERENCES opportunities(id),
+    date TEXT NOT NULL,
+    linkedin_post TEXT NOT NULL,
+    x_thread TEXT NOT NULL,
+    link TEXT NOT NULL,
+    video_url TEXT NOT NULL DEFAULT '',
+    queued_at TEXT
+);
 """
 
 
@@ -115,6 +125,13 @@ def _migrate(conn: sqlite3.Connection) -> None:
     # that existed before this feature shipped.
     if "social_posted_at" not in opportunity_columns:
         conn.execute("ALTER TABLE opportunities ADD COLUMN social_posted_at TEXT")
+        conn.commit()
+
+    # social_queue.video_url (2026-07): rows written before the explainer
+    # video shipped simply have no video -- '' already means exactly that.
+    social_queue_columns = {row["name"] for row in conn.execute("PRAGMA table_info(social_queue)")}
+    if "video_url" not in social_queue_columns:
+        conn.execute("ALTER TABLE social_queue ADD COLUMN video_url TEXT NOT NULL DEFAULT ''")
         conn.commit()
 
 

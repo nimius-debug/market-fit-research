@@ -78,6 +78,40 @@ class OpportunityBrief:
 
 
 @dataclass(frozen=True)
+class SceneScript:
+    """Everything the explainer-video template needs on screen, one draft's
+    worth. Text comes from SocialDraftCopy's video_* fields; the counts are
+    injected here from the Opportunity itself — the LLM never writes numbers
+    on screen, same rule as evidence links (see video.build_scene_script)."""
+
+    hook: str
+    problem: str
+    reports: int
+    people: int
+    steps: tuple[str, ...]
+    question: str
+    disclosure: str
+    date: str
+
+
+@dataclass(frozen=True)
+class SocialQueueEntry:
+    """The exact publish-ready strings for one social draft, as handed to the
+    Make.com posting queue. `queued_at` is when the webhook accepted it —
+    None means it was never delivered (webhook unset or down at draft time)."""
+
+    opportunity_id: str
+    date: str
+    linkedin_post: str
+    x_thread: str
+    link: str
+    video_url: str = ""
+    """Empty when the explainer-video render failed or was disabled — the
+    post still queues; Make.com routes empty to a text-only post."""
+    queued_at: datetime | None = None
+
+
+@dataclass(frozen=True)
 class OpportunityIssue:
     """The GitHub Issue tracking an Opportunity, and its last-known Rejected status."""
 

@@ -5,7 +5,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from fakes import FakeLLMSearch, FakeSource, FakeTracker
+from fakes import FakeLLMSearch, FakeSocialQueue, FakeSource, FakeTracker, FakeVideoRenderer
 from pain_point_pipeline import orchestrator, repository
 from pain_point_pipeline.models import PainPoint, RawItem
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster, run_social_draft
@@ -395,7 +395,7 @@ def test_social_draft_picks_a_qualifying_opportunity_and_marks_it_used(
     (opportunity_id,) = ingest_result.touched_opportunity_ids
     assert repository.list_viral_candidates(conn) == [opportunity_id]
 
-    result = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+    result = run_social_draft(FakeLLMSearch(), None, None, conn, social_draft_path, now)
 
     assert result.opportunity_id == opportunity_id
     draft_text = Path(social_draft_path).read_text(encoding="utf-8")
@@ -412,7 +412,7 @@ def test_social_draft_requires_more_than_five_reports(conn, now, make_item, soci
     run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
 
     assert repository.list_viral_candidates(conn) == []
-    result = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+    result = run_social_draft(FakeLLMSearch(), None, None, conn, social_draft_path, now)
 
     assert result.opportunity_id is None
     assert not Path(social_draft_path).exists()
@@ -425,7 +425,7 @@ def test_social_draft_writes_nothing_when_the_llm_picks_none(conn, now, make_ite
     run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
     assert len(repository.list_viral_candidates(conn)) == 1
 
-    result = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+    result = run_social_draft(FakeLLMSearch(), None, None, conn, social_draft_path, now)
 
     assert result.opportunity_id is None
     assert not Path(social_draft_path).exists()
@@ -439,13 +439,104 @@ def test_social_draft_never_reuses_an_opportunity_across_runs(conn, now, make_it
     tracker = FakeTracker()
     run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
 
-    first = run_social_draft(FakeLLMSearch(), conn, social_draft_path, now)
+    first = run_social_draft(FakeLLMSearch(), None, None, conn, social_draft_path, now)
     assert first.opportunity_id is not None
 
     later = now + timedelta(days=2)
-    second = run_social_draft(FakeLLMSearch(), conn, social_draft_path, later)
+    second = run_social_draft(FakeLLMSearch(), None, None, conn, social_draft_path, later)
 
     assert second.opportunity_id is None  # the only candidate was already used
+
+
+def test_social_draft_saves_a_queue_row_and_pushes_it_to_the_queue(conn, now, make_item, social_draft_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "queued problem", authors)
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), FakeTracker(), conn, now)
+    queue = FakeSocialQueue()
+
+    result = run_social_draft(FakeLLMSearch(), queue, None, conn, social_draft_path, now)
+
+    assert result.opportunity_id is not None
+    (pushed,) = queue.pushed
+    assert pushed.opportunity_id == result.opportunity_id
+    # The queue carries the same publish-ready strings the markdown file shows.
+    draft_text = Path(social_draft_path).read_text(encoding="utf-8")
+    assert pushed.linkedin_post in draft_text
+    assert pushed.x_thread in draft_text
+    assert pushed.link.startswith("https://")
+    stored = repository.load_social_queue_entry(conn, result.opportunity_id)
+    assert stored is not None
+    assert stored.linkedin_post == pushed.linkedin_post
+    assert stored.queued_at == now
+
+
+def test_social_draft_with_no_queue_still_saves_the_row_unqueued(conn, now, make_item, social_draft_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "offline problem", authors)
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), FakeTracker(), conn, now)
+
+    result = run_social_draft(FakeLLMSearch(), None, None, conn, social_draft_path, now)
+
+    stored = repository.load_social_queue_entry(conn, result.opportunity_id)
+    assert stored is not None
+    assert stored.queued_at is None
+
+
+def test_social_draft_commits_the_row_before_a_webhook_failure_surfaces(conn, now, make_item, social_draft_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "flaky webhook problem", authors)
+    ingest_result = run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), FakeTracker(), conn, now)
+    (opportunity_id,) = ingest_result.touched_opportunity_ids
+    queue = FakeSocialQueue(fail_with=RuntimeError("webhook down"))
+
+    with pytest.raises(RuntimeError, match="webhook down"):
+        run_social_draft(FakeLLMSearch(), queue, None, conn, social_draft_path, now)
+
+    # Draft file + queue row survived the failure; queued_at stays NULL so
+    # social-approve can re-send it.
+    assert Path(social_draft_path).exists()
+    stored = repository.load_social_queue_entry(conn, opportunity_id)
+    assert stored is not None
+    assert stored.queued_at is None
+
+
+def test_social_draft_renders_the_video_and_queues_its_url(conn, now, make_item, social_draft_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "animated problem", authors)
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), FakeTracker(), conn, now)
+    queue = FakeSocialQueue()
+    renderer = FakeVideoRenderer()
+
+    result = run_social_draft(FakeLLMSearch(), queue, renderer, conn, social_draft_path, now)
+
+    ((script, slug),) = renderer.rendered
+    assert slug == result.opportunity_id
+    # Counts on screen come from the Opportunity itself, not the LLM.
+    assert script.reports == 6
+    assert script.people == 6
+    (pushed,) = queue.pushed
+    assert pushed.video_url == f"https://example.com/videos/{now.date().isoformat()}-{slug}.mp4"
+    stored = repository.load_social_queue_entry(conn, result.opportunity_id)
+    assert stored.video_url == pushed.video_url
+    assert pushed.video_url in Path(social_draft_path).read_text(encoding="utf-8")
+
+
+def test_social_draft_queues_without_a_video_when_the_render_fails(conn, now, make_item, social_draft_path):
+    authors = ["alice", "bob", "carol", "dave", "erin", "frank"]
+    items = _clustered_items(make_item, "unrenderable problem", authors)
+    run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), FakeTracker(), conn, now)
+    queue = FakeSocialQueue()
+    renderer = FakeVideoRenderer(fail_with=RuntimeError("ffmpeg exploded"))
+
+    result = run_social_draft(FakeLLMSearch(), queue, renderer, conn, social_draft_path, now)
+
+    # Render failure is best-effort: the draft still queues, text-only.
+    assert result.opportunity_id is not None
+    (pushed,) = queue.pushed
+    assert pushed.video_url == ""
+    stored = repository.load_social_queue_entry(conn, result.opportunity_id)
+    assert stored.video_url == ""
+    assert "### Video" not in Path(social_draft_path).read_text(encoding="utf-8")
 
 
 def test_list_viral_candidates_excludes_rejected_opportunities(conn, now, make_item, digest_path):

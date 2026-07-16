@@ -1,0 +1,11 @@
+{
+  "name": "social-video",
+  "private": true,
+  "description": "HyperFrames composition for the daily social draft's explainer video (see docs/deployment.md)",
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "hyperframes": "0.7.60"
+  }
+}

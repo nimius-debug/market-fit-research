@@ -11,6 +11,8 @@ from pain_point_pipeline.models import (
     OpportunitySummary,
     PainPoint,
     RawItem,
+    SceneScript,
+    SocialQueueEntry,
 )
 from pain_point_pipeline.ports import (
     BriefNarrative,
@@ -93,7 +95,40 @@ class FakeLLMSearch:
             x_body=("Body one (fixture).", "Body two (fixture)."),
             x_closer="Closer (fixture).",
             linkedin_post=f"LinkedIn post (fixture): {opportunity.title}",
+            video_hook="Video hook (fixture).",
+            video_problem="Video problem (fixture).",
+            video_steps=("Step one (fixture).", "Step two (fixture)."),
+            video_question="Worth building?",
         )
+
+
+class FakeVideoRenderer:
+    """Records rendered scene scripts; `fail_with` makes every render raise,
+    for testing the render-failure-is-optional path."""
+
+    def __init__(self, fail_with: Exception | None = None) -> None:
+        self.rendered: list[tuple[SceneScript, str]] = []
+        self._fail_with = fail_with
+
+    def render(self, script: SceneScript, slug: str) -> str:
+        if self._fail_with is not None:
+            raise self._fail_with
+        self.rendered.append((script, slug))
+        return f"https://example.com/videos/{script.date}-{slug}.mp4"
+
+
+class FakeSocialQueue:
+    """Records pushed entries; `fail_with` makes every push raise, for testing
+    the webhook-down path."""
+
+    def __init__(self, fail_with: Exception | None = None) -> None:
+        self.pushed: list[SocialQueueEntry] = []
+        self._fail_with = fail_with
+
+    def push(self, entry: SocialQueueEntry) -> None:
+        if self._fail_with is not None:
+            raise self._fail_with
+        self.pushed.append(entry)
 
 
 class FakeTracker:

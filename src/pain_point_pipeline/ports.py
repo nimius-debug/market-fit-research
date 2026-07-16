@@ -18,6 +18,8 @@ from pain_point_pipeline.models import (
     OpportunitySummary,
     PainPoint,
     RawItem,
+    SceneScript,
+    SocialQueueEntry,
 )
 
 
@@ -67,12 +69,20 @@ class ViralPick:
 @dataclass(frozen=True)
 class SocialDraftCopy:
     """Persuasive text only — no links. The orchestrator appends the real
-    evidence URL afterward so the LLM can never hallucinate or mangle one."""
+    evidence URL afterward so the LLM can never hallucinate or mangle one.
+
+    The video_* fields are the on-screen text for the explainer animation
+    (see video.build_scene_script). No numbers allowed in them — the real
+    counts are injected deterministically, same rule as the links."""
 
     x_hook: str
     x_body: tuple[str, ...]
     x_closer: str
     linkedin_post: str
+    video_hook: str
+    video_problem: str
+    video_steps: tuple[str, ...]
+    video_question: str
 
 
 class SourcePort(Protocol):
@@ -115,6 +125,28 @@ class LLMSearchPort(Protocol):
         ...
 
     def write_social_draft(self, opportunity: Opportunity, brief: OpportunityBrief) -> SocialDraftCopy: ...
+
+
+class VideoRendererPort(Protocol):
+    """Renders one draft's explainer video and publishes it somewhere Make.com
+    can fetch by URL. Rendering is best-effort by design: run_social_draft
+    catches any failure and queues the draft with an empty video_url — a
+    missing animation must never block a good post (docs/deployment.md)."""
+
+    def render(self, script: SceneScript, slug: str) -> str:
+        """Render the scene script, publish the MP4, return its public URL.
+        `slug` names the asset (the opportunity id). Raise on any failure."""
+        ...
+
+
+class SocialQueuePort(Protocol):
+    """Hands a finished, publish-ready draft to the posting queue (the Make.com
+    webhook that appends a `pending` row to the approval Sheet). Posting itself
+    stays human-gated in the Sheet — this only queues (see docs/deployment.md)."""
+
+    def push(self, entry: SocialQueueEntry) -> None:
+        """Deliver the entry; raise on any non-success response."""
+        ...
 
 
 class TrackerPort(Protocol):
