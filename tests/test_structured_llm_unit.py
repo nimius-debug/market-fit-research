@@ -25,6 +25,14 @@ def test_cluster_match_tolerates_an_omitted_field() -> None:
     assert parsed.matched_opportunity_id is None
 
 
+_VIDEO_FIELDS = {
+    "video_hook": "Video hook.",
+    "video_problem": "Video problem.",
+    "video_steps": ["Step one.", "Step two."],
+    "video_question": "Worth building?",
+}
+
+
 def test_social_draft_coerces_a_json_encoded_x_body() -> None:
     # DeepSeek sometimes double-encodes a list field as a JSON string instead
     # of a real array — observed live 2026-07-15, 3 of 6 calls to x_body.
@@ -33,15 +41,36 @@ def test_social_draft_coerces_a_json_encoded_x_body() -> None:
         "x_body": json.dumps(["Tweet one.", "Tweet two."]),
         "x_closer": "Closer.",
         "linkedin_post": "Post.",
+        **_VIDEO_FIELDS,
     }
     parsed = SocialDraftModel.model_validate(raw)
     assert parsed.x_body == ["Tweet one.", "Tweet two."]
 
 
 def test_social_draft_still_accepts_a_real_list_for_x_body() -> None:
-    raw = {"x_hook": "Hook.", "x_body": ["A.", "B."], "x_closer": "Closer.", "linkedin_post": "Post."}
+    raw = {
+        "x_hook": "Hook.",
+        "x_body": ["A.", "B."],
+        "x_closer": "Closer.",
+        "linkedin_post": "Post.",
+        **_VIDEO_FIELDS,
+    }
     parsed = SocialDraftModel.model_validate(raw)
     assert parsed.x_body == ["A.", "B."]
+
+
+def test_social_draft_coerces_a_json_encoded_video_steps() -> None:
+    # Same DeepSeek double-encoding quirk as x_body, applied to video_steps.
+    raw = {
+        "x_hook": "Hook.",
+        "x_body": ["A."],
+        "x_closer": "Closer.",
+        "linkedin_post": "Post.",
+        **_VIDEO_FIELDS,
+        "video_steps": json.dumps(["Step one.", "Step two."]),
+    }
+    parsed = SocialDraftModel.model_validate(raw)
+    assert parsed.video_steps == ["Step one.", "Step two."]
 
 
 def test_brief_narrative_coerces_a_json_encoded_user_flow() -> None:

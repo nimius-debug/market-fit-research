@@ -40,6 +40,10 @@ def _make_copy() -> SocialDraftCopy:
         x_body=("Body one.", "Body two."),
         x_closer="Here's where I found it.",
         linkedin_post="LinkedIn body text.",
+        video_hook="Video hook.",
+        video_problem="Video problem.",
+        video_steps=("Step one.", "Step two."),
+        video_question="Worth building?",
     )
 
 
@@ -80,6 +84,12 @@ def test_disclosure_appears_once_on_x_and_once_on_linkedin() -> None:
     linkedin_section = section.split("### LinkedIn (post)")[1].split("### LinkedIn (first comment")[0]
     assert x_section.count(DISCLOSURE) == 1
     assert linkedin_section.count(DISCLOSURE) == 1
+
+
+def test_heading_carries_the_opportunity_id_for_social_approve() -> None:
+    section = format_social_draft("2026-07-14", _make_opportunity(), _make_copy())
+
+    assert section.startswith("## 2026-07-14 — [opp-1] APIs change without warning")
 
 
 def test_handles_an_opportunity_with_no_pain_points_gracefully() -> None:

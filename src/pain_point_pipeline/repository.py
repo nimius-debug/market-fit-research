@@ -13,6 +13,7 @@ from pain_point_pipeline.models import (
     OpportunitySummary,
     PainPoint,
     RawItem,
+    SocialQueueEntry,
 )
 
 
@@ -340,6 +341,49 @@ def list_viral_candidates(conn: sqlite3.Connection, min_reports: int = SOCIAL_MI
 def mark_social_posted(conn: sqlite3.Connection, opportunity_id: str, when: datetime) -> None:
     conn.execute(
         "UPDATE opportunities SET social_posted_at = ? WHERE id = ?", (when.isoformat(), opportunity_id)
+    )
+
+
+def save_social_queue_entry(conn: sqlite3.Connection, entry: SocialQueueEntry) -> None:
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO social_queue
+            (opportunity_id, date, linkedin_post, x_thread, link, video_url, queued_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            entry.opportunity_id,
+            entry.date,
+            entry.linkedin_post,
+            entry.x_thread,
+            entry.link,
+            entry.video_url,
+            entry.queued_at.isoformat() if entry.queued_at else None,
+        ),
+    )
+
+
+def load_social_queue_entry(conn: sqlite3.Connection, opportunity_id: str) -> SocialQueueEntry | None:
+    row = conn.execute(
+        "SELECT * FROM social_queue WHERE opportunity_id = ?", (opportunity_id,)
+    ).fetchone()
+    if row is None:
+        return None
+    return SocialQueueEntry(
+        opportunity_id=row["opportunity_id"],
+        date=row["date"],
+        linkedin_post=row["linkedin_post"],
+        x_thread=row["x_thread"],
+        link=row["link"],
+        video_url=row["video_url"],
+        queued_at=datetime.fromisoformat(row["queued_at"]) if row["queued_at"] else None,
+    )
+
+
+def mark_social_queued(conn: sqlite3.Connection, opportunity_id: str, when: datetime) -> None:
+    conn.execute(
+        "UPDATE social_queue SET queued_at = ? WHERE opportunity_id = ?",
+        (when.isoformat(), opportunity_id),
     )
 
 

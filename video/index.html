@@ -1,0 +1,459 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"hook","type":"string","label":"Hook line","default":"AI builds it. You cannot explain it."},
+    {"id":"problem","type":"string","label":"Problem sentence","default":"People ship with AI but freeze the moment it is taken away."},
+    {"id":"reports","type":"number","label":"Report count","default":11},
+    {"id":"people","type":"number","label":"Distinct people","default":11},
+    {"id":"step1","type":"string","label":"Fix step 1","default":"Pick a feature you built."},
+    {"id":"step2","type":"string","label":"Fix step 2","default":"AI hints only when stuck."},
+    {"id":"step3","type":"string","label":"Fix step 3","default":""},
+    {"id":"question","type":"string","label":"Closing question","default":"Worth building?"},
+    {"id":"disclosure","type":"string","label":"Disclosure","default":"Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me."},
+    {"id":"date","type":"string","label":"Draft date","default":"2026-07-16"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1350" />
+    <title>Pain-point explainer</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/inter-var.woff2") format("woff2");
+        font-weight: 400 800;
+        font-style: normal;
+      }
+      /* Single baked look (video has no light/dark themes): dark-surface
+         tokens from the validated reference palette — surface #1a1a19,
+         ink #fff/#c3c2b7, accent (series-1 dark) #3987e5, status good
+         #0ca30c, status critical #d03b3b. */
+      :root {
+        --surface: #17171a;
+        --surface-2: #1f1f24;
+        --ink: #ffffff;
+        --ink-2: #c3c2b7;
+        --accent: #3987e5;
+        --good: #0ca30c;
+        --critical: #d03b3b;
+      }
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--ink);
+        font-family: "Inter", system-ui, sans-serif;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1350px;
+        overflow: hidden;
+      }
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(160deg, #141417 0%, #17171a 55%, #1b1b20 100%);
+      }
+      #glow {
+        position: absolute;
+        display: block;
+        width: 900px;
+        height: 900px;
+        left: -250px;
+        top: -250px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(57, 135, 229, 0.16) 0%, rgba(57, 135, 229, 0) 65%);
+      }
+      #progress-track {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.07);
+      }
+      #progress-fill {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: var(--accent);
+        transform-origin: left center;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-sizing: border-box;
+        padding: 96px;
+      }
+      .scene-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 36px;
+        width: 100%;
+      }
+      .kicker {
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .word {
+        display: inline-block;
+        margin-right: 0.26em;
+      }
+      #hook-text {
+        font-size: 92px;
+        line-height: 1.12;
+        font-weight: 800;
+        max-width: 900px;
+      }
+      #problem-text {
+        font-size: 52px;
+        line-height: 1.3;
+        font-weight: 600;
+        max-width: 880px;
+        color: var(--ink);
+      }
+      #stat-block {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 24px;
+      }
+      #stat-number {
+        font-size: 220px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--accent);
+      }
+      #stat-label {
+        font-size: 46px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      #stat-reports {
+        font-size: 30px;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      #people-row {
+        display: flex;
+        gap: 14px;
+        margin-top: 10px;
+      }
+      .person {
+        display: block;
+        width: 44px;
+        height: 44px;
+        border-radius: 50% 50% 42% 42%;
+        background: var(--accent);
+        opacity: 0.9;
+      }
+      #flow-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        margin-top: 30px;
+      }
+      .flow-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 240px;
+        height: 150px;
+        border-radius: 20px;
+        background: var(--surface-2);
+        border: 3px solid rgba(255, 255, 255, 0.14);
+        font-size: 34px;
+        font-weight: 600;
+        color: var(--ink-2);
+        position: relative;
+      }
+      .flow-arrow {
+        display: block;
+        width: 70px;
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.25);
+        position: relative;
+      }
+      #broken-mark {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 110px;
+        height: 110px;
+        left: 50%;
+        top: 50%;
+        margin: -55px 0 0 -55px;
+        border-radius: 50%;
+        background: var(--critical);
+        color: #ffffff;
+        font-size: 62px;
+        font-weight: 800;
+        box-shadow: 0 0 60px rgba(208, 59, 59, 0.55);
+      }
+      #broken-caption {
+        font-size: 44px;
+        font-weight: 600;
+        max-width: 860px;
+        line-height: 1.3;
+      }
+      #fix-heading {
+        font-size: 64px;
+        font-weight: 800;
+        line-height: 1.15;
+        max-width: 880px;
+      }
+      .step-row {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+      }
+      .step-check {
+        display: grid;
+        place-items: center;
+        width: 74px;
+        height: 74px;
+        border-radius: 50%;
+        background: var(--good);
+        color: #ffffff;
+        font-size: 42px;
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      .step-text {
+        font-size: 48px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+      #question-text {
+        font-size: 110px;
+        font-weight: 800;
+        line-height: 1.1;
+        max-width: 900px;
+      }
+      #closer-disclosure {
+        font-size: 28px;
+        font-weight: 500;
+        color: var(--ink-2);
+        max-width: 820px;
+        line-height: 1.5;
+      }
+      #closer-date {
+        font-size: 26px;
+        font-weight: 600;
+        color: var(--accent);
+        letter-spacing: 0.08em;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-width="1080"
+      data-height="1350"
+      data-duration="25"
+    >
+      <div id="bg">
+        <div id="glow" data-layout-ignore></div>
+      </div>
+
+      <section id="scene-hook" class="clip" data-start="0" data-duration="4" data-track-index="1">
+        <div id="hook-inner" class="scene-inner">
+          <div id="hook-kicker" class="kicker">Spotted in AI communities</div>
+          <h1 id="hook-text"></h1>
+        </div>
+      </section>
+
+      <section id="scene-problem" class="clip" data-start="4" data-duration="6" data-track-index="2">
+        <div id="problem-inner" class="scene-inner">
+          <div id="problem-kicker" class="kicker">The pattern</div>
+          <p id="problem-text" data-var-text="problem">People ship with AI but freeze without it.</p>
+          <div id="stat-block">
+            <div id="stat-number">0</div>
+            <div id="stat-label">people said this</div>
+            <div id="people-row"></div>
+            <div id="stat-reports"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-broken" class="clip" data-start="10" data-duration="5" data-track-index="3">
+        <div id="broken-inner" class="scene-inner">
+          <div id="broken-kicker" class="kicker">What keeps happening</div>
+          <p id="broken-caption">The same loop. The same dead end. Every week.</p>
+          <div id="flow-row">
+            <div class="flow-box" id="flow-try">Try</div>
+            <div class="flow-arrow" id="flow-arrow-1"></div>
+            <div class="flow-box" id="flow-stuck">Get stuck</div>
+            <div class="flow-arrow" id="flow-arrow-2"><div id="broken-mark">&#10005;</div></div>
+            <div class="flow-box" id="flow-again">Start over</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-fix" class="clip" data-start="15" data-duration="7" data-track-index="4">
+        <div id="fix-inner" class="scene-inner">
+          <div id="fix-kicker" class="kicker">The fix &mdash; proposed, not built</div>
+          <h2 id="fix-heading">What if a tool could&hellip;</h2>
+          <div class="step-row" id="step-row-1">
+            <div class="step-check" id="step-check-1">&#10003;</div>
+            <div class="step-text" data-var-text="step1">Step one</div>
+          </div>
+          <div class="step-row" id="step-row-2">
+            <div class="step-check" id="step-check-2">&#10003;</div>
+            <div class="step-text" data-var-text="step2">Step two</div>
+          </div>
+          <div class="step-row" id="step-row-3">
+            <div class="step-check" id="step-check-3">&#10003;</div>
+            <div class="step-text" data-var-text="step3">Step three</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-closer" class="clip" data-start="22" data-duration="3" data-track-index="5">
+        <div id="closer-inner" class="scene-inner">
+          <h2 id="question-text" data-var-text="question">Worth building?</h2>
+          <p id="closer-disclosure" data-var-text="disclosure">Sourced from real Reddit discussions.</p>
+          <div id="closer-date" data-var-text="date">2026-07-16</div>
+        </div>
+      </section>
+
+      <div id="progress-track">
+        <div id="progress-fill"></div>
+      </div>
+    </div>
+
+    <script>
+      const vars = window.__hyperframes.getVariables();
+
+      // Hook: split into word spans at init so entrances can stagger.
+      const hookEl = document.getElementById("hook-text");
+      String(vars.hook)
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach((word) => {
+          const span = document.createElement("span");
+          span.className = "word";
+          span.textContent = word;
+          hookEl.appendChild(span);
+        });
+
+      // Stat scene: one person icon each, capped so the row never overflows.
+      const people = Math.max(0, Number(vars.people) || 0);
+      const iconCount = Math.min(people, 10);
+      const peopleRow = document.getElementById("people-row");
+      for (let i = 0; i < iconCount; i++) {
+        const icon = document.createElement("span");
+        icon.className = "person";
+        icon.id = `person-${i}`;
+        peopleRow.appendChild(icon);
+      }
+      document.getElementById("stat-reports").textContent =
+        `${Number(vars.reports) || 0} reports tracked by my system`;
+
+      // Steps: drop empty rows before the timeline is built (static init
+      // config from variables — resolved identically in preview and render).
+      const steps = [vars.step1, vars.step2, vars.step3].map((s) => String(s || "").trim());
+      const presentSteps = [];
+      steps.forEach((text, i) => {
+        const row = document.getElementById(`step-row-${i + 1}`);
+        if (text === "") {
+          row.style.display = "none";
+        } else {
+          presentSteps.push(i + 1);
+        }
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Persistent layer: progress bar + slow glow drift, full 25s, linear.
+      tl.fromTo("#progress-fill", { scaleX: 0 }, { scaleX: 1, duration: 25, ease: "none" }, 0);
+      tl.to("#glow", { x: 260, y: 210, duration: 25, ease: "none" }, 0);
+
+      // Scene 1 — hook (0–4).
+      tl.from("#hook-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 0.25);
+      tl.from(
+        "#hook-text .word",
+        { y: 70, opacity: 0, duration: 0.55, ease: "power3.out", stagger: 0.09 },
+        0.55
+      );
+      tl.to("#hook-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 3.55);
+      tl.set("#hook-inner", { opacity: 0 }, 4.0);
+
+      // Scene 2 — problem + stat (4–10). Counter value derives from seek time.
+      tl.from("#problem-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 4.25);
+      tl.from("#problem-text", { y: 50, opacity: 0, duration: 0.6, ease: "power3.out" }, 4.5);
+      const counter = { n: 0 };
+      const statNumber = document.getElementById("stat-number");
+      tl.to(
+        counter,
+        {
+          n: people,
+          duration: 1.3,
+          ease: "power2.out",
+          onUpdate: () => (statNumber.textContent = String(Math.round(counter.n))),
+        },
+        5.0
+      );
+      tl.from("#stat-number", { opacity: 0, duration: 0.3, ease: "power2.out" }, 5.0);
+      tl.from("#stat-label", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 5.3);
+      if (iconCount > 0) {
+        tl.from(
+          "#people-row .person",
+          { scale: 0, opacity: 0, duration: 0.35, ease: "back.out(2)", stagger: 0.07 },
+          5.5
+        );
+      }
+      tl.from("#stat-reports", { opacity: 0, duration: 0.5 }, 6.3);
+      tl.to("#problem-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 9.55);
+      tl.set("#problem-inner", { opacity: 0 }, 10.0);
+
+      // Scene 3 — the broken loop (10–15).
+      tl.from("#broken-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 10.25);
+      tl.from("#broken-caption", { y: 40, opacity: 0, duration: 0.55, ease: "power3.out" }, 10.5);
+      tl.from(
+        ["#flow-try", "#flow-arrow-1", "#flow-stuck", "#flow-arrow-2", "#flow-again"],
+        { y: 40, opacity: 0, duration: 0.45, ease: "power3.out", stagger: 0.12 },
+        11.0
+      );
+      tl.from("#broken-mark", { scale: 0, opacity: 0, duration: 0.5, ease: "back.out(2.5)" }, 12.2);
+      tl.to("#flow-stuck", { x: 8, duration: 0.07, repeat: 5, yoyo: true, ease: "none" }, 12.5);
+      tl.to("#broken-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 14.55);
+      tl.set("#broken-inner", { opacity: 0 }, 15.0);
+
+      // Scene 4 — the proposed fix (15–22).
+      tl.from("#fix-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 15.25);
+      tl.from("#fix-heading", { y: 50, opacity: 0, duration: 0.6, ease: "power3.out" }, 15.5);
+      presentSteps.forEach((n, i) => {
+        const at = 16.3 + i * 1.15;
+        tl.from(`#step-row-${n}`, { x: -60, opacity: 0, duration: 0.5, ease: "power3.out" }, at);
+        tl.from(
+          `#step-check-${n}`,
+          { scale: 0, rotation: -90, duration: 0.45, ease: "back.out(2.5)" },
+          at + 0.2
+        );
+      });
+      tl.to("#fix-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 21.55);
+      tl.set("#fix-inner", { opacity: 0 }, 22.0);
+
+      // Scene 5 — closer (22–25). Ends resolved; final frame holds.
+      tl.from("#question-text", { scale: 0.88, opacity: 0, duration: 0.6, ease: "power3.out" }, 22.25);
+      tl.from("#closer-disclosure", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 22.7);
+      tl.from("#closer-date", { opacity: 0, duration: 0.5 }, 23.0);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

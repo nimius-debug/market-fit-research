@@ -1,15 +1,15 @@
-"""CLI entry points for the two scheduled GitHub Actions workflows (ticket 6).
+"""CLI entry points for the scheduled GitHub Actions workflows (ticket 6).
 
-`ingest` wires the real adapters into the weekly batch — see _build_sources for
+`ingest` wires the real adapters into the daily batch — see _build_sources for
 the Reddit source priority; `digest` only needs the Tracker (to refresh
 Rejected status) since briefs were already generated and stored during
 ingestion. Both commit their own state to the repo from the calling workflow,
 not from here (see .github/workflows/).
 
-Ingestion still runs weekly (not daily) — that cadence was originally forced by
-a since-removed RapidAPI adapter's 50-requests/month quota, and hasn't been
-revisited now that ArcticShiftSource has no meaningful rate limit; ask if you
-want it moved back to daily.
+`social-draft` also pushes the finished draft to the Make.com approval-Sheet
+webhook when MAKE_WEBHOOK_URL is set; `social-approve` re-sends a stored
+draft to that webhook by hand (recovery after a webhook outage or a Make.com
+reconfiguration — posting itself stays gated on approval in the Sheet).
 """
 
 from __future__ import annotations
@@ -22,14 +22,16 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pain_point_pipeline import db
+from pain_point_pipeline import db, repository
 from pain_point_pipeline.adapters.arctic_shift import ArcticShiftSource
 from pain_point_pipeline.adapters.claude import ClaudeLLMSearchAdapter
 from pain_point_pipeline.adapters.deepseek import DeepSeekLLMSearchAdapter
 from pain_point_pipeline.adapters.github_tracker import GitHubTracker
+from pain_point_pipeline.adapters.hyperframes_video import HyperFramesVideoAdapter
+from pain_point_pipeline.adapters.make_webhook import MakeWebhookAdapter
 from pain_point_pipeline.adapters.reddit import RedditSource
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster, run_social_draft
-from pain_point_pipeline.ports import LLMSearchPort, SourcePort
+from pain_point_pipeline.ports import LLMSearchPort, SocialQueuePort, SourcePort, VideoRendererPort
 
 DB_PATH = "data/pipeline.sqlite3"
 DIGEST_PATH = "DIGEST.md"
@@ -74,7 +76,26 @@ def _build_llm() -> LLMSearchPort:
     return llm
 
 
-def run_weekly_ingestion(db_path: str = DB_PATH) -> None:
+def _build_social_queue() -> SocialQueuePort | None:
+    """The Make.com webhook when MAKE_WEBHOOK_URL is set; else None — local
+    runs and repos without the secret just skip queueing, with a log line."""
+    if os.environ.get("MAKE_WEBHOOK_URL"):
+        return MakeWebhookAdapter()
+    logger.info("MAKE_WEBHOOK_URL not set; drafts will not be queued to the approval sheet")
+    return None
+
+
+def _build_video_renderer() -> VideoRendererPort | None:
+    """HyperFrames rendering only when SOCIAL_VIDEO_ENABLED is set (the
+    workflow sets it, having installed Node/FFmpeg first); local runs skip
+    the video entirely — the draft still queues, just text-only."""
+    if os.environ.get("SOCIAL_VIDEO_ENABLED", "").lower() == "true":
+        return HyperFramesVideoAdapter()
+    logger.info("SOCIAL_VIDEO_ENABLED not set; drafts will queue without a video")
+    return None
+
+
+def run_ingestion(db_path: str = DB_PATH) -> None:
     conn = _connect(db_path)
     try:
         sources = _build_sources()
@@ -125,11 +146,43 @@ def run_social_draft_command(db_path: str = DB_PATH, draft_path: str = SOCIAL_DR
     conn = _connect(db_path)
     try:
         llm = _build_llm()
-        result = run_social_draft(llm, conn, draft_path, _now())
+        queue = _build_social_queue()
+        renderer = _build_video_renderer()
+        result = run_social_draft(llm, queue, renderer, conn, draft_path, _now())
         if result.opportunity_id is None:
             logger.info("No social draft written this run (empty pool, or none judged worth posting)")
         else:
             logger.info("Social draft written for opportunity %s", result.opportunity_id)
+    finally:
+        conn.close()
+
+
+def run_social_approve_command(opportunity_id: str, force: bool = False, db_path: str = DB_PATH) -> int:
+    """Re-send a stored draft to the Make.com webhook. Recovery path for a
+    webhook that was down (or unset) at draft time — a no-op when the entry
+    was already delivered, unless --force."""
+    queue = _build_social_queue()
+    if queue is None:
+        logger.error("social-approve needs MAKE_WEBHOOK_URL to be set")
+        return 1
+    conn = _connect(db_path)
+    try:
+        entry = repository.load_social_queue_entry(conn, opportunity_id)
+        if entry is None:
+            logger.error("No stored social draft for opportunity %s", opportunity_id)
+            return 1
+        if entry.queued_at is not None and not force:
+            logger.info(
+                "Draft for %s was already queued at %s; use --force to re-send",
+                opportunity_id,
+                entry.queued_at.isoformat(),
+            )
+            return 0
+        queue.push(entry)
+        repository.mark_social_queued(conn, opportunity_id, _now())
+        conn.commit()
+        logger.info("Social draft for %s sent to the approval sheet", opportunity_id)
+        return 0
     finally:
         conn.close()
 
@@ -141,7 +194,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     parser = argparse.ArgumentParser(description="AI/automation pain-point discovery pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("ingest", help="Run the weekly ingestion batch against real sources")
+    subparsers.add_parser("ingest", help="Run the daily ingestion batch against real sources")
     subparsers.add_parser("digest", help="Build the weekly Digest from already-ingested Opportunities")
     subparsers.add_parser(
         "recluster",
@@ -149,18 +202,28 @@ def main(argv: list[str] | None = None) -> int:
     )
     subparsers.add_parser(
         "social-draft",
-        help="Pick at most one Opportunity worth a social post and write a draft to SOCIAL_DRAFTS.md",
+        help="Pick at most one Opportunity worth a social post, write a draft to SOCIAL_DRAFTS.md, and queue it to the approval sheet",
+    )
+    approve_parser = subparsers.add_parser(
+        "social-approve",
+        help="Re-send a stored social draft to the Make.com approval-sheet webhook",
+    )
+    approve_parser.add_argument("--opportunity-id", required=True)
+    approve_parser.add_argument(
+        "--force", action="store_true", help="Re-send even if the draft was already queued"
     )
     args = parser.parse_args(argv)
 
     if args.command == "ingest":
-        run_weekly_ingestion()
+        run_ingestion()
     elif args.command == "digest":
         run_weekly_digest()
     elif args.command == "recluster":
         run_recluster_maintenance()
     elif args.command == "social-draft":
         run_social_draft_command()
+    elif args.command == "social-approve":
+        return run_social_approve_command(args.opportunity_id, force=args.force)
     return 0
 
 

@@ -1,11 +1,12 @@
-name: Weekly ingestion
+name: Daily ingestion
 
 on:
   schedule:
-    # Monday 08:17 UTC — well before that day's 15:23 UTC digest run, off the :00/:30 mark.
-    # Weekly is a leftover from a since-removed RapidAPI adapter's quota, not a
-    # constraint of the current default source (Arctic Shift) — see docs/deployment.md.
-    - cron: "17 8 * * 1"
+    # Daily 08:17 UTC — well before the 12:30 UTC social draft and Monday's
+    # 15:23 UTC digest build, off the :00/:30 mark. Daily keeps the social
+    # candidate pool refilled for the daily posting cadence; the `since`
+    # watermark means each run only classifies genuinely new posts.
+    - cron: "17 8 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -35,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: pip install -e .
 
-      - name: Run weekly ingestion
+      - name: Run ingestion
         timeout-minutes: 25
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -59,5 +60,5 @@ jobs:
           git config user.name "pain-point-pipeline-bot"
           git config user.email "actions@github.com"
           git add data/
-          git diff --cached --quiet || git commit -m "Weekly ingestion: update pipeline state [skip ci]"
+          git diff --cached --quiet || git commit -m "Ingestion: update pipeline state [skip ci]"
           git push

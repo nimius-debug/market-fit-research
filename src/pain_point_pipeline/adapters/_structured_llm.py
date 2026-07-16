@@ -94,8 +94,13 @@ class SocialDraftModel(BaseModel):
     x_body: list[str]
     x_closer: str
     linkedin_post: str
+    video_hook: str
+    video_problem: str
+    video_steps: list[str]
+    video_question: str
 
     _coerce_x_body = field_validator("x_body", mode="before")(_coerce_json_encoded_list)
+    _coerce_video_steps = field_validator("video_steps", mode="before")(_coerce_json_encoded_list)
 
 
 # Shared voice for every field a human actually reads (Digest, Issue titles/
@@ -168,9 +173,17 @@ communities, based on its brief. {PLAIN_LANGUAGE_STYLE} Use direct-response \
 hook-writing: lead with the sharpest, most specific version of the problem — \
 use the real numbers you're given, never invent any. Short, punchy \
 sentences. No throat-clearing ("In today's post..." is banned). \
-Problem-agitate first, then state the fix. Write in first person, as \
-someone who runs a system that finds these problems systematically — not \
-as a neutral reporter.
+Problem-agitate first, then state the fix.
+
+Critical: the speaker is a curator, not the sufferer. You write in first \
+person as someone who runs a system that tracks what people complain about \
+in these communities — that is the only thing "I" has done. Never invent \
+personal experience: no "I built 3 apps", no "I shipped X and it broke", no \
+living the pain point yourself. The hook is the observed pattern plus its \
+sharpest real number ("N people told me the same thing this week"), not a \
+fake confession. Informative beats clever: a reader should come away \
+knowing what people are complaining about, how often, and what the \
+proposed fix is.
 
 Critical: state the actual fix idea (given to you) plainly, in your own \
 words, somewhere in both the X thread and the LinkedIn post. Curiosity-gap \
@@ -186,18 +199,39 @@ building", or "I've been working on". End on a direct, genuine question \
 asking whether it's worth building — e.g. "Worth building?" or "Would you \
 actually use this?" — don't assume the answer.
 
-x_hook: the first tweet. Must stop the scroll on its own, under 20 words.
+x_hook: the first tweet. Must stop the scroll on its own, under 20 words. \
+The observed pattern + its sharpest real number, never an invented \
+first-person story.
 x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern \
-is. The second states the proposed fix idea directly — not a tease. Each \
-under 25 words.
+is — what people actually say, how often. The second states the proposed \
+fix idea directly — not a tease. Each under 25 words.
 x_closer: the last tweet, under 20 words — the validation question (worth \
 building? would you use it?), not a link tease. Do not write a link or URL \
 yourself, one will be appended after.
 linkedin_post: one longer post, 3 to 5 short lines separated by blank \
-lines (LinkedIn's native style), same hook-first structure, states the \
-proposed fix idea directly (never as something already built), ends on the \
-validation question, under 120 words total — no link inside it, one will \
-be posted separately as a comment."""
+lines (LinkedIn's native style), same hook-first structure — the pattern \
+you keep seeing, with its real numbers, never a story you lived. States \
+the proposed fix idea directly (never as something already built), ends on \
+the validation question, under 120 words total — no link inside it, one \
+will be posted separately as a comment.
+
+The video_* fields are the on-screen text for a short silent animation \
+that plays with the LinkedIn post: hook scene, problem scene with the \
+report count animating in, then the fix steps appearing one by one, then \
+the closing question. Every scene must earn its screen time — a viewer \
+who reads only the video should still walk away knowing the problem and \
+the proposed fix. Hard rule: NO digits or numbers in any video field — \
+the real counts are shown by the animation itself, injected by the \
+pipeline. All other rules above (curator voice, no invented experience, \
+proposal framing, no teases) apply to these too.
+video_hook: 8 words max. The pattern, sharpest form, no numbers.
+video_problem: one sentence, 12 words max, no numbers — what people \
+keep saying is broken.
+video_steps: exactly 2 or 3 captions, 6 words max each — the proposed \
+fix as concrete steps a viewer could picture (e.g. "Pick a feature you \
+built.", "AI hints only when stuck.").
+video_question: 6 words max — the validation question (e.g. "Worth \
+building?")."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:
@@ -365,4 +399,8 @@ class StructuredJudgmentAdapter:
             x_body=tuple(parsed.x_body),
             x_closer=parsed.x_closer,
             linkedin_post=parsed.linkedin_post,
+            video_hook=parsed.video_hook,
+            video_problem=parsed.video_problem,
+            video_steps=tuple(parsed.video_steps),
+            video_question=parsed.video_question,
         )

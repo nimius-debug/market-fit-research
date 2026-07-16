@@ -2,15 +2,9 @@
 
 Three scheduled GitHub Actions workflows drive the pipeline (ticket 6):
 
-- **`.github/workflows/weekly-ingestion.yml`** — runs `pain-point-pipeline ingest` Mondays at 08:17 UTC. Pulls new Reddit posts, classifies Pain Points, clusters Opportunities, judges Solvability, generates briefs, and opens GitHub Issues for newly-Solvable Opportunities.
+- **`.github/workflows/ingestion.yml`** — runs `pain-point-pipeline ingest` daily at 08:17 UTC. Pulls new Reddit posts, classifies Pain Points, clusters Opportunities, judges Solvability, generates briefs, and opens GitHub Issues for newly-Solvable Opportunities. Daily (not weekly) so the social-draft candidate pool refills at the same cadence posts go out; the `since` watermark keeps each run cheap — only genuinely new posts get classified.
 - **`.github/workflows/weekly-digest.yml`** — runs `pain-point-pipeline digest` Mondays at 15:23 UTC, after that day's ingestion. Builds the capped, ranked Digest from already-ingested Opportunities and refreshes Rejected status from Issue state.
-- **`.github/workflows/social-draft.yml`** — runs `pain-point-pipeline social-draft` Mon/Wed/Fri at 12:30 UTC. Picks at most one Opportunity worth a social post and writes a draft to `SOCIAL_DRAFTS.md`. See its own section below.
-
-Ingestion is scheduled weekly rather than daily — that was originally forced by
-a since-removed RapidAPI adapter's 50-requests/month quota. The current default
-source (Arctic Shift, see below) has no meaningful quota, so the weekly cadence
-is now just an unrevisited leftover, not a hard constraint; say the word if you
-want it moved back to daily.
+- **`.github/workflows/social-draft.yml`** — runs `pain-point-pipeline social-draft` daily at 12:30 UTC, after that day's ingestion. Picks at most one Opportunity worth a social post, writes a draft to `SOCIAL_DRAFTS.md`, and queues it to the approval Google Sheet. See its own section below.
 
 Both commit their own state (`data/pipeline.sqlite3`, and `DIGEST.md` for the digest workflow) back to the repo at the end of the run.
 
@@ -24,6 +18,13 @@ Add these under **Settings → Secrets and variables → Actions**:
 | `ANTHROPIC_API_KEY` | ingestion | **Optional — see below.** Only needed if `LLM_PROVIDER` is set to `claude` |
 | `REDDIT_CLIENT_ID` | ingestion | **Optional — see below.** From a registered Reddit OAuth "script" app |
 | `REDDIT_CLIENT_SECRET` | ingestion | Optional, same app |
+| `MAKE_WEBHOOK_URL` | social draft | **Optional.** Make.com webhook that feeds the posting-approval Google Sheet (see "Social drafts" below). Unset: drafts still land in `SOCIAL_DRAFTS.md`, they just aren't queued |
+
+The social-draft workflow also sets `SOCIAL_VIDEO_ENABLED=true` (plain env in
+the workflow file, not a secret) to turn on explainer-video rendering, and
+passes the automatic `GITHUB_TOKEN` as `GH_TOKEN` so the render can upload the
+MP4 to the `social-videos` release. Local runs leave both unset and skip the
+video entirely.
 
 `GITHUB_TOKEN` is provided automatically by GitHub Actions for every run — nothing to add. The workflows request `contents: write` and `issues: write`/`issues: read` permissions so that token can push commits and manage Issues.
 
@@ -142,13 +143,13 @@ closes every tracked GitHub issue (with an explanatory comment), wipes
 Opportunities/briefs/issue links — stored Pain Points and their
 classifications are kept, so nothing is re-classified — and replays every
 Pain Point summary through the current matcher in arrival order. Solvability
-marks start out empty, so trigger **"Weekly ingestion"** afterwards to rebuild
+marks start out empty, so trigger **"Daily ingestion"** afterwards to rebuild
 briefs and issues under the current gates. The operation is idempotent: if it
 dies partway, just run it again.
 
-## Social drafts: audience-building content, draft-and-approve only
+## Social drafts: audience-building content, human-approved in a Google Sheet
 
-`social-draft.yml` runs 3x/week and picks **at most one** Opportunity per run
+`social-draft.yml` runs daily and picks **at most one** Opportunity per run
 worth turning into a social post — a genuinely different job from the Digest
 (which surfaces *build* candidates) or Issues (the review queue). This is
 public content under your name; the design deliberately keeps a human in the
@@ -172,17 +173,119 @@ loop and avoids redistributing anyone's actual words:
   link) plus a LinkedIn post with the link held back as a separate "first
   comment" field — both platforms' algorithms suppress reach on posts with
   outbound links, so the link lives one click away instead of in the main
-  post/tweet. Voice is first-person ("I run a system that finds this stuff"),
-  Hormozi-style hook-writing (lead with the sharpest real number, short
-  sentences, problem-agitate-then-fix, zero throat-clearing), same 5th-grade
-  `PLAIN_LANGUAGE_STYLE` as the rest of the pipeline's user-facing text.
-- **No platform API integration yet.** `SOCIAL_DRAFTS.md` (prepended
-  newest-first, same pattern as `DIGEST.md`) holds finished text for both
-  platforms — you copy-paste and publish yourself. Nothing here posts to X or
-  LinkedIn automatically; that's future work once real API credentials exist
-  and the content's been validated by hand for a while.
-- **No new secrets required** — it reuses whichever `LLM_PROVIDER` is already
-  configured, and doesn't touch GitHub Issues at all (no `GITHUB_TOKEN` need).
+  post/tweet. Voice is Hormozi-style hook-writing (lead with the sharpest
+  real number, short sentences, problem-agitate-then-fix, zero
+  throat-clearing) but strictly truthful: the first-person speaker is only
+  ever the curator ("I run a system that tracks what people complain
+  about") — the prompt forbids invented personal experience ("I built 3
+  apps and...") outright. Same 5th-grade `PLAIN_LANGUAGE_STYLE` as the rest
+  of the pipeline's user-facing text.
+- **Nothing posts without a human flip in the Sheet.** `SOCIAL_DRAFTS.md`
+  (prepended newest-first, same pattern as `DIGEST.md`) keeps the full
+  archive; the posting path runs through the approval Sheet described below,
+  where every row starts `pending` and only a manual edit to `approved`
+  releases it.
+- **One optional secret** — `MAKE_WEBHOOK_URL` (below). Otherwise it reuses
+  whichever `LLM_PROVIDER` is already configured; the only `GITHUB_TOKEN` use
+  is uploading the explainer video to the `social-videos` release.
+
+### The explainer video: one HyperFrames template, new data every day
+
+Every draft also gets a ~25-second silent animated explainer (4:5 portrait,
+1080×1350 — LinkedIn's max feed footprint): hook line → the problem with the
+real report/people counts animating in → the recurring broken loop → the
+proposed fix revealing step by step → the validation question + disclosure.
+The template lives in `video/` (`index.html`, a [HyperFrames](https://github.com/heygen-com/hyperframes)
+composition — plain HTML/CSS/GSAP rendered to deterministic MP4); the
+per-post data is a flat variables file built by `video.build_scene_script`
+from the same LLM call that writes the post copy (`video_*` fields in
+`SocialDraftCopy`), under the same rules: curator voice, no invented
+experience, and **no LLM-written numbers on screen** — the counts are
+injected from the Opportunity itself.
+
+Operationally:
+
+- `adapters/hyperframes_video.py` runs `npx hyperframes render` in `video/`
+  and `gh release upload social-videos <mp4>`; the resulting
+  `https://github.com/<repo>/releases/download/social-videos/<date>-<id>.mp4`
+  URL rides the queue as `video_url`. (Swap-to-S3-later plan: only those two
+  steps change; everything downstream is just a URL.)
+- **One-time setup**: create the rolling release once —
+  `gh release create social-videos --title "Social videos" --notes "MP4 assets for the daily social drafts"`.
+- **The video is optional by design.** A render/upload failure logs loudly
+  but the draft still queues with an empty `video_url`; Make.com posts those
+  text-only. HyperFrames is pre-1.0 (version pinned exactly in
+  `video/package.json` — bump deliberately, then re-render the fixture and
+  eyeball it).
+- The video renders **before** you polish in the Sheet, so its on-screen text
+  is deliberately minimal. A video wrong enough to matter means flip the row
+  to `skipped` — there's no editing a baked MP4.
+- Preview/iterate locally in `video/`: `npx hyperframes preview`, and
+  `npx hyperframes render --variables-file data/script.fixture.json --output out/fixture.mp4`
+  (needs Node 22+ and FFmpeg; `npm install` first).
+- Videos are LinkedIn-only; X stays text.
+
+### The posting queue: Make.com + Google Sheet, approval in the Sheet
+
+The pipeline's side is small: after writing `SOCIAL_DRAFTS.md`, the draft run
+stores the exact publish-ready strings in the `social_queue` table and POSTs
+them as JSON to the Make.com webhook in `MAKE_WEBHOOK_URL`:
+
+```json
+{
+  "opportunity_id": "…",
+  "date": "2026-07-15",
+  "linkedin_post": "…full post incl. disclosure…",
+  "x_thread": "…numbered tweets incl. link + disclosure…",
+  "link": "https://reddit.com/…",
+  "video_url": "…release asset URL, or empty when the render failed…"
+}
+```
+
+A webhook failure fails the run *after* the draft and its `social_queue` row
+are committed; re-send by hand with
+`pain-point-pipeline social-approve --opportunity-id <id>` (`--force` to
+re-send one that was already delivered — the id is in the draft's heading in
+`SOCIAL_DRAFTS.md`).
+
+The Google Sheet needs these columns (order matters to the scenarios below):
+
+```
+date | opportunity_id | linkedin_post | x_thread | link | video_url | status
+```
+
+`status` is the human approval gate: `pending` (as queued) → `approved`
+(you edited/polished the text in the row and flipped it) → `posted` (set by
+Make.com after publishing). Polish the copy **in the Sheet** — that's the
+text that actually gets posted; `SOCIAL_DRAFTS.md` keeps only the unpolished
+original. Part of the approval pass: click `video_url` and watch the MP4 —
+approving the row approves the video.
+
+Two Make.com scenarios to build (in Make.com's UI — not configurable from
+this repo):
+
+1. **Intake**: Custom webhook (this is the URL for `MAKE_WEBHOOK_URL`) →
+   Google Sheets "Add a Row" mapping the six payload fields, `status` =
+   `pending`.
+2. **Daily poster**: Schedule (daily) → Google Sheets "Search Rows" for the
+   oldest row with `status = approved` (stop if none — a quiet day is
+   normal) → **Router** with two branches:
+   - *Has video* (filter: `video_url` is not empty): HTTP "Get a file" on
+     `video_url` → LinkedIn "Create a Post" with Media Type **Video** and
+     the downloaded file, content = `linkedin_post`.
+   - *No video* (fallback): LinkedIn "Create a Post" with Media Type
+     **None**, content = `linkedin_post`.
+   Both branches then continue: LinkedIn comment with `link` if the comment
+   module exists (else the reminder email with `link` + post URL — keeps the
+   outbound link out of the main post, same reach logic as the draft format)
+   → Google Sheets "Update a Row" setting `status = posted`.
+
+Caveat before wiring scenario 2: posting to a member profile through
+Make.com's LinkedIn connection requires LinkedIn OAuth consent including
+`w_member_social`. Connect the LinkedIn account in Make.com and confirm a
+test share works before trusting the daily schedule. X posting isn't wired
+up — the `x_thread` column rides along so the approved, polished text is in
+one place if you post it by hand (or automate it later).
 
 ## Testing before the first scheduled run
 

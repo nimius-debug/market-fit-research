@@ -1,0 +1,12 @@
+{
+  "date": "2026-07-16",
+  "disclosure": "Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.",
+  "hook": "AI builds it. You cannot explain it.",
+  "people": 11,
+  "problem": "People ship real apps with AI but freeze the moment it is taken away.",
+  "question": "Worth building?",
+  "reports": 14,
+  "step1": "Pick a feature you built.",
+  "step2": "Rebuild it, no code gen.",
+  "step3": "AI hints only when stuck."
+}

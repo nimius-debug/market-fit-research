@@ -1,7 +1,7 @@
 """Wires Source -> classify -> cluster -> solvability -> brief -> issue, and separately, Digest build.
 
 Two entry points mirror the two GitHub Actions schedules (see docs/specs/0001-v1-pipeline.md):
-`run_ingestion_batch` weekly, `run_digest_build` weekly. Both operate purely through the
+`run_ingestion_batch` daily, `run_digest_build` weekly. Both operate purely through the
 SourcePort/LLMSearchPort/TrackerPort seams so tests can drive them with fakes.
 
 Ingestion is resumable: the first live 6-subreddit run was killed by the GitHub
@@ -42,16 +42,31 @@ from typing import TypeVar
 
 from pain_point_pipeline import repository
 from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, format_digest_section, prepend_digest
-from pain_point_pipeline.models import Opportunity, OpportunityBrief, OpportunityIssue, PainPoint
+from pain_point_pipeline.models import (
+    Opportunity,
+    OpportunityBrief,
+    OpportunityIssue,
+    PainPoint,
+    SocialQueueEntry,
+)
 from pain_point_pipeline.ports import (
     BriefNarrative,
     EffortEstimate,
     LLMSearchPort,
+    SocialQueuePort,
     SolvabilityJudgement,
     SourcePort,
     TrackerPort,
+    VideoRendererPort,
 )
-from pain_point_pipeline.social import format_social_draft, prepend_social_draft
+from pain_point_pipeline.social import (
+    compose_linkedin_post,
+    compose_x_thread,
+    evidence_link,
+    format_social_draft,
+    prepend_social_draft,
+)
+from pain_point_pipeline.video import build_scene_script
 
 logger = logging.getLogger(__name__)
 
@@ -346,12 +361,28 @@ def run_digest_build(conn: sqlite3.Connection, tracker: TrackerPort, digest_path
     return DigestResult(digest_date=digest_date, included_opportunity_ids=included_ids)
 
 
-def run_social_draft(llm: LLMSearchPort, conn: sqlite3.Connection, draft_path: str, now: datetime) -> SocialDraftResult:
+def run_social_draft(
+    llm: LLMSearchPort,
+    queue: SocialQueuePort | None,
+    renderer: VideoRendererPort | None,
+    conn: sqlite3.Connection,
+    draft_path: str,
+    now: datetime,
+) -> SocialDraftResult:
     """Pick at most one Opportunity per run for a social post: from
     repository.list_viral_candidates (>5 reports, solvable, briefed, never
     used before), an LLM judges which single one is most worth posting — or
     that none of them are. A pick is permanently marked used, so posts never
-    repeat even though the same underlying pool is re-queried every run."""
+    repeat even though the same underlying pool is re-queried every run.
+
+    When `renderer` is set, the explainer video is rendered best-effort: any
+    failure logs and the draft queues with an empty video_url (Make.com posts
+    text-only for those) — a missing animation never blocks a good post.
+
+    The finished draft is also saved to social_queue and, when `queue` is set,
+    pushed to it (the Make.com webhook feeding the approval Sheet). A push
+    failure is raised only after the draft and its queue row are committed —
+    the run shows red, but `social-approve` can re-send the stored row."""
     candidate_ids = repository.list_viral_candidates(conn)
     if not candidate_ids:
         logger.info("No social-draft candidates (need >5 reports, not yet used)")
@@ -371,12 +402,41 @@ def run_social_draft(llm: LLMSearchPort, conn: sqlite3.Connection, draft_path: s
 
     opportunity, brief = next((o, b) for o, b in candidates if o.id == pick.opportunity_id)
     copy = llm.write_social_draft(opportunity, brief)
-    section = format_social_draft(now.date().isoformat(), opportunity, copy)
+    date = now.date().isoformat()
+
+    video_url = ""
+    if renderer is not None:
+        try:
+            video_url = renderer.render(build_scene_script(date, opportunity, copy), opportunity.id)
+        except Exception:
+            logger.exception(
+                "Video render failed for %s; queueing the draft without a video", opportunity.id
+            )
+
+    section = format_social_draft(date, opportunity, copy, video_url)
     prepend_social_draft(draft_path, section)
     repository.mark_social_posted(conn, opportunity.id, now)
 
+    entry = SocialQueueEntry(
+        opportunity_id=opportunity.id,
+        date=date,
+        linkedin_post=compose_linkedin_post(copy),
+        x_thread=compose_x_thread(opportunity, copy),
+        link=evidence_link(opportunity),
+        video_url=video_url,
+    )
+    repository.save_social_queue_entry(conn, entry)
     conn.commit()
     logger.info("Social draft written for %r (%d reports, %d people)", opportunity.title[:70], opportunity.frequency, opportunity.distinct_authors)
+
+    if queue is not None:
+        # Draft + queue row are already committed: if this raises, the run
+        # fails loudly but nothing is lost — social-approve re-sends the row.
+        queue.push(entry)
+        repository.mark_social_queued(conn, opportunity.id, now)
+        conn.commit()
+        logger.info("Social draft queued to the approval sheet for %s", opportunity.id)
+
     return SocialDraftResult(opportunity_id=opportunity.id)
 
 

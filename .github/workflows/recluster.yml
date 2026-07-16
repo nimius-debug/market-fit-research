@@ -4,9 +4,9 @@ name: Recluster (maintenance)
 # the current match criterion. Closes all tracked GitHub issues first (their
 # opportunities are being replaced), keeps Pain Points/classifications (no
 # re-classification cost), and leaves solvability unmarked so the next
-# "Weekly ingestion" run rebuilds briefs and issues under the current gates.
+# "Daily ingestion" run rebuilds briefs and issues under the current gates.
 # Trigger this after changing the clustering criterion, then trigger
-# "Weekly ingestion" to rebuild the review surface.
+# "Daily ingestion" to rebuild the review surface.
 on:
   workflow_dispatch: {}
 
