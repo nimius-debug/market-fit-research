@@ -28,6 +28,8 @@ def test_cluster_match_tolerates_an_omitted_field() -> None:
 _VIDEO_FIELDS = {
     "video_hook": "Video hook.",
     "video_problem": "Video problem.",
+    "video_loop_caption": "Loop caption.",
+    "video_loop": ["Try this", "It breaks", "Start over"],
     "video_steps": ["Step one.", "Step two."],
     "video_question": "Worth building?",
 }

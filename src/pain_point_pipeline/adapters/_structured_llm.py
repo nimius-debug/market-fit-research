@@ -96,10 +96,13 @@ class SocialDraftModel(BaseModel):
     linkedin_post: str
     video_hook: str
     video_problem: str
+    video_loop_caption: str
+    video_loop: list[str]
     video_steps: list[str]
     video_question: str
 
     _coerce_x_body = field_validator("x_body", mode="before")(_coerce_json_encoded_list)
+    _coerce_video_loop = field_validator("video_loop", mode="before")(_coerce_json_encoded_list)
     _coerce_video_steps = field_validator("video_steps", mode="before")(_coerce_json_encoded_list)
 
 
@@ -217,8 +220,9 @@ will be posted separately as a comment.
 
 The video_* fields are the on-screen text for a short silent animation \
 that plays with the LinkedIn post: hook scene, problem scene with the \
-report count animating in, then the fix steps appearing one by one, then \
-the closing question. Every scene must earn its screen time — a viewer \
+report count animating in, then a broken-loop scene (three boxes cycling \
+into a dead end), then the fix steps appearing one by one, then the \
+closing question. Every scene must earn its screen time — a viewer \
 who reads only the video should still walk away knowing the problem and \
 the proposed fix. Hard rule: NO digits or numbers in any video field — \
 the real counts are shown by the animation itself, injected by the \
@@ -227,6 +231,13 @@ proposal framing, no teases) apply to these too.
 video_hook: 8 words max. The pattern, sharpest form, no numbers.
 video_problem: one sentence, 12 words max, no numbers — what people \
 keep saying is broken.
+video_loop_caption: one sentence, 10 words max, no numbers — the cycle \
+people describe for THIS problem, in its own concrete terms, never a \
+generic "same loop every week" line.
+video_loop: exactly 3 labels, 2 words max each — the cycle's stages in \
+order: what people try, where it breaks, what they fall back to (e.g. \
+"Ask AI", "It breaks", "Start over") — specific to this problem, the \
+break lands on the second label.
 video_steps: exactly 2 or 3 captions, 6 words max each — the proposed \
 fix as concrete steps a viewer could picture (e.g. "Pick a feature you \
 built.", "AI hints only when stuck.").
@@ -401,6 +412,8 @@ class StructuredJudgmentAdapter:
             linkedin_post=parsed.linkedin_post,
             video_hook=parsed.video_hook,
             video_problem=parsed.video_problem,
+            video_loop_caption=parsed.video_loop_caption,
+            video_loop=tuple(parsed.video_loop),
             video_steps=tuple(parsed.video_steps),
             video_question=parsed.video_question,
         )

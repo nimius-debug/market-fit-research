@@ -6,6 +6,10 @@
     {"id":"problem","type":"string","label":"Problem sentence","default":"People ship with AI but freeze the moment it is taken away."},
     {"id":"reports","type":"number","label":"Report count","default":11},
     {"id":"people","type":"number","label":"Distinct people","default":11},
+    {"id":"loop_caption","type":"string","label":"Loop caption","default":"The same loop. The same dead end. Every week."},
+    {"id":"loop1","type":"string","label":"Loop box 1","default":"Try"},
+    {"id":"loop2","type":"string","label":"Loop box 2","default":"Get stuck"},
+    {"id":"loop3","type":"string","label":"Loop box 3","default":"Start over"},
     {"id":"step1","type":"string","label":"Fix step 1","default":"Pick a feature you built."},
     {"id":"step2","type":"string","label":"Fix step 2","default":"AI hints only when stuck."},
     {"id":"step3","type":"string","label":"Fix step 3","default":""},
@@ -166,13 +170,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
         width: 240px;
         height: 150px;
+        padding: 0 16px;
         border-radius: 20px;
         background: var(--surface-2);
         border: 3px solid rgba(255, 255, 255, 0.14);
         font-size: 34px;
         font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
         color: var(--ink-2);
         position: relative;
       }
@@ -291,13 +299,13 @@
       <section id="scene-broken" class="clip" data-start="10" data-duration="5" data-track-index="3">
         <div id="broken-inner" class="scene-inner">
           <div id="broken-kicker" class="kicker">What keeps happening</div>
-          <p id="broken-caption">The same loop. The same dead end. Every week.</p>
+          <p id="broken-caption" data-var-text="loop_caption">The same loop. The same dead end. Every week.</p>
           <div id="flow-row">
-            <div class="flow-box" id="flow-try">Try</div>
+            <div class="flow-box" id="flow-try" data-var-text="loop1">Try</div>
             <div class="flow-arrow" id="flow-arrow-1"></div>
-            <div class="flow-box" id="flow-stuck">Get stuck</div>
+            <div class="flow-box" id="flow-stuck" data-var-text="loop2">Get stuck</div>
             <div class="flow-arrow" id="flow-arrow-2"><div id="broken-mark">&#10005;</div></div>
-            <div class="flow-box" id="flow-again">Start over</div>
+            <div class="flow-box" id="flow-again" data-var-text="loop3">Start over</div>
           </div>
         </div>
       </section>

@@ -97,6 +97,8 @@ class FakeLLMSearch:
             linkedin_post=f"LinkedIn post (fixture): {opportunity.title}",
             video_hook="Video hook (fixture).",
             video_problem="Video problem (fixture).",
+            video_loop_caption="Loop caption (fixture).",
+            video_loop=("Try this", "It breaks", "Start over"),
             video_steps=("Step one (fixture).", "Step two (fixture)."),
             video_question="Worth building?",
         )

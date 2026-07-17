@@ -35,7 +35,11 @@ def _make_opportunity(authors: list[str]) -> Opportunity:
     )
 
 
-def _make_copy(steps: tuple[str, ...] = ("Step one.", "Step two.")) -> SocialDraftCopy:
+def _make_copy(
+    steps: tuple[str, ...] = ("Step one.", "Step two."),
+    loop: tuple[str, ...] = ("Try this", "It breaks", "Start over"),
+    loop_caption: str = "Loop caption.",
+) -> SocialDraftCopy:
     return SocialDraftCopy(
         x_hook="X hook.",
         x_body=("Body.",),
@@ -43,6 +47,8 @@ def _make_copy(steps: tuple[str, ...] = ("Step one.", "Step two.")) -> SocialDra
         linkedin_post="Post.",
         video_hook="Video hook.",
         video_problem="Video problem.",
+        video_loop_caption=loop_caption,
+        video_loop=loop,
         video_steps=steps,
         video_question="Worth building?",
     )
@@ -75,6 +81,28 @@ def test_scene_variables_caps_steps_at_three() -> None:
 
     assert variables["step3"] == "Three."
     assert "Four." not in variables.values()
+
+
+def test_loop_falls_back_per_box_when_llm_gives_too_few_labels() -> None:
+    # The scene always needs 3 boxes; missing or blank labels get the generic
+    # default for that position, and a blank caption gets the generic caption.
+    script = build_scene_script(
+        "2026-07-16", _make_opportunity(["alice"]), _make_copy(loop=("Ask AI", ""), loop_caption="  ")
+    )
+
+    assert script.loop == ("Ask AI", "Get stuck", "Start over")
+    assert script.loop_caption == "The same loop. The same dead end. Every week."
+
+
+def test_loop_caps_labels_at_three() -> None:
+    script = build_scene_script(
+        "2026-07-16", _make_opportunity(["alice"]), _make_copy(loop=("A", "B", "C", "D"))
+    )
+
+    variables = scene_variables(script)
+
+    assert variables["loop3"] == "C"
+    assert "D" not in variables.values()
 
 
 def test_scene_variables_json_is_stable_and_round_trips() -> None:

@@ -81,6 +81,8 @@ class SocialDraftCopy:
     linkedin_post: str
     video_hook: str
     video_problem: str
+    video_loop_caption: str
+    video_loop: tuple[str, ...]
     video_steps: tuple[str, ...]
     video_question: str
 
