@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-07-18 — [ca1a90b0-6ff6-4641-842e-3d1d6abb0f43] AI agents using paid tools face messy execution issues like needing to know costs upfront, handling failed payments despite successful transactions, avoiding double-spends on retries, proving intent before spending, and pausing for human approval — indicating a need for payment handling as a separate execution layer rather than just another API call.
+
+**16 reports from 15 people**
+
+### X (thread)
+
+1. 16 people in AI circles said the same thing this week: agents spend money with no guardrails.
+
+2. They want agents to buy tools, run APIs, and rent compute. But nobody wants an agent that spends freely and asks later.
+
+3. The fix: a payment layer that stops, shows the cost, and asks a human before any money leaves.
+
+4. Worth building? https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3n4lx/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+16 people told me the same thing this week.
+
+Their AI agents spend money with no guardrails. The agent calls an API, pays a tool, rents compute — and the human finds out when the bill arrives.
+
+The proposed fix: a payment layer that sits between the agent and any paid action. It stops, shows the exact cost, and asks for a human okay before any money moves.
+
+Would you actually use this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3n4lx/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-18-ca1a90b0-6ff6-4641-842e-3d1d6abb0f43.mp4
+
 ## 2026-07-15 — Setting up automation workflows feels like more effort than just continuing to do repetitive manual tasks manually, especially when the automation tools require too much upfront work or make wrong assumptions that need fixing.
 
 **7 reports from 5 people**
