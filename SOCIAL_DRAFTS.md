@@ -1,5 +1,45 @@
 # Social Drafts
 
+## 2026-07-19 — [85da57a4-258c-4d97-8766-120a1f3fa92c] AI agent integrations (Stripe, Twilio, etc.) pass tests but break on real-world scenarios like duplicate events, non-idempotent handlers, and retries hitting stale state — there's no way to catch these async failure cases before shipping to production.
+
+**7 reports from 5 people**
+
+### X (thread)
+
+1. AI agents pass tests. Break in production. 7 people told me the same thing this week.
+
+2. The pattern: Stripe, Twilio, SendGrid integrations work fine solo. Then dupes, stale state, silent failures collapse the whole pipeline. No one catches it until data's already lost.
+
+3. Fix idea: a "Reliability Mesh" — middleware between agents and APIs. Circuit-breakers, dead-letter queues, idempotency keys, spend gates. Drop-in. No code changes needed. Worth building?
+
+4. Would you actually use this? https://reddit.com/r/automation/comments/1uuk9l3/so_after_building_a_16agent_ai_swarm_system_i/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+I track what breaks in AI agent and automation communities.
+
+7 people (5 distinct) told me the same gap this week:
+
+Agents pass tests. Then Stripe dupes, Twilio stale state, retry cascades, silent data loss — all caught in production. No tool exists to catch these failures before shipping.
+
+The fix: a lightweight middleware layer ("Reliability Mesh") that sits between agents and their API integrations. Circuit-breakers with exponential backoff. Dead-letter queues with replay. Idempotency key management. Spend gates. Permission checks. An async failure simulator that replays real-world failure patterns against new integrations in a sandbox.
+
+No changes to agent code. Webhook proxy URL + SDK adapters for n8n, Make, agent frameworks.
+
+Would you use something like this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/automation/comments/1uuk9l3/so_after_building_a_16agent_ai_swarm_system_i/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-19-85da57a4-258c-4d97-8766-120a1f3fa92c.mp4
+
 ## 2026-07-18 — [ca1a90b0-6ff6-4641-842e-3d1d6abb0f43] AI agents using paid tools face messy execution issues like needing to know costs upfront, handling failed payments despite successful transactions, avoiding double-spends on retries, proving intent before spending, and pausing for human approval — indicating a need for payment handling as a separate execution layer rather than just another API call.
 
 **16 reports from 15 people**
