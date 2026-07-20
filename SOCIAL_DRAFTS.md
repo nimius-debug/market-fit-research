@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-07-20 — [74f42d90-bfb9-4f79-a872-28f4a4aa2a10] People lack visibility into how AI agents reason, coordinate, and handle failures in real time, making it hard to trust autonomous systems without an observability layer that exposes their internal decision-making processes.
+
+**13 reports from 12 people**
+
+### X (thread)
+
+1. 13 people told me the same thing this week: "I can't see what my AI agents are doing."
+
+2. They send agents off to do work and just... hope nothing breaks. No visibility into decisions or failures.
+
+3. What if something just showed agent actions live — a simple dashboard so you can actually trust what's running?
+
+4. Would you use a dashboard like that? https://reddit.com/r/AI_Agents/comments/1uv4e70/does_anyone_else_feel_disconnected_from_ai_coding/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+13 people told me the same thing this week.
+
+They can't see what their AI agents are actually doing behind the scenes. Agents run tasks, make decisions, hit errors — and nobody knows until something breaks.
+
+What if something just showed all of that in a live dashboard? Agent actions, decisions, and failures — visible in real time, so you can actually trust what's running.
+
+Would you use something like this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1uv4e70/does_anyone_else_feel_disconnected_from_ai_coding/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-20-74f42d90-bfb9-4f79-a872-28f4a4aa2a10.mp4
+
 ## 2026-07-19 — [85da57a4-258c-4d97-8766-120a1f3fa92c] AI agent integrations (Stripe, Twilio, etc.) pass tests but break on real-world scenarios like duplicate events, non-idempotent handlers, and retries hitting stale state — there's no way to catch these async failure cases before shipping to production.
 
 **7 reports from 5 people**
