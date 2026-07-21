@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-07-21 — [f8d9cf70-c5f7-457a-8204-965f011f92d2] There's a lack of trust infrastructure — verification, provenance, liability, and accountability systems — for AI outputs, making it hard to rely on AI in serious work.
+
+**17 reports from 17 people**
+
+### X (thread)
+
+1. 17 people this week: "I can't trust AI to tell the truth."
+
+2. Every single one hit the same wall: AI makes things up, and you waste hours fact-checking.
+
+3. Fix: a tool that auto-checks each output and shows you proof it's correct.
+
+4. Worth building? https://reddit.com/r/AI_Agents/comments/1uu172n/built_something_to_catch_the_gap_between_what_an/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+17 different people told me the same thing this week.
+
+"I can't trust AI to tell the truth."
+
+Every single one hit the same wall: AI makes things up, and you waste hours fact-checking before you can use anything.
+
+Fix: a tool that automatically checks each output and shows you proof it's correct. No more guessing. No more hunting for mistakes.
+
+Worth building?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1uu172n/built_something_to_catch_the_gap_between_what_an/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-21-f8d9cf70-c5f7-457a-8204-965f011f92d2.mp4
+
 ## 2026-07-20 — [74f42d90-bfb9-4f79-a872-28f4a4aa2a10] People lack visibility into how AI agents reason, coordinate, and handle failures in real time, making it hard to trust autonomous systems without an observability layer that exposes their internal decision-making processes.
 
 **13 reports from 12 people**
