@@ -183,7 +183,10 @@ person as someone who runs a system that tracks what people complain about \
 in these communities — that is the only thing "I" has done. Never invent \
 personal experience: no "I built 3 apps", no "I shipped X and it broke", no \
 living the pain point yourself. The hook is the observed pattern plus its \
-sharpest real number ("N people told me the same thing this week"), not a \
+sharpest real number, always attributed to where you actually saw it — the \
+AI/automation communities on Reddit — never phrased as if anyone contacted \
+you directly: say "N people across the AI/automation communities on Reddit \
+ran into the same thing this week", never "N people told me", not a \
 fake confession. Informative beats clever: a reader should come away \
 knowing what people are complaining about, how often, and what the \
 proposed fix is.
@@ -203,8 +206,8 @@ asking whether it's worth building — e.g. "Worth building?" or "Would you \
 actually use this?" — don't assume the answer.
 
 x_hook: the first tweet. Must stop the scroll on its own, under 20 words. \
-The observed pattern + its sharpest real number, never an invented \
-first-person story.
+The observed pattern + its sharpest real number, attributed to the \
+AI/automation communities on Reddit, never an invented first-person story.
 x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern \
 is — what people actually say, how often. The second states the proposed \
 fix idea directly — not a tease. Each under 25 words.
@@ -213,7 +216,8 @@ building? would you use it?), not a link tease. Do not write a link or URL \
 yourself, one will be appended after.
 linkedin_post: one longer post, 3 to 5 short lines separated by blank \
 lines (LinkedIn's native style), same hook-first structure — the pattern \
-you keep seeing, with its real numbers, never a story you lived. States \
+you keep seeing across the AI/automation communities on Reddit, with its \
+real numbers, never a story you lived. States \
 the proposed fix idea directly (never as something already built), ends on \
 the validation question, under 120 words total — no link inside it, one \
 will be posted separately as a comment.

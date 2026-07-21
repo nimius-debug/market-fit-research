@@ -6,7 +6,7 @@
 
 ### X (thread)
 
-1. 13 people told me the same thing this week: "I can't see what my AI agents are doing."
+1. 13 people across the AI/automation communities on Reddit ran into the same thing this week: "I can't see what my AI agents are doing."
 
 2. They send agents off to do work and just... hope nothing breaks. No visibility into decisions or failures.
 
@@ -18,7 +18,7 @@
 
 ### LinkedIn (post)
 
-13 people told me the same thing this week.
+13 people across the AI/automation communities on Reddit ran into the same thing this week.
 
 They can't see what their AI agents are actually doing behind the scenes. Agents run tasks, make decisions, hit errors — and nobody knows until something breaks.
 
@@ -42,7 +42,7 @@ https://github.com/nimius-debug/market-fit-research/releases/download/social-vid
 
 ### X (thread)
 
-1. AI agents pass tests. Break in production. 7 people told me the same thing this week.
+1. AI agents pass tests. Break in production. 7 people across the AI/automation communities on Reddit hit this this week.
 
 2. The pattern: Stripe, Twilio, SendGrid integrations work fine solo. Then dupes, stale state, silent failures collapse the whole pipeline. No one catches it until data's already lost.
 
@@ -54,9 +54,9 @@ https://github.com/nimius-debug/market-fit-research/releases/download/social-vid
 
 ### LinkedIn (post)
 
-I track what breaks in AI agent and automation communities.
+I track what breaks across the AI/automation communities on Reddit.
 
-7 people (5 distinct) told me the same gap this week:
+7 people (5 distinct) hit the same gap this week:
 
 Agents pass tests. Then Stripe dupes, Twilio stale state, retry cascades, silent data loss — all caught in production. No tool exists to catch these failures before shipping.
 
@@ -82,7 +82,7 @@ https://github.com/nimius-debug/market-fit-research/releases/download/social-vid
 
 ### X (thread)
 
-1. 16 people in AI circles said the same thing this week: agents spend money with no guardrails.
+1. 16 people across the AI/automation communities on Reddit ran into the same thing this week: agents spend money with no guardrails.
 
 2. They want agents to buy tools, run APIs, and rent compute. But nobody wants an agent that spends freely and asks later.
 
@@ -94,7 +94,7 @@ https://github.com/nimius-debug/market-fit-research/releases/download/social-vid
 
 ### LinkedIn (post)
 
-16 people told me the same thing this week.
+16 people across the AI/automation communities on Reddit ran into the same thing this week.
 
 Their AI agents spend money with no guardrails. The agent calls an API, pays a tool, rents compute — and the human finds out when the bill arrives.
 
