@@ -88,6 +88,8 @@ class SceneScript:
     problem: str
     reports: int
     people: int
+    loop_caption: str
+    loop: tuple[str, ...]
     steps: tuple[str, ...]
     question: str
     disclosure: str

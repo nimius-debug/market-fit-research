@@ -42,6 +42,8 @@ def _make_copy() -> SocialDraftCopy:
         linkedin_post="LinkedIn body text.",
         video_hook="Video hook.",
         video_problem="Video problem.",
+        video_loop_caption="Loop caption.",
+        video_loop=("Try this", "It breaks", "Start over"),
         video_steps=("Step one.", "Step two."),
         video_question="Worth building?",
     )

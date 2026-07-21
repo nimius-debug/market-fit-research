@@ -21,6 +21,18 @@ from pain_point_pipeline.social import DISCLOSURE
 
 MAX_STEPS = 3
 
+# The broken-loop scene always shows exactly three boxes (the template's
+# animation — X mark, shake — is built around that shape). A weak LLM
+# response falls back to these generic labels per box, never a blank one.
+LOOP_BOXES = 3
+DEFAULT_LOOP = ("Try", "Get stuck", "Start over")
+DEFAULT_LOOP_CAPTION = "The same loop. The same dead end. Every week."
+
+
+def _loop_labels(labels: tuple[str, ...]) -> tuple[str, ...]:
+    padded = list(labels[:LOOP_BOXES]) + [""] * (LOOP_BOXES - min(len(labels), LOOP_BOXES))
+    return tuple(label.strip() or default for label, default in zip(padded, DEFAULT_LOOP))
+
 
 def build_scene_script(date: str, opportunity: Opportunity, copy: SocialDraftCopy) -> SceneScript:
     return SceneScript(
@@ -28,6 +40,8 @@ def build_scene_script(date: str, opportunity: Opportunity, copy: SocialDraftCop
         problem=copy.video_problem,
         reports=opportunity.frequency,
         people=opportunity.distinct_authors,
+        loop_caption=copy.video_loop_caption.strip() or DEFAULT_LOOP_CAPTION,
+        loop=_loop_labels(copy.video_loop),
         steps=copy.video_steps[:MAX_STEPS],
         question=copy.video_question,
         disclosure=DISCLOSURE,
@@ -40,11 +54,16 @@ def scene_variables(script: SceneScript) -> dict[str, str | int]:
     template in video/ declares. Key set must stay in sync with
     video/index.html's data-composition-variables declarations."""
     steps = list(script.steps) + [""] * MAX_STEPS
+    loop = list(script.loop) + [""] * LOOP_BOXES
     return {
         "hook": script.hook,
         "problem": script.problem,
         "reports": script.reports,
         "people": script.people,
+        "loop_caption": script.loop_caption,
+        "loop1": loop[0],
+        "loop2": loop[1],
+        "loop3": loop[2],
         "step1": steps[0],
         "step2": steps[1],
         "step3": steps[2],
