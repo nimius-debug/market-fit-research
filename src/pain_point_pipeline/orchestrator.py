@@ -42,6 +42,7 @@ from typing import TypeVar
 
 from pain_point_pipeline import repository
 from pain_point_pipeline.digest import MAX_OPPORTUNITIES_PER_DIGEST, format_digest_section, prepend_digest
+from pain_point_pipeline.phrasing import issue_title_suffix
 from pain_point_pipeline.models import (
     Opportunity,
     OpportunityBrief,
@@ -151,7 +152,8 @@ def _compute_refresh(llm: LLMSearchPort, opportunity: Opportunity) -> _RefreshCo
 
 
 def _issue_title(opportunity: Opportunity) -> str:
-    return f"{opportunity.title} ({opportunity.frequency} reports, {opportunity.distinct_authors} people)"
+    suffix = issue_title_suffix(opportunity.id, opportunity.frequency, opportunity.distinct_authors)
+    return f"{opportunity.title} {suffix}"
 
 
 def run_ingestion_batch(

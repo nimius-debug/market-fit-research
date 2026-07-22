@@ -15,6 +15,16 @@ Repo: `nimius-debug/market-fit-research`.
 
 Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
 
+## Opportunity issues are not a triage surface
+
+`GitHubTracker` (`src/pain_point_pipeline/adapters/github_tracker.py`) also opens
+Issues in this same repo — one per pipeline-discovered Opportunity (see
+CONTEXT.md: Opportunity, Rejected). Those are marked by an
+`<!-- opportunity_id: ... -->` HTML comment in the body, never carry the
+triage labels above, and are closed/labeled `rejected` by the pipeline's own
+review flow, not by `/triage`. Skip any issue containing that marker when
+triaging — it belongs to the discovery pipeline's output, not the dev backlog.
+
 ## Pull requests as a triage surface
 
 **PRs as a request surface: no.** This is a solo project not currently accepting outside contributions; `/triage` only processes issues.
