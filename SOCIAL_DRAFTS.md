@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-07-22 — [947bc982-1039-426d-a80a-dd0e5aa940a8] User wants to add a max-retry cap and hard-kill loop after failed clicks, and use template matching to detect timeout modals instead of relying on the model to reason about them, indicating frustration with unreliable automation loops and brittle modal detection.
+
+**8 reports from 8 people**
+
+### X (thread)
+
+1. 8 people this week: AI kept clicking the same button forever.
+
+2. Loops that never stop. Browsers stuck on modals the AI can't read. Retry until timeout is everyone's default — and it fails.
+
+3. Add a hard kill-switch: max retries, dead-letter fallback, template-matched modals instead of letting the AI guess.
+
+4. Worth building a kill-switch into every agent loop? https://reddit.com/r/LocalLLaMA/comments/1uue278/working_around_qwen3627bs_toolcall_failures_and/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+8 different people told me the same thing this week.
+
+Their AI automation kept clicking the same button forever. A modal pops up, the tool can't read it, so it tries again. And again. Endless loop until manual intervention.
+
+The fix: a hard kill-switch. Set a max-retry cap per action. When it hits the limit, the tool stops and flags the failure. Use template matching to detect modals instead of relying on the AI to figure them out.
+
+No more infinite retries. No more brittle guesses.
+
+Would you actually use this kind of kill-switch?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uue278/working_around_qwen3627bs_toolcall_failures_and/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-22-947bc982-1039-426d-a80a-dd0e5aa940a8.mp4
+
 ## 2026-07-21 — [f8d9cf70-c5f7-457a-8204-965f011f92d2] There's a lack of trust infrastructure — verification, provenance, liability, and accountability systems — for AI outputs, making it hard to rely on AI in serious work.
 
 **17 reports from 17 people**
