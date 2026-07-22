@@ -261,6 +261,15 @@ text that actually gets posted; `SOCIAL_DRAFTS.md` keeps only the unpolished
 original. Part of the approval pass: click `video_url` and watch the MP4 —
 approving the row approves the video.
 
+**Format the `date` column as Date** (select the column → Format → Number →
+Date) as part of one-time setup. The pipeline sends `date` as a plain
+`YYYY-MM-DD` string; Make.com's "Add a Row" module (`USER_ENTERED` input mode)
+converts recognized date strings to Sheets' internal date-serial number, same
+as if you'd typed it by hand. Without the column formatted as Date, Sheets
+displays that serial number raw (e.g. `46219`) instead of rendering it back
+as a date — cosmetic only, the underlying value is correct, but confusing
+until the column format is set once.
+
 Two Make.com scenarios to build (in Make.com's UI — not configurable from
 this repo):
 

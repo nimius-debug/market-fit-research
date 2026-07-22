@@ -9,6 +9,7 @@ from fakes import FakeLLMSearch, FakeSocialQueue, FakeSource, FakeTracker, FakeV
 from pain_point_pipeline import orchestrator, repository
 from pain_point_pipeline.models import PainPoint, RawItem
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster, run_social_draft
+from pain_point_pipeline.phrasing import issue_title_suffix
 from pain_point_pipeline.ports import ClusterMatch, PainPointClassification
 
 
@@ -33,8 +34,9 @@ def test_full_batch_creates_pain_point_opportunity_brief_issue_and_digest_entry(
     assert ingest_result.new_pain_points == 3
     assert ingest_result.new_opportunities == 1
     assert len(ingest_result.issues_created) == 1
-    (issue_number,) = ingest_result.issues_created.values()
-    assert tracker.titles[issue_number] == "PAINPOINT scripting is painful (3 reports, 3 people)"
+    (opportunity_id, issue_number) = next(iter(ingest_result.issues_created.items()))
+    expected_suffix = issue_title_suffix(opportunity_id, frequency=3, distinct_authors=3)
+    assert tracker.titles[issue_number] == f"PAINPOINT scripting is painful {expected_suffix}"
 
     digest_result = run_digest_build(conn, tracker, digest_path, now)
 
@@ -75,8 +77,10 @@ def test_issue_title_counts_refresh_as_the_opportunity_grows(conn, now, make_ite
     tracker = FakeTracker()
     items = _clustered_items(make_item, "scripting is painful", ["alice", "bob", "carol"])
     result = run_ingestion_batch([FakeSource("reddit", items)], FakeLLMSearch(), tracker, conn, now)
-    (issue_number,) = result.issues_created.values()
-    assert tracker.titles[issue_number] == "PAINPOINT scripting is painful (3 reports, 3 people)"
+    (opportunity_id, issue_number) = next(iter(result.issues_created.items()))
+    assert tracker.titles[issue_number] == (
+        f"PAINPOINT scripting is painful {issue_title_suffix(opportunity_id, frequency=3, distinct_authors=3)}"
+    )
 
     fourth = make_item(
         "PAINPOINT agree CLUSTER_WITH:PAINPOINT scripting is painful",
@@ -85,7 +89,9 @@ def test_issue_title_counts_refresh_as_the_opportunity_grows(conn, now, make_ite
     )
     run_ingestion_batch([FakeSource("reddit", [fourth])], FakeLLMSearch(), tracker, conn, now + timedelta(days=7))
 
-    assert tracker.titles[issue_number] == "PAINPOINT scripting is painful (4 reports, 4 people)"
+    assert tracker.titles[issue_number] == (
+        f"PAINPOINT scripting is painful {issue_title_suffix(opportunity_id, frequency=4, distinct_authors=4)}"
+    )
 
 
 def test_non_pain_point_items_are_ignored(conn, now, make_item, digest_path):

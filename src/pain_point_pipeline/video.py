@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 
 from pain_point_pipeline.models import Opportunity, SceneScript
+from pain_point_pipeline.phrasing import report_tail_for, verb_for
 from pain_point_pipeline.ports import SocialDraftCopy
 from pain_point_pipeline.social import DISCLOSURE
 
@@ -35,11 +36,14 @@ def _loop_labels(labels: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def build_scene_script(date: str, opportunity: Opportunity, copy: SocialDraftCopy) -> SceneScript:
+    verb = verb_for(opportunity.id)
     return SceneScript(
         hook=copy.video_hook,
         problem=copy.video_problem,
         reports=opportunity.frequency,
         people=opportunity.distinct_authors,
+        stat_label=f"people on Reddit are {verb} this",
+        reports_tail=report_tail_for(opportunity.id),
         loop_caption=copy.video_loop_caption.strip() or DEFAULT_LOOP_CAPTION,
         loop=_loop_labels(copy.video_loop),
         steps=copy.video_steps[:MAX_STEPS],
@@ -60,6 +64,8 @@ def scene_variables(script: SceneScript) -> dict[str, str | int]:
         "problem": script.problem,
         "reports": script.reports,
         "people": script.people,
+        "stat_label": script.stat_label,
+        "reports_tail": script.reports_tail,
         "loop_caption": script.loop_caption,
         "loop1": loop[0],
         "loop2": loop[1],
