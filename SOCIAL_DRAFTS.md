@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-07-23 — [09098ff0-15a5-4e1b-ad9a-f2095c813926] A CS student feels that relying too heavily on AI coding tools and vibe coding has made them unable to write syntax from memory or pass technical interviews, and they're unsure whether to focus on practicing programming fundamentals or continue building with AI tools.
+
+**8 reports from 7 people**
+
+### X (thread)
+
+1. 8 people this week: "I can't code without AI anymore."
+
+2. They freeze in interviews. Forgot basic syntax. Unsure if they still know how to code.
+
+3. A tool that just hides AI help. Quiz mode. No autocomplete. No chat. You or your memory.
+
+4. Worth building for practice? https://reddit.com/r/artificial/comments/1uuo7ni/vibe_coders_or_traditional_programmers_really_in/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+8 people told me the same thing this week.
+
+They use AI to code all day. Then they freeze in a technical interview. Can't write a for loop from memory.
+
+They're not beginners. They just forgot what it feels like to code alone.
+
+The fix? A quiz tool that hides AI help. No autocomplete. No chat. Just the problem and your own brain.
+
+Would you actually use something like this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/artificial/comments/1uuo7ni/vibe_coders_or_traditional_programmers_really_in/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-23-09098ff0-15a5-4e1b-ad9a-f2095c813926.mp4
+
 ## 2026-07-22 — [947bc982-1039-426d-a80a-dd0e5aa940a8] User wants to add a max-retry cap and hard-kill loop after failed clicks, and use template matching to detect timeout modals instead of relying on the model to reason about them, indicating frustration with unreliable automation loops and brittle modal detection.
 
 **8 reports from 8 people**
