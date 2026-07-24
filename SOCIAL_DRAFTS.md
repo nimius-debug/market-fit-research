@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-07-24 — [f094778d-d8de-417d-a5f8-70d110622d9d] Automation tools have silent failures
+
+**12 reports from 11 people**
+
+### X (thread)
+
+1. 12 people told me the same thing this week.
+
+2. Their automations just stop. No error. No alert. Nothing.
+
+3. A tool that spots silent failures and flags them. Worth building?
+
+4. Would you actually use this? https://reddit.com/r/automation/comments/1v3bpx0/i_ran_the_same_workflows_5000_times_on_zapier/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+12 people from 11 different teams told me the same thing this week.
+
+Their automations fail silently. No error. No alert. Nothing.
+
+They only find out when a customer asks where their order is. Or when a report comes back blank.
+
+What if something just watched for those failures and flagged them the second they happen?
+
+Worth building?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/automation/comments/1v3bpx0/i_ran_the_same_workflows_5000_times_on_zapier/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-24-f094778d-d8de-417d-a5f8-70d110622d9d.mp4
+
 ## 2026-07-23 — [09098ff0-15a5-4e1b-ad9a-f2095c813926] A CS student feels that relying too heavily on AI coding tools and vibe coding has made them unable to write syntax from memory or pass technical interviews, and they're unsure whether to focus on practicing programming fundamentals or continue building with AI tools.
 
 **8 reports from 7 people**
