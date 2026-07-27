@@ -48,10 +48,12 @@ IMAGE_HEIGHT = 1280
 # Cinematic 3D, dark — the chosen look. STYLE_ISOMETRIC is the testing
 # fallback; point ACTIVE_STYLE at it to switch the whole set in one line.
 STYLE_CINEMATIC_3D = (
-    "cinematic 3D render, near-black background, soft studio lighting with a "
-    "single deep electric-blue key light, glossy minimal objects, subtle rim "
-    "light, muted palette with one electric-blue accent, generous dark empty "
-    "space, highly detailed, no text, no words, no logo, no watermark"
+    "cinematic 3D render in a cute stylized mascot style — friendly, rounded, "
+    "Pixar-like character design, never photorealistic and never a realistic "
+    "human face; near-black background, soft studio lighting with a single "
+    "deep electric-blue key light, glossy surfaces, subtle rim light, muted "
+    "palette with one electric-blue accent, generous dark empty space, highly "
+    "detailed, no text, no words, no logo, no watermark"
 )
 STYLE_ISOMETRIC = (
     "clean isometric 3D icon illustration, near-black background, single "
@@ -72,7 +74,7 @@ BEAT_COUNT = IMAGE_COUNT - 1
 DEFAULT_SCENE_BEATS = (
     "busy and a little worried as the work piles up around it",
     "overwhelmed and stuck, the same task looping around it",
-    "a glowing blue helper appears and clears the mess, calm and safe",
+    "a glowing blue shield or gate steps in front of it and blocks the trouble",
     "relaxed and happy, giving a thumbs up, calm and resolved",
 )
 

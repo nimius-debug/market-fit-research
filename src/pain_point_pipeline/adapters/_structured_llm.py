@@ -264,30 +264,37 @@ fix as concrete steps a viewer could picture (e.g. "Pick a feature you \
 built.", "AI hints only when stuck.").
 video_question: 5 words max — the validation question (e.g. "Worth \
 building?").
-Think like a storyboard artist: invent a tiny visual STORY that fits THIS \
-specific problem and fix, with one main character or subject that suits the \
-topic. It does NOT have to be a robot — pick whatever fits (a stressed \
-office-worker character, a lost little drone, a juggling shop clerk, an \
-overloaded delivery cart, a tangled ball of wires with a face...). The same \
-character stars in all five scenes; only what happens to it changes, beat by \
-beat: normal -> the problem hits -> it spirals -> the fix steps in -> calm \
-and solved. No on-screen text, no numbers, no real or identifiable person's \
-face, no real brand or logo — stylized characters, creatures, mascots or \
-objects only.
+Think like a storyboard artist: invent a tiny visual STORY that makes THIS \
+specific problem and fix instantly clear — clear enough that someone who \
+can't read the captions still gets it from the pictures alone. Start from the \
+problem and the fix, not from a stock character: ask "what everyday thing or \
+character best PICTURES this exact pain?" and pick that. Do NOT default to a \
+robot or a generic "AI" figure — use one only when the problem is literally \
+an agent acting on its own and nothing clearer fits. Reach for concrete, \
+familiar subjects the pain itself suggests (a shopper drowning in receipts, a \
+plant wilting from neglect, a juggler dropping balls, a tangled ball of \
+cables with a face, an overflowing-inbox creature, a lost delivery van...). \
+One main character stars in all five scenes; only what happens to it changes, \
+beat by beat: normal -> the problem hits -> it spirals -> the fix steps in -> \
+calm and solved. No on-screen text, no numbers, no real or identifiable \
+person's face, no real brand or logo — stylized characters, creatures, \
+mascots or objects only.
 
-video_anchor: one short phrase (under 14 words) describing the OPENING image \
-— the main character/subject and its setting for this topic (e.g. "a small \
-delivery drone hovering in a tangled maze of glowing pipes", "a friendly \
-shop-clerk character at a glowing checkout counter"). This is scene 1; every \
-other scene is edited from it, so name the character concretely enough to \
-redraw it.
+video_anchor: one short phrase (under 14 words) — the OPENING image: the main \
+character/subject, chosen to PICTURE this problem, plus its setting, concrete \
+enough to redraw. Every other scene is edited from it. (e.g. for "automations \
+take longer to set up than they save": "a tired cook buried under a pile of \
+half-built kitchen gadgets".)
 video_beats: exactly 4 short edit instructions, one per remaining scene, in \
-order (the problem, the spiral/loop, the fix appears, resolved). Each says \
-what the SAME character is now doing — under 16 words, no numbers, no text. \
-Do NOT re-describe the character's design (that is preserved automatically); \
-give only the new action/mood/props (e.g. "swamped as tasks pile up around \
-it", "stuck spinning in a loop of the same task", "a glowing blue helper \
-appears and clears the mess", "relaxed and happy, giving a thumbs up")."""
+order (the problem bites, it spirals, the fix arrives, resolved). Each says \
+what the SAME character now does — under 16 words, no numbers, no text. Do \
+NOT re-describe the character's design (kept automatically); give only the \
+new action/mood/props. Beat 3 must SHOW the actual fix idea from the brief as \
+a clear object or action — a gate, a shield, a one-tap button, a helping \
+hand, a tidy dashboard — never a vague glow or an uncanny human figure. (e.g. \
+"swamped as half-built gadgets pile up", "stuck rebuilding the same gadget \
+over and over", "one magic button assembles it all in a single tap", \
+"relaxed, one finished dish, giving a thumbs up")."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:
