@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pain_point_pipeline.markdown_files import prepend_section
 from pain_point_pipeline.models import Opportunity, OpportunityBrief
+from pain_point_pipeline.phrasing import count_sentence
 
 MAX_OPPORTUNITIES_PER_DIGEST = 5
 _TITLE = "# Digest\n\n"
@@ -19,7 +20,7 @@ def format_opportunity_entry(opportunity: Opportunity, brief: OpportunityBrief) 
     lines = [
         f"### {opportunity.title}",
         "",
-        f"**{opportunity.frequency} reports from {opportunity.distinct_authors} people**",
+        f"**{count_sentence(opportunity.id, opportunity.frequency, opportunity.distinct_authors)}**",
         "",
         f"**Problem:** {brief.problem_summary}",
         "",

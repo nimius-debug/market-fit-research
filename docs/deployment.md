@@ -19,7 +19,7 @@ Add these under **Settings → Secrets and variables → Actions**:
 | `REDDIT_CLIENT_ID` | ingestion | **Optional — see below.** From a registered Reddit OAuth "script" app |
 | `REDDIT_CLIENT_SECRET` | ingestion | Optional, same app |
 | `MAKE_WEBHOOK_URL` | social draft | **Optional.** Make.com webhook that feeds the posting-approval Google Sheet (see "Social drafts" below). Unset: drafts still land in `SOCIAL_DRAFTS.md`, they just aren't queued |
-| `FAL_KEY` | social draft | **Optional.** fal.ai API key for the explainer video's AI scene images (FLUX 2 Pro). Unset: the video still renders, with its plain typographic background instead of generated scenes |
+| `FAL_KEY` | social draft | **Optional.** fal.ai API key for the explainer video's AI scene images (FLUX 2 Pro anchor + FLUX Kontext edits). Unset: the video still renders, with a plain branded-gradient card instead of generated scenes |
 
 The social-draft workflow also sets `SOCIAL_VIDEO_ENABLED=true` (plain env in
 the workflow file, not a secret) to turn on explainer-video rendering, and
@@ -33,15 +33,17 @@ five story beats (hook, problem+count, the loop, the proposed fix, the closing
 question), with smooth crossfades and a slow Ken-Burns push.
 
 When `FAL_KEY` is set, each post gets five AI scene images that tell one
-continuous story with a single recognizable character. Scene 1 is an anchor
-(fal.ai FLUX 2 Pro text-to-image, from the LLM's `video_world` phrase); scenes
-2-5 are FLUX Kontext edits *of that anchor* (see `ports.ImageGenPort.edit` and
-`video.SCENE_EDIT_INSTRUCTIONS`), which keeps the same character while the beat
-changes. Editing from one anchor is what locks the character — plain
-text-to-image per scene kept the style but drifted the character. The beats are
-generic (busy → overwhelmed loop → a guard steps in → calm), so Kontext reuses
-whatever the post's own world put on screen. If the character ever needs to be
-even tighter, escalate `edit()` to a dedicated fal reference/workflow — nothing
+continuous story with a single recognizable character. The LLM is the
+storyboard artist: it writes `video_anchor` (the opening scene and a character
+that fits the topic — not necessarily a robot) and `video_beats` (the four
+following beats). Scene 1 is that anchor (fal.ai FLUX 2 Pro text-to-image);
+scenes 2-5 are FLUX Kontext edits *of that anchor* (see
+`ports.ImageGenPort.edit` and `video.scene_edit_instructions`), which keeps the
+same character while the beat changes. Editing from one anchor is what locks the
+character — plain text-to-image per scene kept the style but drifted the
+character. Blank or missing beats fall back to a generic arc (busy → overwhelmed
+loop → a helper steps in → calm). If the character ever needs to be even
+tighter, escalate `edit()` to a dedicated fal reference/workflow — nothing
 outside `fal_image.py` / `video.py` changes.
 
 Image generation is all-or-nothing and best-effort: if fal is down, slow, or the
@@ -286,6 +288,15 @@ Make.com after publishing). Polish the copy **in the Sheet** — that's the
 text that actually gets posted; `SOCIAL_DRAFTS.md` keeps only the unpolished
 original. Part of the approval pass: click `video_url` and watch the MP4 —
 approving the row approves the video.
+
+**Format the `date` column as Date** (select the column → Format → Number →
+Date) as part of one-time setup. The pipeline sends `date` as a plain
+`YYYY-MM-DD` string; Make.com's "Add a Row" module (`USER_ENTERED` input mode)
+converts recognized date strings to Sheets' internal date-serial number, same
+as if you'd typed it by hand. Without the column formatted as Date, Sheets
+displays that serial number raw (e.g. `46219`) instead of rendering it back
+as a date — cosmetic only, the underlying value is correct, but confusing
+until the column format is set once.
 
 Two Make.com scenarios to build (in Make.com's UI — not configurable from
 this repo):

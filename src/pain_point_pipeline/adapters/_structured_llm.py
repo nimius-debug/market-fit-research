@@ -199,9 +199,11 @@ brief, never anyone's real words, so you have nothing to quote — do not put \
 invented lines in quotation marks or style them as a real person's exact \
 words. Hook instead by naming the pain as the READER's own situation \
 (second person: "Your AI agent can spend money with nothing checking it") \
-or as an observed pattern with its real number ("N people across the \
-AI/automation communities on Reddit hit this"). Never "N people told me", \
-never a fake confession.
+or as an observed pattern with its real number, framed as organic public \
+discussion on Reddit — e.g. "9 people on Reddit are stuck on this" or "12 \
+posts this month, same problem". Never "N people told me" or "reported to \
+me" (that implies direct reports to you, not activity spotted in public), \
+and never a fake confession.
 - The fix is NOT built. Nothing has been built except the pipeline. Frame \
 the fix as a proposal in your own words ("the idea:", "what if something \
 just...") — never "I built" or "I'm building" the fix. State it plainly and \

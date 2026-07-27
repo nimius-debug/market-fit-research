@@ -1,5 +1,193 @@
 # Social Drafts
 
+## 2026-07-27 — [ef3e403e-0182-4a78-bf70-3e9c0c4646b6] Hard to debug and monitor AI agents
+
+**14 reports from 14 people**
+
+### X (thread)
+
+1. 14 people told me the same thing this week.
+
+2. AI agents just break and you have no idea why.
+
+3. So what if something just logged every single step an agent takes?
+
+4. Worth building a tool that does this? https://reddit.com/r/AI_Agents/comments/1v011b9/most_ai_agent_failures_arent_model_failures/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+14 people in AI/automation communities told me the same thing this week.
+
+Their AI agents run fine — until they don't. Then there's zero clue what went wrong. Which step failed? What did the agent see? No logs, no trace, nothing.
+
+Proposed fix: a tool that logs every step an agent takes. Every action, every decision, every error — saved and readable.
+
+Would you actually use this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1v011b9/most_ai_agent_failures_arent_model_failures/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-27-ef3e403e-0182-4a78-bf70-3e9c0c4646b6.mp4
+
+## 2026-07-24 — [f094778d-d8de-417d-a5f8-70d110622d9d] Automation tools have silent failures
+
+**12 reports from 11 people**
+
+### X (thread)
+
+1. 12 people told me the same thing this week.
+
+2. Their automations just stop. No error. No alert. Nothing.
+
+3. A tool that spots silent failures and flags them. Worth building?
+
+4. Would you actually use this? https://reddit.com/r/automation/comments/1v3bpx0/i_ran_the_same_workflows_5000_times_on_zapier/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+12 people from 11 different teams told me the same thing this week.
+
+Their automations fail silently. No error. No alert. Nothing.
+
+They only find out when a customer asks where their order is. Or when a report comes back blank.
+
+What if something just watched for those failures and flagged them the second they happen?
+
+Worth building?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/automation/comments/1v3bpx0/i_ran_the_same_workflows_5000_times_on_zapier/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-24-f094778d-d8de-417d-a5f8-70d110622d9d.mp4
+
+## 2026-07-23 — [09098ff0-15a5-4e1b-ad9a-f2095c813926] A CS student feels that relying too heavily on AI coding tools and vibe coding has made them unable to write syntax from memory or pass technical interviews, and they're unsure whether to focus on practicing programming fundamentals or continue building with AI tools.
+
+**8 reports from 7 people**
+
+### X (thread)
+
+1. 8 people this week: "I can't code without AI anymore."
+
+2. They freeze in interviews. Forgot basic syntax. Unsure if they still know how to code.
+
+3. A tool that just hides AI help. Quiz mode. No autocomplete. No chat. You or your memory.
+
+4. Worth building for practice? https://reddit.com/r/artificial/comments/1uuo7ni/vibe_coders_or_traditional_programmers_really_in/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+8 people told me the same thing this week.
+
+They use AI to code all day. Then they freeze in a technical interview. Can't write a for loop from memory.
+
+They're not beginners. They just forgot what it feels like to code alone.
+
+The fix? A quiz tool that hides AI help. No autocomplete. No chat. Just the problem and your own brain.
+
+Would you actually use something like this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/artificial/comments/1uuo7ni/vibe_coders_or_traditional_programmers_really_in/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-23-09098ff0-15a5-4e1b-ad9a-f2095c813926.mp4
+
+## 2026-07-22 — [947bc982-1039-426d-a80a-dd0e5aa940a8] User wants to add a max-retry cap and hard-kill loop after failed clicks, and use template matching to detect timeout modals instead of relying on the model to reason about them, indicating frustration with unreliable automation loops and brittle modal detection.
+
+**8 reports from 8 people**
+
+### X (thread)
+
+1. 8 people this week: AI kept clicking the same button forever.
+
+2. Loops that never stop. Browsers stuck on modals the AI can't read. Retry until timeout is everyone's default — and it fails.
+
+3. Add a hard kill-switch: max retries, dead-letter fallback, template-matched modals instead of letting the AI guess.
+
+4. Worth building a kill-switch into every agent loop? https://reddit.com/r/LocalLLaMA/comments/1uue278/working_around_qwen3627bs_toolcall_failures_and/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+8 different people told me the same thing this week.
+
+Their AI automation kept clicking the same button forever. A modal pops up, the tool can't read it, so it tries again. And again. Endless loop until manual intervention.
+
+The fix: a hard kill-switch. Set a max-retry cap per action. When it hits the limit, the tool stops and flags the failure. Use template matching to detect modals instead of relying on the AI to figure them out.
+
+No more infinite retries. No more brittle guesses.
+
+Would you actually use this kind of kill-switch?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uue278/working_around_qwen3627bs_toolcall_failures_and/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-22-947bc982-1039-426d-a80a-dd0e5aa940a8.mp4
+
+## 2026-07-21 — [f8d9cf70-c5f7-457a-8204-965f011f92d2] There's a lack of trust infrastructure — verification, provenance, liability, and accountability systems — for AI outputs, making it hard to rely on AI in serious work.
+
+**17 reports from 17 people**
+
+### X (thread)
+
+1. 17 people this week: "I can't trust AI to tell the truth."
+
+2. Every single one hit the same wall: AI makes things up, and you waste hours fact-checking.
+
+3. Fix: a tool that auto-checks each output and shows you proof it's correct.
+
+4. Worth building? https://reddit.com/r/AI_Agents/comments/1uu172n/built_something_to_catch_the_gap_between_what_an/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+17 different people told me the same thing this week.
+
+"I can't trust AI to tell the truth."
+
+Every single one hit the same wall: AI makes things up, and you waste hours fact-checking before you can use anything.
+
+Fix: a tool that automatically checks each output and shows you proof it's correct. No more guessing. No more hunting for mistakes.
+
+Worth building?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1uu172n/built_something_to_catch_the_gap_between_what_an/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-21-f8d9cf70-c5f7-457a-8204-965f011f92d2.mp4
+
 ## 2026-07-20 — [74f42d90-bfb9-4f79-a872-28f4a4aa2a10] People lack visibility into how AI agents reason, coordinate, and handle failures in real time, making it hard to trust autonomous systems without an observability layer that exposes their internal decision-making processes.
 
 **13 reports from 12 people**

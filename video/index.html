@@ -6,6 +6,8 @@
     {"id":"problem","type":"string","label":"Problem sentence","default":"It pays for things while you sleep."},
     {"id":"reports","type":"number","label":"Report count","default":16},
     {"id":"people","type":"number","label":"Distinct people","default":15},
+    {"id":"stat_label","type":"string","label":"Stat label","default":"people on Reddit are stuck on this"},
+    {"id":"reports_tail","type":"string","label":"Reports tail","default":"posts about it"},
     {"id":"loop_caption","type":"string","label":"Loop caption","default":"It buys. The bill grows. You find out late."},
     {"id":"loop1","type":"string","label":"Loop box 1","default":"Agent buys"},
     {"id":"loop2","type":"string","label":"Loop box 2","default":"Bill grows"},
@@ -208,6 +210,7 @@
         color: var(--accent);
       }
       .stat-suffix { font-size: 46px; font-weight: 700; }
+      .stat-reports { font-size: 30px; font-weight: 500; color: var(--ink-2); }
       .chips { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
       .chip {
         font-size: 34px;
@@ -297,8 +300,9 @@
           </div>
           <div class="stat-line">
             <span class="stat-num" id="stat-number">0</span>
-            <span class="stat-suffix" id="stat-suffix">people hit this</span>
+            <span class="stat-suffix" id="stat-suffix" data-var-text="stat_label">people on Reddit are stuck on this</span>
           </div>
+          <div class="stat-reports" id="stat-reports"></div>
           <p class="subtext" data-var-text="problem">It pays for things while you sleep.</p>
         </div>
       </section>
@@ -403,10 +407,12 @@
         }
       });
 
-      // Stat suffix: keep it grammatical for a single person.
+      // Stat scene: the label ("N people on Reddit are ... this") comes from
+      // stat_label via data-var-text; the reports tail ("N posts about it") is
+      // built here from the injected count + varied phrasing (see phrasing.py).
       const people = Math.max(0, Number(vars.people) || 0);
-      document.getElementById("stat-suffix").textContent =
-        people === 1 ? "person hit this" : "people hit this";
+      document.getElementById("stat-reports").textContent =
+        `${Number(vars.reports) || 0} ${String(vars.reports_tail || "posts about it")}`;
 
       // Fix steps: hide an empty third row before timing is built.
       const presentSteps = [];
@@ -460,6 +466,7 @@
         { n: people, duration: 1.2, ease: "power2.out", onUpdate: () => (statNumber.textContent = String(Math.round(counter.n))) },
         6.05
       );
+      reveal("#scene-problem .stat-reports", 6.4, { duration: 0.5 });
       reveal("#scene-problem .subtext", 6.6);
 
       // Scene 3 — loop.
