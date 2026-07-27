@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-07-27 — [ef3e403e-0182-4a78-bf70-3e9c0c4646b6] Hard to debug and monitor AI agents
+
+**14 reports from 14 people**
+
+### X (thread)
+
+1. 14 people told me the same thing this week.
+
+2. AI agents just break and you have no idea why.
+
+3. So what if something just logged every single step an agent takes?
+
+4. Worth building a tool that does this? https://reddit.com/r/AI_Agents/comments/1v011b9/most_ai_agent_failures_arent_model_failures/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+14 people in AI/automation communities told me the same thing this week.
+
+Their AI agents run fine — until they don't. Then there's zero clue what went wrong. Which step failed? What did the agent see? No logs, no trace, nothing.
+
+Proposed fix: a tool that logs every step an agent takes. Every action, every decision, every error — saved and readable.
+
+Would you actually use this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1v011b9/most_ai_agent_failures_arent_model_failures/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-27-ef3e403e-0182-4a78-bf70-3e9c0c4646b6.mp4
+
 ## 2026-07-24 — [f094778d-d8de-417d-a5f8-70d110622d9d] Automation tools have silent failures
 
 **12 reports from 11 people**
