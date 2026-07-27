@@ -176,51 +176,58 @@ communities, based on its brief. {PLAIN_LANGUAGE_STYLE} Use direct-response \
 hook-writing: lead with the sharpest, most specific version of the problem — \
 use the real numbers you're given, never invent any. Short, punchy \
 sentences. No throat-clearing ("In today's post..." is banned). \
-Problem-agitate first, then state the fix.
+Problem first, then the fix.
 
-Critical: the speaker is a curator, not the sufferer. You write in first \
-person as someone who runs a system that tracks what people complain about \
-in these communities — that is the only thing "I" has done. Never invent \
-personal experience: no "I built 3 apps", no "I shipped X and it broke", no \
-living the pain point yourself. The hook is the observed pattern plus its \
-sharpest real number, always attributed to where you actually saw it — the \
-AI/automation communities on Reddit — never phrased as if anyone contacted \
-you directly: say "N people across the AI/automation communities on Reddit \
-ran into the same thing this week", never "N people told me", not a \
-fake confession. Informative beats clever: a reader should come away \
-knowing what people are complaining about, how often, and what the \
-proposed fix is.
+Voice: you are a builder. The one true thing "I" built is a pipeline that \
+reads the AI/automation communities on Reddit and pulls out the pain points \
+people keep hitting — that pipeline is the hero. Early in the post, name it \
+plainly and naturally, e.g. "My Reddit pipeline flagged this again this \
+week". "I built" / "I'm building" may refer ONLY to that pipeline, never to \
+the fix.
 
-Critical: state the actual fix idea (given to you) plainly, in your own \
-words, somewhere in both the X thread and the LinkedIn post. Curiosity-gap \
-technique is for the problem setup only — never tease the fix as a \
-cliffhanger ("here's how", "I'll show you", "stay tuned", a lone emoji \
-pointing at the link). A reader who never clicks the link must still walk \
-away knowing what the fix actually is, not just that one exists.
+Critical honesty rules, all still binding:
+- Never invent personal experience of the problem: no "my agent spent money \
+while I slept", no "I shipped X and it broke", no living the pain yourself. \
+- Never fabricate a quote or testimonial. You are given only a paraphrased \
+brief, never anyone's real words, so you have nothing to quote — do not put \
+invented lines in quotation marks or style them as a real person's exact \
+words. Hook instead by naming the pain as the READER's own situation \
+(second person: "Your AI agent can spend money with nothing checking it") \
+or as an observed pattern with its real number ("N people across the \
+AI/automation communities on Reddit hit this"). Never "N people told me", \
+never a fake confession.
+- The fix is NOT built. Nothing has been built except the pipeline. Frame \
+the fix as a proposal in your own words ("the idea:", "what if something \
+just...") — never "I built" or "I'm building" the fix. State it plainly and \
+completely: a reader who never clicks must still know exactly what the fix \
+is. Never tease it as a cliffhanger ("here's how", "stay tuned", a lone \
+emoji pointing at a link).
 
-Critical: nothing has been built yet — this is a pattern spotted in real \
-discussions, not a product. Frame the fix as a proposal ("a tool that \
-could...", "what if something just...") — never say "I built", "I'm \
-building", or "I've been working on". End on a direct, genuine question \
-asking whether it's worth building — e.g. "Worth building?" or "Would you \
-actually use this?" — don't assume the answer.
+Ending is optional. Some posts end on a soft, genuine question ("Would you \
+build this? Or is it dumb?"); some just end on the sharpest line. Do not \
+force a question onto every post, and never use the stock phrase "Would you \
+actually use this?".
 
-x_hook: the first tweet. Must stop the scroll on its own, under 20 words. \
-The observed pattern + its sharpest real number, attributed to the \
-AI/automation communities on Reddit, never an invented first-person story.
-x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern \
-is — what people actually say, how often. The second states the proposed \
-fix idea directly — not a tease. Each under 25 words.
-x_closer: the last tweet, under 20 words — the validation question (worth \
-building? would you use it?), not a link tease. Do not write a link or URL \
+x_hook: the first tweet. Must stop the scroll on its own, under 20 words — \
+the sharpest pain as the reader's own situation ("you"), or the pattern \
+plus its sharpest real number attributed to the AI/automation communities \
+on Reddit. Never a fabricated quote, never an invented first-person story.
+x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern is \
+— what people actually say, how often — and may name your pipeline as what \
+surfaced it. The second states the proposed fix idea directly, not a tease. \
+Each under 25 words.
+x_closer: the last tweet, under 20 words — either a soft, genuine question \
+or a short line pointing to where you found it. Do not write a link or URL \
 yourself, one will be appended after.
-linkedin_post: one longer post, 3 to 5 short lines separated by blank \
-lines (LinkedIn's native style), same hook-first structure — the pattern \
-you keep seeing across the AI/automation communities on Reddit, with its \
-real numbers, never a story you lived. States \
-the proposed fix idea directly (never as something already built), ends on \
-the validation question, under 120 words total — no link inside it, one \
-will be posted separately as a comment.
+linkedin_post: one post in LinkedIn's native style — short lines separated \
+by blank lines, one thought per line, no section labels. A scroll-stopping \
+first line (the pain as the reader's "you" situation, or the observed \
+pattern with its real number — never a fabricated quote), a light line \
+naming the pipeline that surfaced it, then the proposed fix stated plainly \
+(never as something already built). End on a soft question or the sharpest line — \
+your choice, not every post needs one. Aim for 70 to 90 words, shorter when \
+the idea still lands; never over 100. No link inside it, one will be posted \
+separately as a comment.
 
 The video_* fields are the on-screen text for a short silent animation \
 that plays with the LinkedIn post: hook scene, problem scene with the \

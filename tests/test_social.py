@@ -76,16 +76,18 @@ def test_x_thread_is_numbered_in_order() -> None:
     assert "2. Body one." in section
     assert "3. Body two." in section
     assert "4. Here's where I found it. https://reddit.com/example/1" in section
-    assert f"5. {DISCLOSURE}" in section
+    # The closer is the final tweet — no disclosure footer tweet follows it.
+    x_section = section.split("### X (thread)")[1].split("### LinkedIn (post)")[0]
+    assert "5. " not in x_section
 
 
-def test_disclosure_appears_once_on_x_and_once_on_linkedin() -> None:
+def test_no_disclosure_footer_on_either_post() -> None:
     section = format_social_draft("2026-07-14", _make_opportunity(), _make_copy())
 
     x_section = section.split("### X (thread)")[1].split("### LinkedIn (post)")[0]
     linkedin_section = section.split("### LinkedIn (post)")[1].split("### LinkedIn (first comment")[0]
-    assert x_section.count(DISCLOSURE) == 1
-    assert linkedin_section.count(DISCLOSURE) == 1
+    assert DISCLOSURE not in x_section
+    assert DISCLOSURE not in linkedin_section
 
 
 def test_heading_carries_the_opportunity_id_for_social_approve() -> None:
