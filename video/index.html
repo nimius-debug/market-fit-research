@@ -6,6 +6,8 @@
     {"id":"problem","type":"string","label":"Problem sentence","default":"People ship with AI but freeze the moment it is taken away."},
     {"id":"reports","type":"number","label":"Report count","default":11},
     {"id":"people","type":"number","label":"Distinct people","default":11},
+    {"id":"stat_label","type":"string","label":"Stat label","default":"people on Reddit are stuck on this"},
+    {"id":"reports_tail","type":"string","label":"Reports tail","default":"posts about it"},
     {"id":"loop_caption","type":"string","label":"Loop caption","default":"The same loop. The same dead end. Every week."},
     {"id":"loop1","type":"string","label":"Loop box 1","default":"Try"},
     {"id":"loop2","type":"string","label":"Loop box 2","default":"Get stuck"},
@@ -289,7 +291,7 @@
           <p id="problem-text" data-var-text="problem">People ship with AI but freeze without it.</p>
           <div id="stat-block">
             <div id="stat-number">0</div>
-            <div id="stat-label">people said this</div>
+            <div id="stat-label" data-var-text="stat_label">people on Reddit are stuck on this</div>
             <div id="people-row"></div>
             <div id="stat-reports"></div>
           </div>
@@ -368,7 +370,7 @@
         peopleRow.appendChild(icon);
       }
       document.getElementById("stat-reports").textContent =
-        `${Number(vars.reports) || 0} reports tracked by my system`;
+        `${Number(vars.reports) || 0} ${String(vars.reports_tail || "posts about it")}`;
 
       // Steps: drop empty rows before the timeline is built (static init
       // config from variables — resolved identically in preview and render).

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from pain_point_pipeline.markdown_files import prepend_section
 from pain_point_pipeline.models import Opportunity
+from pain_point_pipeline.phrasing import count_sentence
 from pain_point_pipeline.ports import SocialDraftCopy
 
 _TITLE = "# Social Drafts\n\n"
@@ -47,7 +48,7 @@ def format_social_draft(
     lines = [
         f"## {date} — [{opportunity.id}] {opportunity.title}",
         "",
-        f"**{opportunity.frequency} reports from {opportunity.distinct_authors} people**",
+        f"**{count_sentence(opportunity.id, opportunity.frequency, opportunity.distinct_authors)}**",
         "",
         "### X (thread)",
         "",

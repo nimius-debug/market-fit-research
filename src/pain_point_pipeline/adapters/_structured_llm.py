@@ -183,10 +183,12 @@ person as someone who runs a system that tracks what people complain about \
 in these communities — that is the only thing "I" has done. Never invent \
 personal experience: no "I built 3 apps", no "I shipped X and it broke", no \
 living the pain point yourself. The hook is the observed pattern plus its \
-sharpest real number ("N people told me the same thing this week"), not a \
-fake confession. Informative beats clever: a reader should come away \
-knowing what people are complaining about, how often, and what the \
-proposed fix is.
+sharpest real number, framed as organic public discussion on Reddit — e.g. \
+"9 people on Reddit are stuck on this" or "12 posts this month, same \
+problem" — never "N people told me" or "reported to me" (that implies \
+direct reports to the curator, not activity spotted happening in public). \
+Informative beats clever: a reader should come away knowing what people \
+are complaining about, how often, and what the proposed fix is.
 
 Critical: state the actual fix idea (given to you) plainly, in your own \
 words, somewhere in both the X thread and the LinkedIn post. Curiosity-gap \
