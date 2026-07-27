@@ -6,6 +6,12 @@ draft's scene variables, uploads the MP4 as an asset on the rolling
 only thing that crosses the seam, so swapping GitHub Releases for S3 later
 touches nothing but this adapter.
 
+When an ImageGenPort is supplied, it first generates this post's five scene
+images (fal.ai) and hands them to the composition as background layers. That
+step is all-or-nothing and best-effort: any failure logs and the video renders
+with its plain typographic look instead — a flaky image API never blocks the
+post, matching run_social_draft's own render-is-optional contract.
+
 Requires Node 22+, FFmpeg, and an authenticated `gh` (the workflow provides
 GH_TOKEN); cli._build_video_renderer only constructs this when
 SOCIAL_VIDEO_ENABLED is set, so local runs without the toolchain never hit it.
@@ -20,7 +26,15 @@ import subprocess
 from pathlib import Path
 
 from pain_point_pipeline.models import SceneScript
-from pain_point_pipeline.video import scene_variables_json
+from pain_point_pipeline.ports import ImageGenPort
+from pain_point_pipeline.video import (
+    IMAGE_HEIGHT,
+    IMAGE_SEED,
+    IMAGE_WIDTH,
+    anchor_prompt,
+    scene_edit_instructions,
+    scene_variables_json,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,19 +53,54 @@ def _executable(name: str) -> str:
 
 
 class HyperFramesVideoAdapter:
-    def __init__(self, video_dir: str = "video", repo: str | None = None) -> None:
+    def __init__(
+        self,
+        video_dir: str = "video",
+        repo: str | None = None,
+        image_gen: ImageGenPort | None = None,
+    ) -> None:
         self._video_dir = Path(video_dir)
         resolved = repo or os.environ.get("GITHUB_REPOSITORY", "")
         if not resolved:
             raise ValueError("GITHUB_REPOSITORY is not set and no repo was given")
         self._repo = resolved
+        self._image_gen = image_gen
+
+    def _scene_images(self, script: SceneScript, slug: str, out_dir: Path) -> list[str]:
+        """Generate the five story images and return their paths relative to
+        video_dir (what the composition's <img> tags load). Scene 1 is the
+        text-to-image anchor; scenes 2-5 are Kontext edits OF that anchor, so
+        the same character carries through. All-or-nothing: any failure — or no
+        image generator, or no anchor — returns [], and the composition falls
+        back to its plain branded-gradient card."""
+        prompt = anchor_prompt(script.anchor)
+        if self._image_gen is None or not prompt:
+            return []
+        try:
+            anchor_name = f"{slug}-1.jpg"
+            anchor_path = out_dir / anchor_name
+            self._image_gen.generate(
+                prompt, IMAGE_SEED, IMAGE_WIDTH, IMAGE_HEIGHT, str(anchor_path.resolve())
+            )
+            paths = [f"out/{anchor_name}"]
+            for i, instruction in enumerate(scene_edit_instructions(script.beats), start=2):
+                name = f"{slug}-{i}.jpg"
+                self._image_gen.edit(
+                    instruction, str(anchor_path.resolve()), str((out_dir / name).resolve())
+                )
+                paths.append(f"out/{name}")
+        except Exception:
+            logger.exception("Scene-image generation failed for %s; rendering plain video", slug)
+            return []
+        return paths
 
     def render(self, script: SceneScript, slug: str) -> str:
         asset = f"{script.date}-{slug}.mp4"
         out_dir = self._video_dir / "out"
         out_dir.mkdir(exist_ok=True)
+        image_paths = self._scene_images(script, slug, out_dir)
         variables_path = out_dir / f"{slug}.variables.json"
-        variables_path.write_text(scene_variables_json(script), encoding="utf-8")
+        variables_path.write_text(scene_variables_json(script, image_paths), encoding="utf-8")
         output_path = out_dir / asset
 
         self._run(

@@ -19,12 +19,38 @@ Add these under **Settings → Secrets and variables → Actions**:
 | `REDDIT_CLIENT_ID` | ingestion | **Optional — see below.** From a registered Reddit OAuth "script" app |
 | `REDDIT_CLIENT_SECRET` | ingestion | Optional, same app |
 | `MAKE_WEBHOOK_URL` | social draft | **Optional.** Make.com webhook that feeds the posting-approval Google Sheet (see "Social drafts" below). Unset: drafts still land in `SOCIAL_DRAFTS.md`, they just aren't queued |
+| `FAL_KEY` | social draft | **Optional.** fal.ai API key for the explainer video's AI scene images (FLUX 2 Pro). Unset: the video still renders, with its plain typographic background instead of generated scenes |
 
 The social-draft workflow also sets `SOCIAL_VIDEO_ENABLED=true` (plain env in
 the workflow file, not a secret) to turn on explainer-video rendering, and
 passes the automatic `GITHUB_TOKEN` as `GH_TOKEN` so the render can upload the
 MP4 to the `social-videos` release. Local runs leave both unset and skip the
 video entirely.
+
+The video is a 30s vertical explainer with a "hero-card" layout — an image card
+up top, a clean dark panel below with big text and a per-scene icon — across
+five story beats (hook, problem+count, the loop, the proposed fix, the closing
+question), with smooth crossfades and a slow Ken-Burns push.
+
+When `FAL_KEY` is set, each post gets five AI scene images that tell one
+continuous story with a single recognizable character. Scene 1 is an anchor
+(fal.ai FLUX 2 Pro text-to-image, from the LLM's `video_world` phrase); scenes
+2-5 are FLUX Kontext edits *of that anchor* (see `ports.ImageGenPort.edit` and
+`video.SCENE_EDIT_INSTRUCTIONS`), which keeps the same character while the beat
+changes. Editing from one anchor is what locks the character — plain
+text-to-image per scene kept the style but drifted the character. The beats are
+generic (busy → overwhelmed loop → a guard steps in → calm), so Kontext reuses
+whatever the post's own world put on screen. If the character ever needs to be
+even tighter, escalate `edit()` to a dedicated fal reference/workflow — nothing
+outside `fal_image.py` / `video.py` changes.
+
+Image generation is all-or-nothing and best-effort: if fal is down, slow, or the
+key is unset, the video renders with a plain branded gradient in the card
+instead — a flaky image API never blocks a post. Because the rendered MP4
+travels to the approval Sheet with the draft, a human sees the images before
+anything is published. The `[video]` extra (`pip install -e '.[video]'`) adds
+`fal-client`; it is imported lazily, so the base install and the test suite
+never need it.
 
 `GITHUB_TOKEN` is provided automatically by GitHub Actions for every run — nothing to add. The workflows request `contents: write` and `issues: write`/`issues: read` permissions so that token can push commits and manage Issues.
 

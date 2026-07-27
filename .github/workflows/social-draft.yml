@@ -2,8 +2,8 @@ name: Social draft
 
 # Picks at most one Opportunity per run worth a social post (see
 # docs/deployment.md), writes a ready-to-copy-paste draft to
-# SOCIAL_DRAFTS.md, renders its explainer video (HyperFrames -> the
-# `social-videos` GitHub Release), and queues everything as a `pending` row
+# SOCIAL_DRAFTS.md, renders its explainer video (HyperFrames + optional fal.ai
+# AI scene images -> the `social-videos` GitHub Release), and queues everything as a `pending` row
 # in the approval Google Sheet via the Make.com webhook (MAKE_WEBHOOK_URL).
 # Nothing is posted anywhere automatically -- posting waits for a human to
 # polish the row in the Sheet and flip it to `approved`. A failed render
@@ -43,7 +43,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e .
+          pip install -e '.[video]'
           sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
           npm ci --prefix video
 
@@ -57,6 +57,9 @@ jobs:
           LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
           MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
           SOCIAL_VIDEO_ENABLED: "true"
+          # fal.ai key for the video's AI scene images. Optional: unset just
+          # renders the plain typographic video (FalImageGenAdapter is skipped).
+          FAL_KEY: ${{ secrets.FAL_KEY }}
           # gh release upload in HyperFramesVideoAdapter authenticates with
           # this; the job's contents:write permission covers release assets.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

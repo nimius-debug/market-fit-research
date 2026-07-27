@@ -100,10 +100,16 @@ class SocialDraftModel(BaseModel):
     video_loop: list[str]
     video_steps: list[str]
     video_question: str
+    # DeepSeek sometimes omits a field; default so parsing never fails. An empty
+    # video_anchor just means the video skips its AI images (plain fallback);
+    # missing video_beats fall back to generic beats (see video.py).
+    video_anchor: str = ""
+    video_beats: list[str] = []
 
     _coerce_x_body = field_validator("x_body", mode="before")(_coerce_json_encoded_list)
     _coerce_video_loop = field_validator("video_loop", mode="before")(_coerce_json_encoded_list)
     _coerce_video_steps = field_validator("video_steps", mode="before")(_coerce_json_encoded_list)
+    _coerce_video_beats = field_validator("video_beats", mode="before")(_coerce_json_encoded_list)
 
 
 # Shared voice for every field a human actually reads (Digest, Issue titles/
@@ -235,25 +241,51 @@ report count animating in, then a broken-loop scene (three boxes cycling \
 into a dead end), then the fix steps appearing one by one, then the \
 closing question. Every scene must earn its screen time — a viewer \
 who reads only the video should still walk away knowing the problem and \
-the proposed fix. Hard rule: NO digits or numbers in any video field — \
-the real counts are shown by the animation itself, injected by the \
-pipeline. All other rules above (curator voice, no invented experience, \
-proposal framing, no teases) apply to these too.
-video_hook: 8 words max. The pattern, sharpest form, no numbers.
-video_problem: one sentence, 12 words max, no numbers — what people \
-keep saying is broken.
-video_loop_caption: one sentence, 10 words max, no numbers — the cycle \
-people describe for THIS problem, in its own concrete terms, never a \
-generic "same loop every week" line.
+the proposed fix. Write these EVEN SIMPLER than the rest: a 10-year-old \
+reads each line in one glance, tiny words, no clause piled on clause. \
+Hard rule: NO digits or numbers in any video field — the real counts are \
+shown by the animation itself, injected by the pipeline. All other rules \
+above (builder voice — only the pipeline is built, no invented \
+experience, proposal framing, no teases) apply to these too.
+video_hook: 7 words max. The pain, sharpest form, no numbers.
+video_problem: one short sentence, 10 words max, no numbers — what keeps \
+going wrong.
+video_loop_caption: one short sentence, 8 words max, no numbers — the \
+cycle people describe for THIS problem, in its own concrete terms, never \
+a generic "same loop every week" line.
 video_loop: exactly 3 labels, 2 words max each — the cycle's stages in \
 order: what people try, where it breaks, what they fall back to (e.g. \
 "Ask AI", "It breaks", "Start over") — specific to this problem, the \
 break lands on the second label.
-video_steps: exactly 2 or 3 captions, 6 words max each — the proposed \
+video_steps: exactly 2 or 3 captions, 5 words max each — the proposed \
 fix as concrete steps a viewer could picture (e.g. "Pick a feature you \
 built.", "AI hints only when stuck.").
-video_question: 6 words max — the validation question (e.g. "Worth \
-building?")."""
+video_question: 5 words max — the validation question (e.g. "Worth \
+building?").
+Think like a storyboard artist: invent a tiny visual STORY that fits THIS \
+specific problem and fix, with one main character or subject that suits the \
+topic. It does NOT have to be a robot — pick whatever fits (a stressed \
+office-worker character, a lost little drone, a juggling shop clerk, an \
+overloaded delivery cart, a tangled ball of wires with a face...). The same \
+character stars in all five scenes; only what happens to it changes, beat by \
+beat: normal -> the problem hits -> it spirals -> the fix steps in -> calm \
+and solved. No on-screen text, no numbers, no real or identifiable person's \
+face, no real brand or logo — stylized characters, creatures, mascots or \
+objects only.
+
+video_anchor: one short phrase (under 14 words) describing the OPENING image \
+— the main character/subject and its setting for this topic (e.g. "a small \
+delivery drone hovering in a tangled maze of glowing pipes", "a friendly \
+shop-clerk character at a glowing checkout counter"). This is scene 1; every \
+other scene is edited from it, so name the character concretely enough to \
+redraw it.
+video_beats: exactly 4 short edit instructions, one per remaining scene, in \
+order (the problem, the spiral/loop, the fix appears, resolved). Each says \
+what the SAME character is now doing — under 16 words, no numbers, no text. \
+Do NOT re-describe the character's design (that is preserved automatically); \
+give only the new action/mood/props (e.g. "swamped as tasks pile up around \
+it", "stuck spinning in a loop of the same task", "a glowing blue helper \
+appears and clears the mess", "relaxed and happy, giving a thumbs up")."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:
@@ -427,4 +459,6 @@ class StructuredJudgmentAdapter:
             video_loop=tuple(parsed.video_loop),
             video_steps=tuple(parsed.video_steps),
             video_question=parsed.video_question,
+            video_anchor=parsed.video_anchor,
+            video_beats=tuple(parsed.video_beats),
         )

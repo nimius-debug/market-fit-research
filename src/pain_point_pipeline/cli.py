@@ -31,7 +31,13 @@ from pain_point_pipeline.adapters.hyperframes_video import HyperFramesVideoAdapt
 from pain_point_pipeline.adapters.make_webhook import MakeWebhookAdapter
 from pain_point_pipeline.adapters.reddit import RedditSource
 from pain_point_pipeline.orchestrator import run_digest_build, run_ingestion_batch, run_recluster, run_social_draft
-from pain_point_pipeline.ports import LLMSearchPort, SocialQueuePort, SourcePort, VideoRendererPort
+from pain_point_pipeline.ports import (
+    ImageGenPort,
+    LLMSearchPort,
+    SocialQueuePort,
+    SourcePort,
+    VideoRendererPort,
+)
 
 DB_PATH = "data/pipeline.sqlite3"
 DIGEST_PATH = "DIGEST.md"
@@ -85,12 +91,23 @@ def _build_social_queue() -> SocialQueuePort | None:
     return None
 
 
+def _build_image_gen() -> ImageGenPort | None:
+    """fal.ai scene-image generation when FAL_KEY is set; else None — the
+    video still renders, just with its plain typographic background."""
+    if os.environ.get("FAL_KEY"):
+        from pain_point_pipeline.adapters.fal_image import FalImageGenAdapter
+
+        return FalImageGenAdapter()
+    logger.info("FAL_KEY not set; the explainer video will render without AI scene images")
+    return None
+
+
 def _build_video_renderer() -> VideoRendererPort | None:
     """HyperFrames rendering only when SOCIAL_VIDEO_ENABLED is set (the
     workflow sets it, having installed Node/FFmpeg first); local runs skip
     the video entirely — the draft still queues, just text-only."""
     if os.environ.get("SOCIAL_VIDEO_ENABLED", "").lower() == "true":
-        return HyperFramesVideoAdapter()
+        return HyperFramesVideoAdapter(image_gen=_build_image_gen())
     logger.info("SOCIAL_VIDEO_ENABLED not set; drafts will queue without a video")
     return None
 

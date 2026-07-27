@@ -85,6 +85,14 @@ class SocialDraftCopy:
     video_loop: tuple[str, ...]
     video_steps: tuple[str, ...]
     video_question: str
+    video_anchor: str = ""
+    """The opening-scene visual for the explainer video's AI images: the main
+    character/subject and setting, chosen by the LLM per topic (see
+    SceneScript.anchor). Empty when the LLM omitted it — images are skipped."""
+    video_beats: tuple[str, ...] = ()
+    """Four short story-beat edit instructions (scenes 2-5), one per scene, that
+    say what the same character does next. Short or missing ones fall back to
+    generic beats (see video.scene_edit_instructions)."""
 
 
 class SourcePort(Protocol):
@@ -138,6 +146,26 @@ class VideoRendererPort(Protocol):
     def render(self, script: SceneScript, slug: str) -> str:
         """Render the scene script, publish the MP4, return its public URL.
         `slug` names the asset (the opportunity id). Raise on any failure."""
+        ...
+
+
+class ImageGenPort(Protocol):
+    """Text-to-image behind one swappable adapter (fal.ai today). Used only by
+    the video renderer, to make each post's scene images. Best-effort like the
+    render itself: the renderer catches failures and falls back to its plain
+    typographic look, so a down image API never blocks a post."""
+
+    def generate(self, prompt: str, seed: int, width: int, height: int, out_path: str) -> None:
+        """Generate one image for `prompt` and write it to `out_path`. `seed`
+        is fixed across a post's scenes so they share a look. Raise on failure.
+        Used for the anchor image (scene 1) — the rest come from edit()."""
+        ...
+
+    def edit(self, instruction: str, reference_path: str, out_path: str) -> None:
+        """Edit `reference_path` per `instruction`, keeping the subject's
+        identity (same character), and write the result to `out_path`. This is
+        how every scene after the anchor is made — each edits the anchor — so
+        the same character carries through the whole story. Raise on failure."""
         ...
 
 
