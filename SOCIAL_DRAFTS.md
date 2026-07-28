@@ -1,5 +1,45 @@
 # Social Drafts
 
+## 2026-07-28 — [0e260287-6ae9-4d77-96ab-8f0bd4d0e743] Coding agents leak tokens through noisy tool output, model verbosity, and always-loaded instruction files, with existing tools only addressing individual channels rather than providing a coordinated solution.
+
+**10 people on Reddit are still fighting this — 11 posts**
+
+### X (thread)
+
+1. 11 posts about wasted tokens. One root cause.
+
+2. People feed their AI all the tool output. Most of it is noise.
+The model pays for every line — even the junk.
+
+3. What if something just cut the useless parts before the model sees them?
+Filter tool output first. Save tokens automatically.
+
+4. Would you use a tool that does this for you? https://reddit.com/r/LocalLLaMA/comments/1uubbsb/harnesstrim_a_deterministic_benchmarked/ox42ozk/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+11 posts from 10 people in two weeks. Same complaint: their coding agents burn tokens on noise.
+
+Tool output gets fed to the model as-is — logs, headers, empty lines. The model pays for every line, even the ones it doesn't need.
+
+Existing tools patch around this one channel at a time. Nobody fixes the pipe itself.
+
+Simple fix: trim tool output before it reaches the model. Strip the junk, keep the signal.
+
+Worth building?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uubbsb/harnesstrim_a_deterministic_benchmarked/ox42ozk/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-28-0e260287-6ae9-4d77-96ab-8f0bd4d0e743.mp4
+
 ## 2026-07-27 — [ef3e403e-0182-4a78-bf70-3e9c0c4646b6] Hard to debug and monitor AI agents
 
 **14 reports from 14 people**
