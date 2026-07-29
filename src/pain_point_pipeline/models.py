@@ -96,6 +96,14 @@ class SceneScript:
     question: str
     disclosure: str
     date: str
+    anchor: str = ""
+    """The opening-scene visual (main character + setting) for this post's
+    images, chosen by the LLM per topic. The renderer generates scene 1 from
+    it and edits the rest from that anchor. Empty means no images — the
+    renderer falls back to its plain branded-gradient card."""
+    beats: tuple[str, ...] = ()
+    """Four story-beat edit instructions (scenes 2-5): what the same character
+    does next in each. See video.scene_edit_instructions for fallbacks."""
 
 
 @dataclass(frozen=True)

@@ -100,10 +100,16 @@ class SocialDraftModel(BaseModel):
     video_loop: list[str]
     video_steps: list[str]
     video_question: str
+    # DeepSeek sometimes omits a field; default so parsing never fails. An empty
+    # video_anchor just means the video skips its AI images (plain fallback);
+    # missing video_beats fall back to generic beats (see video.py).
+    video_anchor: str = ""
+    video_beats: list[str] = []
 
     _coerce_x_body = field_validator("x_body", mode="before")(_coerce_json_encoded_list)
     _coerce_video_loop = field_validator("video_loop", mode="before")(_coerce_json_encoded_list)
     _coerce_video_steps = field_validator("video_steps", mode="before")(_coerce_json_encoded_list)
+    _coerce_video_beats = field_validator("video_beats", mode="before")(_coerce_json_encoded_list)
 
 
 # Shared voice for every field a human actually reads (Digest, Issue titles/
@@ -176,49 +182,60 @@ communities, based on its brief. {PLAIN_LANGUAGE_STYLE} Use direct-response \
 hook-writing: lead with the sharpest, most specific version of the problem — \
 use the real numbers you're given, never invent any. Short, punchy \
 sentences. No throat-clearing ("In today's post..." is banned). \
-Problem-agitate first, then state the fix.
+Problem first, then the fix.
 
-Critical: the speaker is a curator, not the sufferer. You write in first \
-person as someone who runs a system that tracks what people complain about \
-in these communities — that is the only thing "I" has done. Never invent \
-personal experience: no "I built 3 apps", no "I shipped X and it broke", no \
-living the pain point yourself. The hook is the observed pattern plus its \
-sharpest real number, framed as organic public discussion on Reddit — e.g. \
-"9 people on Reddit are stuck on this" or "12 posts this month, same \
-problem" — never "N people told me" or "reported to me" (that implies \
-direct reports to the curator, not activity spotted happening in public). \
-Informative beats clever: a reader should come away knowing what people \
-are complaining about, how often, and what the proposed fix is.
+Voice: you are a builder. The one true thing "I" built is a pipeline that \
+reads the AI/automation communities on Reddit and pulls out the pain points \
+people keep hitting — that pipeline is the hero. Early in the post, name it \
+plainly and naturally, e.g. "My Reddit pipeline flagged this again this \
+week". "I built" / "I'm building" may refer ONLY to that pipeline, never to \
+the fix.
 
-Critical: state the actual fix idea (given to you) plainly, in your own \
-words, somewhere in both the X thread and the LinkedIn post. Curiosity-gap \
-technique is for the problem setup only — never tease the fix as a \
-cliffhanger ("here's how", "I'll show you", "stay tuned", a lone emoji \
-pointing at the link). A reader who never clicks the link must still walk \
-away knowing what the fix actually is, not just that one exists.
+Critical honesty rules, all still binding:
+- Never invent personal experience of the problem: no "my agent spent money \
+while I slept", no "I shipped X and it broke", no living the pain yourself. \
+- Never fabricate a quote or testimonial. You are given only a paraphrased \
+brief, never anyone's real words, so you have nothing to quote — do not put \
+invented lines in quotation marks or style them as a real person's exact \
+words. Hook instead by naming the pain as the READER's own situation \
+(second person: "Your AI agent can spend money with nothing checking it") \
+or as an observed pattern with its real number, framed as organic public \
+discussion on Reddit — e.g. "9 people on Reddit are stuck on this" or "12 \
+posts this month, same problem". Never "N people told me" or "reported to \
+me" (that implies direct reports to you, not activity spotted in public), \
+and never a fake confession.
+- The fix is NOT built. Nothing has been built except the pipeline. Frame \
+the fix as a proposal in your own words ("the idea:", "what if something \
+just...") — never "I built" or "I'm building" the fix. State it plainly and \
+completely: a reader who never clicks must still know exactly what the fix \
+is. Never tease it as a cliffhanger ("here's how", "stay tuned", a lone \
+emoji pointing at a link).
 
-Critical: nothing has been built yet — this is a pattern spotted in real \
-discussions, not a product. Frame the fix as a proposal ("a tool that \
-could...", "what if something just...") — never say "I built", "I'm \
-building", or "I've been working on". End on a direct, genuine question \
-asking whether it's worth building — e.g. "Worth building?" or "Would you \
-actually use this?" — don't assume the answer.
+Ending is optional. Some posts end on a soft, genuine question ("Would you \
+build this? Or is it dumb?"); some just end on the sharpest line. Do not \
+force a question onto every post, and never use the stock phrase "Would you \
+actually use this?".
 
-x_hook: the first tweet. Must stop the scroll on its own, under 20 words. \
-The observed pattern + its sharpest real number, never an invented \
-first-person story.
-x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern \
-is — what people actually say, how often. The second states the proposed \
-fix idea directly — not a tease. Each under 25 words.
-x_closer: the last tweet, under 20 words — the validation question (worth \
-building? would you use it?), not a link tease. Do not write a link or URL \
+x_hook: the first tweet. Must stop the scroll on its own, under 20 words — \
+the sharpest pain as the reader's own situation ("you"), or the pattern \
+plus its sharpest real number attributed to the AI/automation communities \
+on Reddit. Never a fabricated quote, never an invented first-person story.
+x_body: exactly 2 tweets. The first unpacks how sharp/common the pattern is \
+— what people actually say, how often — and may name your pipeline as what \
+surfaced it. The second states the proposed fix idea directly, not a tease. \
+Each under 25 words.
+x_closer: the last tweet, under 20 words — either a soft, genuine question \
+or a short line pointing to where you found it. Do not write a link or URL \
 yourself, one will be appended after.
-linkedin_post: one longer post, 3 to 5 short lines separated by blank \
-lines (LinkedIn's native style), same hook-first structure — the pattern \
-you keep seeing, with its real numbers, never a story you lived. States \
-the proposed fix idea directly (never as something already built), ends on \
-the validation question, under 120 words total — no link inside it, one \
-will be posted separately as a comment.
+linkedin_post: one post in LinkedIn's native style — short lines separated \
+by blank lines, one thought per line, no section labels. A scroll-stopping \
+first line (the pain as the reader's "you" situation, or the observed \
+pattern with its real number — never a fabricated quote), a light line \
+naming the pipeline that surfaced it, then the proposed fix stated plainly \
+(never as something already built). End on a soft question or the sharpest line — \
+your choice, not every post needs one. Aim for 70 to 90 words, shorter when \
+the idea still lands; never over 100. No link inside it, one will be posted \
+separately as a comment.
 
 The video_* fields are the on-screen text for a short silent animation \
 that plays with the LinkedIn post: hook scene, problem scene with the \
@@ -226,25 +243,58 @@ report count animating in, then a broken-loop scene (three boxes cycling \
 into a dead end), then the fix steps appearing one by one, then the \
 closing question. Every scene must earn its screen time — a viewer \
 who reads only the video should still walk away knowing the problem and \
-the proposed fix. Hard rule: NO digits or numbers in any video field — \
-the real counts are shown by the animation itself, injected by the \
-pipeline. All other rules above (curator voice, no invented experience, \
-proposal framing, no teases) apply to these too.
-video_hook: 8 words max. The pattern, sharpest form, no numbers.
-video_problem: one sentence, 12 words max, no numbers — what people \
-keep saying is broken.
-video_loop_caption: one sentence, 10 words max, no numbers — the cycle \
-people describe for THIS problem, in its own concrete terms, never a \
-generic "same loop every week" line.
+the proposed fix. Write these EVEN SIMPLER than the rest: a 10-year-old \
+reads each line in one glance, tiny words, no clause piled on clause. \
+Hard rule: NO digits or numbers in any video field — the real counts are \
+shown by the animation itself, injected by the pipeline. All other rules \
+above (builder voice — only the pipeline is built, no invented \
+experience, proposal framing, no teases) apply to these too.
+video_hook: 7 words max. The pain, sharpest form, no numbers.
+video_problem: one short sentence, 10 words max, no numbers — what keeps \
+going wrong.
+video_loop_caption: one short sentence, 8 words max, no numbers — the \
+cycle people describe for THIS problem, in its own concrete terms, never \
+a generic "same loop every week" line.
 video_loop: exactly 3 labels, 2 words max each — the cycle's stages in \
 order: what people try, where it breaks, what they fall back to (e.g. \
 "Ask AI", "It breaks", "Start over") — specific to this problem, the \
 break lands on the second label.
-video_steps: exactly 2 or 3 captions, 6 words max each — the proposed \
+video_steps: exactly 2 or 3 captions, 5 words max each — the proposed \
 fix as concrete steps a viewer could picture (e.g. "Pick a feature you \
 built.", "AI hints only when stuck.").
-video_question: 6 words max — the validation question (e.g. "Worth \
-building?")."""
+video_question: 5 words max — the validation question (e.g. "Worth \
+building?").
+Think like a storyboard artist: invent a tiny visual STORY that makes THIS \
+specific problem and fix instantly clear — clear enough that someone who \
+can't read the captions still gets it from the pictures alone. Start from the \
+problem and the fix, not from a stock character: ask "what everyday thing or \
+character best PICTURES this exact pain?" and pick that. Do NOT default to a \
+robot or a generic "AI" figure — use one only when the problem is literally \
+an agent acting on its own and nothing clearer fits. Reach for concrete, \
+familiar subjects the pain itself suggests (a shopper drowning in receipts, a \
+plant wilting from neglect, a juggler dropping balls, a tangled ball of \
+cables with a face, an overflowing-inbox creature, a lost delivery van...). \
+One main character stars in all five scenes; only what happens to it changes, \
+beat by beat: normal -> the problem hits -> it spirals -> the fix steps in -> \
+calm and solved. No on-screen text, no numbers, no real or identifiable \
+person's face, no real brand or logo — stylized characters, creatures, \
+mascots or objects only.
+
+video_anchor: one short phrase (under 14 words) — the OPENING image: the main \
+character/subject, chosen to PICTURE this problem, plus its setting, concrete \
+enough to redraw. Every other scene is edited from it. (e.g. for "automations \
+take longer to set up than they save": "a tired cook buried under a pile of \
+half-built kitchen gadgets".)
+video_beats: exactly 4 short edit instructions, one per remaining scene, in \
+order (the problem bites, it spirals, the fix arrives, resolved). Each says \
+what the SAME character now does — under 16 words, no numbers, no text. Do \
+NOT re-describe the character's design (kept automatically); give only the \
+new action/mood/props. Beat 3 must SHOW the actual fix idea from the brief as \
+a clear object or action — a gate, a shield, a one-tap button, a helping \
+hand, a tidy dashboard — never a vague glow or an uncanny human figure. (e.g. \
+"swamped as half-built gadgets pile up", "stuck rebuilding the same gadget \
+over and over", "one magic button assembles it all in a single tap", \
+"relaxed, one finished dish, giving a thumbs up")."""
 
 
 def pain_points_block(pain_points: list[PainPoint]) -> str:
@@ -418,4 +468,6 @@ class StructuredJudgmentAdapter:
             video_loop=tuple(parsed.video_loop),
             video_steps=tuple(parsed.video_steps),
             video_question=parsed.video_question,
+            video_anchor=parsed.video_anchor,
+            video_beats=tuple(parsed.video_beats),
         )

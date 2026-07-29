@@ -2,22 +2,27 @@
 <html
   lang="en"
   data-composition-variables='[
-    {"id":"hook","type":"string","label":"Hook line","default":"AI builds it. You cannot explain it."},
-    {"id":"problem","type":"string","label":"Problem sentence","default":"People ship with AI but freeze the moment it is taken away."},
-    {"id":"reports","type":"number","label":"Report count","default":11},
-    {"id":"people","type":"number","label":"Distinct people","default":11},
+    {"id":"hook","type":"string","label":"Hook line","default":"Your AI agent can spend your money."},
+    {"id":"problem","type":"string","label":"Problem sentence","default":"It pays for things while you sleep."},
+    {"id":"reports","type":"number","label":"Report count","default":16},
+    {"id":"people","type":"number","label":"Distinct people","default":15},
     {"id":"stat_label","type":"string","label":"Stat label","default":"people on Reddit are stuck on this"},
     {"id":"reports_tail","type":"string","label":"Reports tail","default":"posts about it"},
-    {"id":"loop_caption","type":"string","label":"Loop caption","default":"The same loop. The same dead end. Every week."},
-    {"id":"loop1","type":"string","label":"Loop box 1","default":"Try"},
-    {"id":"loop2","type":"string","label":"Loop box 2","default":"Get stuck"},
-    {"id":"loop3","type":"string","label":"Loop box 3","default":"Start over"},
-    {"id":"step1","type":"string","label":"Fix step 1","default":"Pick a feature you built."},
-    {"id":"step2","type":"string","label":"Fix step 2","default":"AI hints only when stuck."},
+    {"id":"loop_caption","type":"string","label":"Loop caption","default":"It buys. The bill grows. You find out late."},
+    {"id":"loop1","type":"string","label":"Loop box 1","default":"Agent buys"},
+    {"id":"loop2","type":"string","label":"Loop box 2","default":"Bill grows"},
+    {"id":"loop3","type":"string","label":"Loop box 3","default":"You find out"},
+    {"id":"step1","type":"string","label":"Fix step 1","default":"A gate checks each charge."},
+    {"id":"step2","type":"string","label":"Fix step 2","default":"You approve before it pays."},
     {"id":"step3","type":"string","label":"Fix step 3","default":""},
-    {"id":"question","type":"string","label":"Closing question","default":"Worth building?"},
-    {"id":"disclosure","type":"string","label":"Disclosure","default":"Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me."},
-    {"id":"date","type":"string","label":"Draft date","default":"2026-07-16"}
+    {"id":"question","type":"string","label":"Closing question","default":"Would you build this?"},
+    {"id":"disclosure","type":"string","label":"Disclosure","default":"Sourced from real Reddit discussions."},
+    {"id":"date","type":"string","label":"Draft date","default":"2026-07-26"},
+    {"id":"image1","type":"string","label":"Scene image 1 (hook)","default":""},
+    {"id":"image2","type":"string","label":"Scene image 2 (problem)","default":""},
+    {"id":"image3","type":"string","label":"Scene image 3 (loop)","default":""},
+    {"id":"image4","type":"string","label":"Scene image 4 (fix)","default":""},
+    {"id":"image5","type":"string","label":"Scene image 5 (closer)","default":""}
   ]'
 >
   <head>
@@ -32,19 +37,19 @@
         font-weight: 400 800;
         font-style: normal;
       }
-      /* Single baked look (video has no light/dark themes): dark-surface
-         tokens from the validated reference palette — surface #1a1a19,
-         ink #fff/#c3c2b7, accent (series-1 dark) #3987e5, status good
-         #0ca30c, status critical #d03b3b. */
+      /* Dark-surface tokens from the validated reference palette. */
       :root {
-        --surface: #17171a;
+        --surface: #131316;
         --surface-2: #1f1f24;
+        --card: #0e0e11;
         --ink: #ffffff;
-        --ink-2: #c3c2b7;
+        --ink-2: #b7b7c2;
         --accent: #3987e5;
-        --good: #0ca30c;
-        --critical: #d03b3b;
+        --good: #21c07a;
+        --critical: #e05a5a;
+        --pad: 72px;
       }
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         background: var(--surface);
@@ -56,29 +61,41 @@
         width: 1080px;
         height: 1350px;
         overflow: hidden;
+        background: radial-gradient(120% 80% at 50% 0%, #1a1a20 0%, #131316 60%, #0f0f12 100%);
       }
-      #bg {
+      /* Persistent brand header + footer, on top of every scene. */
+      #brandbar {
         position: absolute;
-        inset: 0;
-        background: linear-gradient(160deg, #141417 0%, #17171a 55%, #1b1b20 100%);
+        top: 44px;
+        left: var(--pad);
+        right: var(--pad);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        z-index: 30;
       }
-      #glow {
-        position: absolute;
-        display: block;
-        width: 900px;
-        height: 900px;
-        left: -250px;
-        top: -250px;
+      #brand-dot {
+        width: 18px;
+        height: 18px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(57, 135, 229, 0.16) 0%, rgba(57, 135, 229, 0) 65%);
+        background: var(--accent);
+        box-shadow: 0 0 18px rgba(57, 135, 229, 0.8);
+      }
+      #brand-text {
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-2);
       }
       #progress-track {
         position: absolute;
         left: 0;
         right: 0;
         bottom: 0;
-        height: 10px;
-        background: rgba(255, 255, 255, 0.07);
+        height: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        z-index: 30;
       }
       #progress-fill {
         display: block;
@@ -87,181 +104,153 @@
         background: var(--accent);
         transform-origin: left center;
       }
+      /* One scene = image card on top, content panel below. Scenes stack and
+         crossfade. */
       .clip {
         position: absolute;
         inset: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        box-sizing: border-box;
-        padding: 96px;
+        opacity: 0;
       }
-      .scene-inner {
-        display: flex;
-        flex-direction: column;
-        gap: 36px;
+      .card {
+        position: absolute;
+        top: 104px;
+        left: var(--pad);
+        right: var(--pad);
+        height: 620px;
+        border-radius: 40px;
+        overflow: hidden;
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(57, 135, 229, 0.06);
+      }
+      .card-img {
+        position: absolute;
+        inset: 0;
         width: 100%;
+        height: 100%;
+        object-fit: cover;
+        will-change: transform;
       }
+      /* No AI image -> a calm branded gradient fills the card instead. */
+      .card-fallback {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(90% 70% at 30% 20%, rgba(57, 135, 229, 0.18) 0%, rgba(57, 135, 229, 0) 60%),
+          linear-gradient(160deg, #16161b 0%, #0e0e11 100%);
+      }
+      /* Bottom fade inside the card so it melts into the panel. */
+      .card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(14, 14, 17, 0) 62%, rgba(19, 19, 22, 0.9) 100%);
+      }
+      .panel {
+        position: absolute;
+        top: 780px;
+        left: var(--pad);
+        right: var(--pad);
+        bottom: 96px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 26px;
+      }
+      .krow {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .icon {
+        width: 62px;
+        height: 62px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        background: rgba(57, 135, 229, 0.14);
+        color: var(--accent);
+      }
+      .icon svg { width: 36px; height: 36px; display: block; }
+      .icon.good { background: rgba(33, 192, 122, 0.16); color: var(--good); }
+      .icon.warn { background: rgba(224, 90, 90, 0.16); color: var(--critical); }
       .kicker {
-        font-size: 30px;
+        font-size: 27px;
         font-weight: 700;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.2em;
         color: var(--accent);
         text-transform: uppercase;
       }
-      .word {
-        display: inline-block;
-        margin-right: 0.26em;
-      }
-      #hook-text {
-        font-size: 92px;
-        line-height: 1.12;
+      .headline {
+        font-size: 82px;
+        line-height: 1.08;
         font-weight: 800;
-        max-width: 900px;
+        letter-spacing: -0.01em;
+        margin: 0;
       }
-      #problem-text {
-        font-size: 52px;
+      .headline-sm {
+        font-size: 58px;
+        line-height: 1.14;
+        font-weight: 800;
+        margin: 0;
+      }
+      .subtext {
+        font-size: 40px;
         line-height: 1.3;
-        font-weight: 600;
-        max-width: 880px;
-        color: var(--ink);
-      }
-      #stat-block {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        margin-top: 24px;
-      }
-      #stat-number {
-        font-size: 220px;
-        font-weight: 800;
-        line-height: 1;
-        color: var(--accent);
-      }
-      #stat-label {
-        font-size: 46px;
-        font-weight: 600;
-        color: var(--ink);
-      }
-      #stat-reports {
-        font-size: 30px;
         font-weight: 500;
         color: var(--ink-2);
+        margin: 0;
       }
-      #people-row {
-        display: flex;
-        gap: 14px;
-        margin-top: 10px;
-      }
-      .person {
-        display: block;
-        width: 44px;
-        height: 44px;
-        border-radius: 50% 50% 42% 42%;
-        background: var(--accent);
-        opacity: 0.9;
-      }
-      #flow-row {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 28px;
-        margin-top: 30px;
-      }
-      .flow-box {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        width: 240px;
-        height: 150px;
-        padding: 0 16px;
-        border-radius: 20px;
-        background: var(--surface-2);
-        border: 3px solid rgba(255, 255, 255, 0.14);
-        font-size: 34px;
-        font-weight: 600;
-        line-height: 1.2;
-        text-align: center;
-        color: var(--ink-2);
-        position: relative;
-      }
-      .flow-arrow {
-        display: block;
-        width: 70px;
-        height: 8px;
-        border-radius: 4px;
-        background: rgba(255, 255, 255, 0.25);
-        position: relative;
-      }
-      #broken-mark {
-        position: absolute;
-        display: grid;
-        place-items: center;
-        width: 110px;
-        height: 110px;
-        left: 50%;
-        top: 50%;
-        margin: -55px 0 0 -55px;
-        border-radius: 50%;
-        background: var(--critical);
-        color: #ffffff;
-        font-size: 62px;
+      .stat-line { display: flex; align-items: baseline; gap: 24px; }
+      .stat-num {
+        font-size: 150px;
         font-weight: 800;
-        box-shadow: 0 0 60px rgba(208, 59, 59, 0.55);
+        line-height: 0.9;
+        color: var(--accent);
       }
-      #broken-caption {
+      .stat-suffix { font-size: 46px; font-weight: 700; }
+      .stat-reports { font-size: 30px; font-weight: 500; color: var(--ink-2); }
+      .chips { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+      .chip {
+        font-size: 34px;
+        font-weight: 700;
+        padding: 16px 26px;
+        border-radius: 16px;
+        background: var(--surface-2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .chip.break { border-color: rgba(224, 90, 90, 0.5); color: #ffd9d9; }
+      .arrow { color: var(--ink-2); font-size: 40px; font-weight: 700; }
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 22px;
         font-size: 44px;
         font-weight: 600;
-        max-width: 860px;
-        line-height: 1.3;
-      }
-      #fix-heading {
-        font-size: 64px;
-        font-weight: 800;
-        line-height: 1.15;
-        max-width: 880px;
-      }
-      .step-row {
-        display: flex;
-        align-items: center;
-        gap: 28px;
       }
       .step-check {
-        display: grid;
-        place-items: center;
-        width: 74px;
-        height: 74px;
+        width: 58px;
+        height: 58px;
+        flex-shrink: 0;
         border-radius: 50%;
         background: var(--good);
-        color: #ffffff;
-        font-size: 42px;
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 34px;
         font-weight: 800;
-        flex-shrink: 0;
       }
-      .step-text {
-        font-size: 48px;
-        font-weight: 600;
-        line-height: 1.25;
-      }
-      #question-text {
-        font-size: 110px;
-        font-weight: 800;
-        line-height: 1.1;
-        max-width: 900px;
-      }
-      #closer-disclosure {
+      .date {
         font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--accent);
+      }
+      .disclosure {
+        font-size: 24px;
         font-weight: 500;
         color: var(--ink-2);
-        max-width: 820px;
-        line-height: 1.5;
-      }
-      #closer-date {
-        font-size: 26px;
-        font-weight: 600;
-        color: var(--accent);
-        letter-spacing: 0.08em;
       }
     </style>
   </head>
@@ -272,196 +261,235 @@
       data-start="0"
       data-width="1080"
       data-height="1350"
-      data-duration="25"
+      data-duration="30"
     >
-      <div id="bg">
-        <div id="glow" data-layout-ignore></div>
+      <div id="brandbar" data-layout-ignore>
+        <div id="brand-dot"></div>
+        <div id="brand-text">Reddit pain-point radar</div>
       </div>
 
-      <section id="scene-hook" class="clip" data-start="0" data-duration="4" data-track-index="1">
-        <div id="hook-inner" class="scene-inner">
-          <div id="hook-kicker" class="kicker">Spotted in AI communities</div>
-          <h1 id="hook-text"></h1>
+      <!-- Scene 1 — hook -->
+      <section id="scene-hook" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div class="card">
+          <img class="card-img" id="img-hook" data-layout-ignore alt="" />
+          <div class="card-fallback" id="fb-hook" data-layout-ignore></div>
+        </div>
+        <div class="panel">
+          <div class="krow">
+            <span class="icon" data-layout-ignore>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+            <span class="kicker">Spotted on Reddit</span>
+          </div>
+          <h1 class="headline" data-var-text="hook">Your AI agent can spend your money.</h1>
         </div>
       </section>
 
-      <section id="scene-problem" class="clip" data-start="4" data-duration="6" data-track-index="2">
-        <div id="problem-inner" class="scene-inner">
-          <div id="problem-kicker" class="kicker">The pattern</div>
-          <p id="problem-text" data-var-text="problem">People ship with AI but freeze without it.</p>
-          <div id="stat-block">
-            <div id="stat-number">0</div>
-            <div id="stat-label" data-var-text="stat_label">people on Reddit are stuck on this</div>
-            <div id="people-row"></div>
-            <div id="stat-reports"></div>
+      <!-- Scene 2 — problem + count -->
+      <section id="scene-problem" class="clip" data-start="5" data-duration="7" data-track-index="2">
+        <div class="card">
+          <img class="card-img" id="img-problem" data-layout-ignore alt="" />
+          <div class="card-fallback" id="fb-problem" data-layout-ignore></div>
+        </div>
+        <div class="panel">
+          <div class="krow">
+            <span class="icon warn" data-layout-ignore>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <span class="kicker">The pattern</span>
+          </div>
+          <div class="stat-line">
+            <span class="stat-num" id="stat-number">0</span>
+            <span class="stat-suffix" id="stat-suffix" data-var-text="stat_label">people on Reddit are stuck on this</span>
+          </div>
+          <div class="stat-reports" id="stat-reports"></div>
+          <p class="subtext" data-var-text="problem">It pays for things while you sleep.</p>
+        </div>
+      </section>
+
+      <!-- Scene 3 — the loop -->
+      <section id="scene-loop" class="clip" data-start="10" data-duration="7" data-track-index="3">
+        <div class="card">
+          <img class="card-img" id="img-loop" data-layout-ignore alt="" />
+          <div class="card-fallback" id="fb-loop" data-layout-ignore></div>
+        </div>
+        <div class="panel">
+          <div class="krow">
+            <span class="icon" data-layout-ignore>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </span>
+            <span class="kicker">What keeps happening</span>
+          </div>
+          <p class="headline-sm" data-var-text="loop_caption">It buys. The bill grows. You find out late.</p>
+          <div class="chips">
+            <span class="chip" data-var-text="loop1">Agent buys</span>
+            <span class="arrow">&rarr;</span>
+            <span class="chip break" data-var-text="loop2">Bill grows</span>
+            <span class="arrow">&rarr;</span>
+            <span class="chip" data-var-text="loop3">You find out</span>
           </div>
         </div>
       </section>
 
-      <section id="scene-broken" class="clip" data-start="10" data-duration="5" data-track-index="3">
-        <div id="broken-inner" class="scene-inner">
-          <div id="broken-kicker" class="kicker">What keeps happening</div>
-          <p id="broken-caption" data-var-text="loop_caption">The same loop. The same dead end. Every week.</p>
-          <div id="flow-row">
-            <div class="flow-box" id="flow-try" data-var-text="loop1">Try</div>
-            <div class="flow-arrow" id="flow-arrow-1"></div>
-            <div class="flow-box" id="flow-stuck" data-var-text="loop2">Get stuck</div>
-            <div class="flow-arrow" id="flow-arrow-2"><div id="broken-mark">&#10005;</div></div>
-            <div class="flow-box" id="flow-again" data-var-text="loop3">Start over</div>
+      <!-- Scene 4 — the fix -->
+      <section id="scene-fix" class="clip" data-start="15" data-duration="9" data-track-index="4">
+        <div class="card">
+          <img class="card-img" id="img-fix" data-layout-ignore alt="" />
+          <div class="card-fallback" id="fb-fix" data-layout-ignore></div>
+        </div>
+        <div class="panel">
+          <div class="krow">
+            <span class="icon good" data-layout-ignore>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+            </span>
+            <span class="kicker">The fix &mdash; proposed, not built</span>
+          </div>
+          <div class="step" id="fix-step-1">
+            <span class="step-check">&#10003;</span>
+            <span data-var-text="step1">A gate checks each charge.</span>
+          </div>
+          <div class="step" id="fix-step-2">
+            <span class="step-check">&#10003;</span>
+            <span data-var-text="step2">You approve before it pays.</span>
+          </div>
+          <div class="step" id="fix-step-3">
+            <span class="step-check">&#10003;</span>
+            <span data-var-text="step3">Step three</span>
           </div>
         </div>
       </section>
 
-      <section id="scene-fix" class="clip" data-start="15" data-duration="7" data-track-index="4">
-        <div id="fix-inner" class="scene-inner">
-          <div id="fix-kicker" class="kicker">The fix &mdash; proposed, not built</div>
-          <h2 id="fix-heading">What if a tool could&hellip;</h2>
-          <div class="step-row" id="step-row-1">
-            <div class="step-check" id="step-check-1">&#10003;</div>
-            <div class="step-text" data-var-text="step1">Step one</div>
+      <!-- Scene 5 — closer -->
+      <section id="scene-closer" class="clip" data-start="22" data-duration="8" data-track-index="5">
+        <div class="card">
+          <img class="card-img" id="img-closer" data-layout-ignore alt="" />
+          <div class="card-fallback" id="fb-closer" data-layout-ignore></div>
+        </div>
+        <div class="panel">
+          <div class="krow">
+            <span class="icon" data-layout-ignore>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            </span>
+            <span class="kicker">Your call</span>
           </div>
-          <div class="step-row" id="step-row-2">
-            <div class="step-check" id="step-check-2">&#10003;</div>
-            <div class="step-text" data-var-text="step2">Step two</div>
-          </div>
-          <div class="step-row" id="step-row-3">
-            <div class="step-check" id="step-check-3">&#10003;</div>
-            <div class="step-text" data-var-text="step3">Step three</div>
-          </div>
+          <h1 class="headline" data-var-text="question">Would you build this?</h1>
+          <div class="date" data-var-text="date">2026-07-26</div>
+          <div class="disclosure" data-var-text="disclosure">Sourced from real Reddit discussions.</div>
         </div>
       </section>
 
-      <section id="scene-closer" class="clip" data-start="22" data-duration="3" data-track-index="5">
-        <div id="closer-inner" class="scene-inner">
-          <h2 id="question-text" data-var-text="question">Worth building?</h2>
-          <p id="closer-disclosure" data-var-text="disclosure">Sourced from real Reddit discussions.</p>
-          <div id="closer-date" data-var-text="date">2026-07-16</div>
-        </div>
-      </section>
-
-      <div id="progress-track">
-        <div id="progress-fill"></div>
-      </div>
+      <div id="progress-track"><div id="progress-fill"></div></div>
     </div>
 
     <script>
       const vars = window.__hyperframes.getVariables();
 
-      // Hook: split into word spans at init so entrances can stagger.
-      const hookEl = document.getElementById("hook-text");
-      String(vars.hook)
-        .split(/\s+/)
-        .filter(Boolean)
-        .forEach((word) => {
-          const span = document.createElement("span");
-          span.className = "word";
-          span.textContent = word;
-          hookEl.appendChild(span);
-        });
+      // Bind each scene's card image; when empty, hide it and show the branded
+      // gradient fallback instead (image generation off or failed).
+      const scenes = [
+        { clip: "#scene-hook", img: "img-hook", fb: "fb-hook", src: vars.image1, in: 0, out: 6.1, kb: 0 },
+        { clip: "#scene-problem", img: "img-problem", fb: "fb-problem", src: vars.image2, in: 5.2, out: 11.1, kb: 5.2 },
+        { clip: "#scene-loop", img: "img-loop", fb: "fb-loop", src: vars.image3, in: 10.2, out: 16.1, kb: 10.2 },
+        { clip: "#scene-fix", img: "img-fix", fb: "fb-fix", src: vars.image4, in: 15.2, out: 23.1, kb: 15.2 },
+        { clip: "#scene-closer", img: "img-closer", fb: "fb-closer", src: vars.image5, in: 22.6, out: null, kb: 22.6 },
+      ];
+      const activeImgs = [];
+      scenes.forEach((s) => {
+        const img = document.getElementById(s.img);
+        const fb = document.getElementById(s.fb);
+        const value = String(s.src || "").trim();
+        if (value === "") {
+          img.style.display = "none";
+        } else {
+          img.setAttribute("src", value);
+          fb.style.display = "none";
+          activeImgs.push(s.img);
+        }
+      });
 
-      // Stat scene: one person icon each, capped so the row never overflows.
+      // Stat scene: the label ("N people on Reddit are ... this") comes from
+      // stat_label via data-var-text; the reports tail ("N posts about it") is
+      // built here from the injected count + varied phrasing (see phrasing.py).
       const people = Math.max(0, Number(vars.people) || 0);
-      const iconCount = Math.min(people, 10);
-      const peopleRow = document.getElementById("people-row");
-      for (let i = 0; i < iconCount; i++) {
-        const icon = document.createElement("span");
-        icon.className = "person";
-        icon.id = `person-${i}`;
-        peopleRow.appendChild(icon);
-      }
       document.getElementById("stat-reports").textContent =
         `${Number(vars.reports) || 0} ${String(vars.reports_tail || "posts about it")}`;
 
-      // Steps: drop empty rows before the timeline is built (static init
-      // config from variables — resolved identically in preview and render).
-      const steps = [vars.step1, vars.step2, vars.step3].map((s) => String(s || "").trim());
+      // Fix steps: hide an empty third row before timing is built.
       const presentSteps = [];
-      steps.forEach((text, i) => {
-        const row = document.getElementById(`step-row-${i + 1}`);
-        if (text === "") {
-          row.style.display = "none";
-        } else {
-          presentSteps.push(i + 1);
-        }
+      [vars.step1, vars.step2, vars.step3].forEach((s, i) => {
+        const row = document.getElementById(`fix-step-${i + 1}`);
+        if (String(s || "").trim() === "") row.style.display = "none";
+        else presentSteps.push(i + 1);
       });
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      // Persistent layer: progress bar + slow glow drift, full 25s, linear.
-      tl.fromTo("#progress-fill", { scaleX: 0 }, { scaleX: 1, duration: 25, ease: "none" }, 0);
-      tl.to("#glow", { x: 260, y: 210, duration: 25, ease: "none" }, 0);
+      // Persistent progress bar.
+      tl.fromTo("#progress-fill", { scaleX: 0 }, { scaleX: 1, duration: 30, ease: "none" }, 0);
 
-      // Scene 1 — hook (0–4).
-      tl.from("#hook-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 0.25);
-      tl.from(
-        "#hook-text .word",
-        { y: 70, opacity: 0, duration: 0.55, ease: "power3.out", stagger: 0.09 },
-        0.55
-      );
-      tl.to("#hook-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 3.55);
-      tl.set("#hook-inner", { opacity: 0 }, 4.0);
+      // Scene crossfades.
+      const XFADE = 0.9;
+      scenes.forEach((s) => {
+        tl.to(s.clip, { opacity: 1, duration: XFADE, ease: "power1.inOut" }, s.in);
+        if (s.out !== null) tl.to(s.clip, { opacity: 0, duration: XFADE, ease: "power1.inOut" }, s.out);
+      });
 
-      // Scene 2 — problem + stat (4–10). Counter value derives from seek time.
-      tl.from("#problem-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 4.25);
-      tl.from("#problem-text", { y: 50, opacity: 0, duration: 0.6, ease: "power3.out" }, 4.5);
-      const counter = { n: 0 };
-      const statNumber = document.getElementById("stat-number");
-      tl.to(
-        counter,
-        {
-          n: people,
-          duration: 1.3,
-          ease: "power2.out",
-          onUpdate: () => (statNumber.textContent = String(Math.round(counter.n))),
-        },
-        5.0
-      );
-      tl.from("#stat-number", { opacity: 0, duration: 0.3, ease: "power2.out" }, 5.0);
-      tl.from("#stat-label", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 5.3);
-      if (iconCount > 0) {
-        tl.from(
-          "#people-row .person",
-          { scale: 0, opacity: 0, duration: 0.35, ease: "back.out(2)", stagger: 0.07 },
-          5.5
-        );
-      }
-      tl.from("#stat-reports", { opacity: 0, duration: 0.5 }, 6.3);
-      tl.to("#problem-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 9.55);
-      tl.set("#problem-inner", { opacity: 0 }, 10.0);
-
-      // Scene 3 — the broken loop (10–15).
-      tl.from("#broken-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 10.25);
-      tl.from("#broken-caption", { y: 40, opacity: 0, duration: 0.55, ease: "power3.out" }, 10.5);
-      tl.from(
-        ["#flow-try", "#flow-arrow-1", "#flow-stuck", "#flow-arrow-2", "#flow-again"],
-        { y: 40, opacity: 0, duration: 0.45, ease: "power3.out", stagger: 0.12 },
-        11.0
-      );
-      tl.from("#broken-mark", { scale: 0, opacity: 0, duration: 0.5, ease: "back.out(2.5)" }, 12.2);
-      tl.to("#flow-stuck", { x: 8, duration: 0.07, repeat: 5, yoyo: true, ease: "none" }, 12.5);
-      tl.to("#broken-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 14.55);
-      tl.set("#broken-inner", { opacity: 0 }, 15.0);
-
-      // Scene 4 — the proposed fix (15–22).
-      tl.from("#fix-kicker", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 15.25);
-      tl.from("#fix-heading", { y: 50, opacity: 0, duration: 0.6, ease: "power3.out" }, 15.5);
-      presentSteps.forEach((n, i) => {
-        const at = 16.3 + i * 1.15;
-        tl.from(`#step-row-${n}`, { x: -60, opacity: 0, duration: 0.5, ease: "power3.out" }, at);
-        tl.from(
-          `#step-check-${n}`,
-          { scale: 0, rotation: -90, duration: 0.45, ease: "back.out(2.5)" },
-          at + 0.2
+      // Ken-Burns inside each card (present images only).
+      activeImgs.forEach((id, i) => {
+        tl.fromTo(
+          `#${id}`,
+          { scale: 1.06, xPercent: -1.5, yPercent: -1 },
+          { scale: 1.16, xPercent: 1.5, yPercent: 1, duration: 8.5, ease: "none" },
+          scenes[i] ? scenes.find((s) => s.img === id).kb : 0
         );
       });
-      tl.to("#fix-inner", { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 21.55);
-      tl.set("#fix-inner", { opacity: 0 }, 22.0);
 
-      // Scene 5 — closer (22–25). Ends resolved; final frame holds.
-      tl.from("#question-text", { scale: 0.88, opacity: 0, duration: 0.6, ease: "power3.out" }, 22.25);
-      tl.from("#closer-disclosure", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 22.7);
-      tl.from("#closer-date", { opacity: 0, duration: 0.5 }, 23.0);
+      // Panel entrances — one helper keeps each scene's copy popping in cleanly.
+      function reveal(sel, at, opts) {
+        tl.from(sel, Object.assign({ y: 40, opacity: 0, duration: 0.55, ease: "power3.out" }, opts || {}), at);
+      }
+
+      // Scene 1 — hook.
+      reveal("#scene-hook .icon", 0.5, { scale: 0.4, y: 0, ease: "back.out(2)" });
+      reveal("#scene-hook .kicker", 0.6);
+      reveal("#scene-hook .headline", 0.85, { duration: 0.65 });
+
+      // Scene 2 — problem + count.
+      reveal("#scene-problem .icon", 5.6, { scale: 0.4, y: 0, ease: "back.out(2)" });
+      reveal("#scene-problem .kicker", 5.7);
+      const counter = { n: 0 };
+      const statNumber = document.getElementById("stat-number");
+      tl.from("#scene-problem .stat-line", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 5.95);
+      tl.to(
+        counter,
+        { n: people, duration: 1.2, ease: "power2.out", onUpdate: () => (statNumber.textContent = String(Math.round(counter.n))) },
+        6.05
+      );
+      reveal("#scene-problem .stat-reports", 6.4, { duration: 0.5 });
+      reveal("#scene-problem .subtext", 6.6);
+
+      // Scene 3 — loop.
+      reveal("#scene-loop .icon", 10.6, { scale: 0.4, y: 0, ease: "back.out(2)" });
+      reveal("#scene-loop .kicker", 10.7);
+      reveal("#scene-loop .headline-sm", 10.95, { duration: 0.6 });
+      tl.from("#scene-loop .chips > *", { y: 30, opacity: 0, duration: 0.4, ease: "power3.out", stagger: 0.12 }, 11.5);
+
+      // Scene 4 — fix.
+      reveal("#scene-fix .icon", 15.6, { scale: 0.4, y: 0, ease: "back.out(2)" });
+      reveal("#scene-fix .kicker", 15.7);
+      presentSteps.forEach((n, i) => {
+        const at = 16.2 + i * 1.15;
+        reveal(`#fix-step-${n}`, at, { x: -50, y: 0 });
+        tl.from(`#fix-step-${n} .step-check`, { scale: 0, rotation: -90, duration: 0.4, ease: "back.out(2.5)" }, at + 0.15);
+      });
+
+      // Scene 5 — closer.
+      reveal("#scene-closer .icon", 23.0, { scale: 0.4, y: 0, ease: "back.out(2)" });
+      reveal("#scene-closer .kicker", 23.1);
+      tl.from("#scene-closer .headline", { scale: 0.9, opacity: 0, duration: 0.6, ease: "power3.out" }, 23.3);
+      reveal("#scene-closer .date", 23.9);
+      reveal("#scene-closer .disclosure", 24.2, { duration: 0.5 });
 
       window.__timelines["main"] = tl;
     </script>

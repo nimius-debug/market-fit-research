@@ -10,6 +10,10 @@ pain-point-pipeline = "pain_point_pipeline.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "mypy>=1.10"]
+# Only needed on the render host (the social-draft workflow), when scene-image
+# generation is on. Local runs and tests never import it — FalImageGenAdapter
+# imports fal_client lazily. Installed alongside Node/FFmpeg in that workflow.
+video = ["fal-client>=0.5"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -31,3 +35,9 @@ mypy_path = "src"
 explicit_package_bases = true
 disallow_untyped_defs = true
 warn_unused_ignores = true
+
+# fal-client is the optional [video] extra, imported lazily in fal_image.py;
+# type-check the same whether or not it's installed in the current env.
+[[tool.mypy.overrides]]
+module = ["fal_client"]
+ignore_missing_imports = true

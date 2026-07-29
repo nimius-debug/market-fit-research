@@ -101,6 +101,13 @@ class FakeLLMSearch:
             video_loop=("Try this", "It breaks", "Start over"),
             video_steps=("Step one (fixture).", "Step two (fixture)."),
             video_question="Worth building?",
+            video_anchor="a friendly shop-clerk character at a glowing counter (fixture)",
+            video_beats=(
+                "swamped as tasks pile up (fixture)",
+                "stuck in a loop (fixture)",
+                "a blue helper appears (fixture)",
+                "relaxed and happy (fixture)",
+            ),
         )
 
 
@@ -117,6 +124,33 @@ class FakeVideoRenderer:
             raise self._fail_with
         self.rendered.append((script, slug))
         return f"https://example.com/videos/{script.date}-{slug}.mp4"
+
+
+class FakeImageGen:
+    """Records generate()/edit() calls and writes a stub file each time.
+    `fail_on` (1-based, counting both kinds of call in order) makes the Nth
+    call raise, for testing the all-or-nothing fallback in the video adapter."""
+
+    def __init__(self, fail_on: int | None = None) -> None:
+        self.generated: list[tuple[str, int, int, int, str]] = []
+        self.edited: list[tuple[str, str, str]] = []
+        self._fail_on = fail_on
+        self._call_count = 0
+
+    def _tick(self, out_path: str) -> None:
+        self._call_count += 1
+        if self._fail_on is not None and self._call_count == self._fail_on:
+            raise RuntimeError("fake image generation failure")
+        with open(out_path, "wb") as handle:
+            handle.write(b"fake-image-bytes")
+
+    def generate(self, prompt: str, seed: int, width: int, height: int, out_path: str) -> None:
+        self.generated.append((prompt, seed, width, height, out_path))
+        self._tick(out_path)
+
+    def edit(self, instruction: str, reference_path: str, out_path: str) -> None:
+        self.edited.append((instruction, reference_path, out_path))
+        self._tick(out_path)
 
 
 class FakeSocialQueue:
