@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-07-29 — [06a84268-c2ec-46f5-ac4d-0460930d9b41] Automations that run clean but do nothing never trigger alerts.
+
+**10 people on Reddit are frustrated by this — 10 posts**
+
+### X (thread)
+
+1. 10 people on Reddit. Automations ran fine. Did nothing.
+
+2. All said the same: green checkmark, zero output. No alert, no error.
+
+3. Fix: a tool that checks if real work happened. Not just if it ran.
+
+4. Worth building something this niche? https://reddit.com/r/automation/comments/1v5awdl/how_do_you_all_track_workflow_health_across/ozhlq2p/
+
+5. Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (post)
+
+10 people on Reddit this month. Same problem.
+
+Their automations report "success" — green checkmark, all clear. But nothing actually happened. No files moved. No data written. No alert ever fires.
+
+The system thinks it worked. The user thinks it worked. But the work is a ghost.
+
+Fix idea: a tool that checks if real work happened. Not just "did it run?" but "did it change anything?"
+
+Would you use something like this?
+
+Sourced from real Reddit discussions. Drafted by AI, reviewed and polished by me.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/automation/comments/1v5awdl/how_do_you_all_track_workflow_health_across/ozhlq2p/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-29-06a84268-c2ec-46f5-ac4d-0460930d9b41.mp4
+
 ## 2026-07-28 — [0e260287-6ae9-4d77-96ab-8f0bd4d0e743] Coding agents leak tokens through noisy tool output, model verbosity, and always-loaded instruction files, with existing tools only addressing individual channels rather than providing a coordinated solution.
 
 **10 people on Reddit are still fighting this — 11 posts**
