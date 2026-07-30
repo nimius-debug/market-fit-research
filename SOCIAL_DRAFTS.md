@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-07-30 — [e12f94de-0a56-4eee-b5e2-25ae2312216d] Good AI models are too expensive
+
+**10 people on Reddit are dealing with this — 12 posts**
+
+### X (thread)
+
+1. Your AI costs too much to actually use.
+
+2. 12 posts on Reddit this month. Same pain: good AI burns cash.
+
+3. What if a model just cost a cent per call?
+
+4. No subscription. No surprise bill. https://reddit.com/r/artificial/comments/1v4aw17/i_used_to_be_proud_of_these_skills_now_ai_agents/oz9kse8/
+
+### LinkedIn (post)
+
+Your AI costs too much to actually use.
+
+12 people on Reddit flagged this in one month. Same problem from every corner: the models that work well are too expensive to run at scale. You only want it sometimes, but you pay all month for access.
+
+My Reddit pipeline picked this up as a repeating pattern.
+
+The idea: a good model that charges by the call. Pay a penny when you use it. Pay nothing when you don't.
+
+No monthly bill. No waste.
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/artificial/comments/1v4aw17/i_used_to_be_proud_of_these_skills_now_ai_agents/oz9kse8/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-30-e12f94de-0a56-4eee-b5e2-25ae2312216d.mp4
+
 ## 2026-07-29 — [06a84268-c2ec-46f5-ac4d-0460930d9b41] Automations that run clean but do nothing never trigger alerts.
 
 **10 people on Reddit are frustrated by this — 10 posts**
