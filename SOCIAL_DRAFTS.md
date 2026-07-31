@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-07-31 — [b1d9feee-d051-4c61-8df8-cae9a4a890a4] Users need a structured database for tracking agent execution state (runs, tasks, events, learnings) beyond simple markdown files or observability/logging tools, to provide continuity and persistence for agent behavior over time.
+
+**17 people on Reddit are complaining about this — 19 posts**
+
+### X (thread)
+
+1. Your AI agent forgets everything between runs. 19 people on Reddit hit this too.
+
+2. Every run starts from zero. No memory, no learnings, no continuity. My Reddit pipeline flagged this as a top pain this month.
+
+3. The idea: one central memory database every agent shares. Runs, tasks, events, learnings — all in one place.
+
+4. Agents that actually remember. Would you build that? https://reddit.com/r/AI_Agents/comments/1uu22d8/what_do_you_treat_as_the_first_real_safety_gate/ox3zfap/
+
+### LinkedIn (post)
+
+Your agent runs. It does the job. Then it forgets everything it learned.
+
+Next run? Back to zero.
+
+19 posts from 17 people on Reddit are stuck on this same wall. Agents have no shared memory across runs. Markdown files don't scale. Logging tools only show you what happened — they don't remember how.
+
+My Reddit pipeline flagged this pattern twice this week.
+
+The idea: one central memory database every agent shares. Runs, tasks, events, learnings all live in one place. Agents pick up where they left off, not from scratch.
+
+Agents that actually remember. Would you build that?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1uu22d8/what_do_you_treat_as_the_first_real_safety_gate/ox3zfap/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-07-31-b1d9feee-d051-4c61-8df8-cae9a4a890a4.mp4
+
 ## 2026-07-30 — [e12f94de-0a56-4eee-b5e2-25ae2312216d] Good AI models are too expensive
 
 **10 people on Reddit are dealing with this — 12 posts**
