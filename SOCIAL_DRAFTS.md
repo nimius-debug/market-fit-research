@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-08-01 — [6fa1db8b-6a86-4ec1-b2ce-a475137c1123] Hard to get users
+
+**13 people on Reddit are dealing with this — 14 posts**
+
+### X (thread)
+
+1. Your AI tool has zero users. 14 people on Reddit are stuck on the same wall.
+
+2. My Reddit pipeline flagged this again this week. 14 posts in the AI/automation subs, same story: built a cool tool, nobody comes.
+
+3. The idea: match your tool to a real problem people already complain about. Build what they ask for, not what you guess.
+
+4. Is hunting Reddit for problems a fair way to pick your next build? Or is that cheating? https://reddit.com/r/SaaS/comments/1uwyy2d/wispr_flow_raised_260m_i_built_the_same_core/oxowd64/
+
+### LinkedIn (post)
+
+Your AI tool is done. Nobody's using it.
+
+14 posts from 13 people in the AI/automation communities on Reddit this month, all the same story: I built something, and no one came.
+
+My Reddit pipeline keeps flagging this one. It's the most common wall builders hit.
+
+The fix isn't more marketing. It's matching the tool to a problem people already say out loud.
+
+Pick a pain point people keep typing about. Build for that exact thing.
+
+Users find tools that find their problem.
+
+What's the real reason good tools stay empty — bad fit or bad reach?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/SaaS/comments/1uwyy2d/wispr_flow_raised_260m_i_built_the_same_core/oxowd64/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-01-6fa1db8b-6a86-4ec1-b2ce-a475137c1123.mp4
+
 ## 2026-07-31 — [b1d9feee-d051-4c61-8df8-cae9a4a890a4] Users need a structured database for tracking agent execution state (runs, tasks, events, learnings) beyond simple markdown files or observability/logging tools, to provide continuity and persistence for agent behavior over time.
 
 **17 people on Reddit are complaining about this — 19 posts**
