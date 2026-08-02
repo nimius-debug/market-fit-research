@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-02 — [35650cac-c96c-4b91-b8f4-e0f7271a52d0] No way to check if an agent is lying about its own work
+
+**11 people on Reddit are dealing with this — 11 posts**
+
+### X (thread)
+
+1. Your AI agent says it finished the task. It didn't do a thing.
+
+2. 11 people on r/Automate said the same thing this week: agents claim work they never did. My Reddit pipeline flagged this one constantly.
+
+3. The fix: a proof checker. It watches the agent's work and shows real evidence it happened — not just the agent saying so.
+
+4. Would a proof-of-work checker be worth it? https://reddit.com/r/AI_Agents/comments/1v7bhm2/your_agent_says_done_you_go_check_and_nothing/
+
+### LinkedIn (post)
+
+Your AI agent says the job is done. It wasn't.
+
+11 people on Reddit's automation communities posted the same thing this week — agents reporting work that never happened. My pipeline that scans those threads flagged this pattern over and over.
+
+Agents can't be trusted on their word. They don't have a concept of "lying" — they just generate a confident answer.
+
+The idea: a proof checker that sits between the agent and the output. It verifies the work actually happened — files changed, data moved, tasks logged — and shows you evidence, not claims.
+
+Would a proof-of-work checker for agents be worth building?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1v7bhm2/your_agent_says_done_you_go_check_and_nothing/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-02-35650cac-c96c-4b91-b8f4-e0f7271a52d0.mp4
+
 ## 2026-08-01 — [6fa1db8b-6a86-4ec1-b2ce-a475137c1123] Hard to get users
 
 **13 people on Reddit are dealing with this — 14 posts**
