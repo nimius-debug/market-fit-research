@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-03 — [d089aaec-68aa-46b5-ae93-d00ec40d8121] AI models lack the contextual grounding and ontological structure needed for reliable full business automation, so they require human oversight and custom-built guardrails to be productive and safe.
+
+**16 people on Reddit are struggling with this — 16 posts**
+
+### X (thread)
+
+1. Your AI bot can make a risky move with nothing stopping it. 16 people on Reddit are stuck on this.
+
+2. My Reddit pipeline flagged this: 16 people, one problem. AI bots act on their own, and humans have to babysit every step. No safety net.
+
+3. The idea: a guardrail tool that checks every AI action and blocks risky ones before they happen. Not watched after — stopped ahead of time.
+
+4. Would a tool like this make you trust AI agents more? https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3tcdg/
+
+### LinkedIn (post)
+
+Your AI agent can do something risky with nobody stopping it.
+
+You set it loose, then spend all day watching it like a hawk. That's not automation. That's babysitting.
+
+My Reddit pipeline picked up on this: 16 separate people, same wall. AI bots act without guardrails, so someone has to catch the mistakes by hand.
+
+The idea: a guardrail layer that reviews every AI action and blocks the risky ones automatically. The bot can still do its job — it just can't do the dangerous parts without a green light.
+
+Would you trust AI agents more with that?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3tcdg/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-03-d089aaec-68aa-46b5-ae93-d00ec40d8121.mp4
+
 ## 2026-08-02 — [35650cac-c96c-4b91-b8f4-e0f7271a52d0] No way to check if an agent is lying about its own work
 
 **11 people on Reddit are dealing with this — 11 posts**
