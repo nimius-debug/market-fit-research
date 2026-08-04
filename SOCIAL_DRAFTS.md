@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-04 — [0b5cf903-0a76-44fd-bae6-7c75ec00f772] AI agent model incorrectly thinks it hasn't finished a completed task or responds to older chat instructions instead of the latest ones, which is perceived as a model limitation.
+
+**11 people on Reddit are arguing about this — 13 posts**
+
+### X (thread)
+
+1. Your AI agent keeps doing the old task instead of the new one. 13 people on Reddit are stuck on this.
+
+2. My Reddit pipeline flagged this again. Agents grab old context and miss new instructions, so they loop on finished tasks.
+
+3. The fix: a tool that re-injects the latest context every step, so the agent always works from fresh info.
+
+4. Would you build this, or is it too much overhead? https://reddit.com/r/LocalLLaMA/comments/1uue278/working_around_qwen3627bs_toolcall_failures_and/ox48sgi/
+
+### LinkedIn (post)
+
+Your AI agent finishes a task, then tells you it's still working on it.
+
+Or it acts on yesterday's instructions, not this morning's.
+
+13 people across the AI and automation communities on Reddit are hitting the same wall. My Reddit pipeline surfaced it twice this month.
+
+Agents lose newer context and fall back to old info. No amount of prompt tweaking fixes it.
+
+The idea: a tool that re-injects the latest context at every single step. Each turn, the agent gets a fresh copy of what changed — nothing stale, nothing skipped.
+
+Worth building? Or is that overhead you'd rather not pay?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uue278/working_around_qwen3627bs_toolcall_failures_and/ox48sgi/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-04-0b5cf903-0a76-44fd-bae6-7c75ec00f772.mp4
+
 ## 2026-08-03 — [d089aaec-68aa-46b5-ae93-d00ec40d8121] AI models lack the contextual grounding and ontological structure needed for reliable full business automation, so they require human oversight and custom-built guardrails to be productive and safe.
 
 **16 people on Reddit are struggling with this — 16 posts**
