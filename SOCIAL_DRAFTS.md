@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-05 — [ac840768-63c5-4a39-8bd9-d0f672d4b5d8] AI review bots for business info often return confidently wrong details like prices or hours, requiring manual monitoring to catch errors.
+
+**8 people on Reddit are complaining about this — 8 posts**
+
+### X (thread)
+
+1. Your AI bot just told a customer you close at 8 PM. You close at 5.
+
+2. 8 people on the AI/automation subreddits hit this this week: AI review bots serving wrong prices and hours, sounding totally sure.
+
+3. What if a second tool quietly checked every answer before it goes out, and only caught the wrong ones?
+
+4. Dumb idea? Or something worth building? https://reddit.com/r/automation/comments/1uuuul8/i_reviewedit_every_message_that_my_automated_ai/ox7uf4z/
+
+### LinkedIn (post)
+
+Your AI bot just told a customer you close at 8 PM. You close at 5.
+
+Your Reddit pipeline flagged this again this week — 8 people, same story. AI review bots serving wrong prices and hours, sounding completely confident about it. No one catches it until a real customer shows up angry.
+
+So here's the idea: a second tool that double-checks every AI answer against the real business info before it goes out. Wrong answer? It gets flagged and fixed instantly. No more babysitting, no more angry customers over a price that was never right.
+
+The AI stays. Someone just needs to watch its homework.
+
+Would you build this? Or is it dumb?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/automation/comments/1uuuul8/i_reviewedit_every_message_that_my_automated_ai/ox7uf4z/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-05-ac840768-63c5-4a39-8bd9-d0f672d4b5d8.mp4
+
 ## 2026-08-04 — [0b5cf903-0a76-44fd-bae6-7c75ec00f772] AI agent model incorrectly thinks it hasn't finished a completed task or responds to older chat instructions instead of the latest ones, which is perceived as a model limitation.
 
 **11 people on Reddit are arguing about this — 13 posts**
