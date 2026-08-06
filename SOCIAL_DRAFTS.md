@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-08-06 — [9e629832-ffd7-499b-b701-f89d6fc74f05] Can't run bigger AI models
+
+**20 people on Reddit are struggling with this — 21 posts**
+
+### X (thread)
+
+1. Your AI model won't load — 21 people on Reddit hit this same wall.
+
+2. 21 posts about one model not fitting on your machine. My Reddit pipeline flagged this pattern nonstop.
+
+3. The idea: a tool that shrinks any model until it fits your hardware. Click. Done.
+
+4. Would you trust an auto-shrinker, or is that a lazy fix? https://reddit.com/r/LocalLLaMA/comments/1uvshpl/better_than_fable_5/
+
+### LinkedIn (post)
+
+Your model won't load.
+
+The download finishes. Then the error hits: not enough memory. Big AI models just don't fit on normal computers.
+
+21 people on Reddit are stuck on this. Same frustration every week.
+
+My pipeline for tracking AI pain points flagged this topic again and again. One person calls out a model they want to run. Ten more chime in with the same "doesn't fit" wall.
+
+The idea: a tool that shrinks models automatically until they fit any machine. Pick your model. Press go. It tunes itself down to your specs.
+
+No fiddling with settings. No digging in config files.
+
+Would you let a tool shrink a model for you? Or does that feel like giving up quality?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uvshpl/better_than_fable_5/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-06-9e629832-ffd7-499b-b701-f89d6fc74f05.mp4
+
 ## 2026-08-05 — [ac840768-63c5-4a39-8bd9-d0f672d4b5d8] AI review bots for business info often return confidently wrong details like prices or hours, requiring manual monitoring to catch errors.
 
 **8 people on Reddit are complaining about this — 8 posts**
