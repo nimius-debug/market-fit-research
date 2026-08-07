@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-07 — [2d0d606b-0293-4155-a0d0-cba751b4836b] AI SaaS founders lack granular tracking of AI costs per customer, per feature, and per pricing plan, relying only on total monthly bills without understanding profitability or cost drivers.
+
+**18 people on Reddit are dealing with this — 18 posts**
+
+### X (thread)
+
+1. Your AI bill is a mystery. 18 people on Reddit can't see which customer is eating their margin.
+
+2. 18 separate posts this month, same pain: one big AI bill, zero clue who or what caused it. My Reddit pipeline flagged this pattern hard.
+
+3. The idea: one dashboard that splits your AI bill by user, by feature, by plan. See cost drivers in a glance, not a guess.
+
+4. Would this make your pricing math less blind? https://reddit.com/r/SaaS/comments/1uuosax/how_are_you_tracking_ai_costs_in_your_saas/
+
+### LinkedIn (post)
+
+Somewhere in your SaaS, one customer is quietly burning through your AI budget. You can't see who. You only see the total at month-end.
+
+18 different founders on Reddit described this exact blind spot this week. All of them staring at one big bill with no way to break it down.
+
+My Reddit pipeline keeps surfacing this pattern in AI/automation communities.
+
+The idea: a simple dashboard that splits AI spend by customer, by feature, and by plan. Profitability per user, visible in seconds.
+
+You'd still get the total bill. You'd just finally see inside it.
+
+Would you build this?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/SaaS/comments/1uuosax/how_are_you_tracking_ai_costs_in_your_saas/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-07-2d0d606b-0293-4155-a0d0-cba751b4836b.mp4
+
 ## 2026-08-06 — [9e629832-ffd7-499b-b701-f89d6fc74f05] Can't run bigger AI models
 
 **20 people on Reddit are struggling with this — 21 posts**
