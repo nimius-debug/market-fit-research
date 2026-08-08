@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-08 — [13b726c0-d3f6-4e21-a791-f487ec1e0671] Hard to control what the agent is allowed to do
+
+**18 people on Reddit are frustrated by this — 19 posts**
+
+### X (thread)
+
+1. Your AI agent can do anything. Nothing stops it. 19 Reddit posts on this.
+
+2. 19 posts in AI/automation subs — same wall: no way to cap what an agent touches. My Reddit pipeline flagged it again.
+
+3. The idea: a simple rule panel. You pick what's off-limits, the agent just can't do it. No code needed.
+
+4. Would you trust an AI with a stop button you actually control? https://reddit.com/r/AI_Agents/comments/1v2l1h4/what_is_the_hardest_part_of_letting_an_ai_agent/
+
+### LinkedIn (post)
+
+Your AI agent can send emails, spend money, delete files. And nothing stops it.
+
+19 posts this month across AI/automation communities keep hitting the same wall: there's no real way to limit what an agent is allowed to do.
+
+My Reddit pipeline pulled this pattern up again — it's not going away.
+
+The fix I keep coming back to: a clear rule panel. You tick what's off-limits — no external sends, no purchases over a set amount — and the agent simply can't cross it. A hard stop, not a warning.
+
+No code. Just rules you control.
+
+Would you trust an agent with that kind of leash?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1v2l1h4/what_is_the_hardest_part_of_letting_an_ai_agent/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-08-13b726c0-d3f6-4e21-a791-f487ec1e0671.mp4
+
 ## 2026-08-07 — [2d0d606b-0293-4155-a0d0-cba751b4836b] AI SaaS founders lack granular tracking of AI costs per customer, per feature, and per pricing plan, relying only on total monthly bills without understanding profitability or cost drivers.
 
 **18 people on Reddit are dealing with this — 18 posts**
