@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-09 — [46b415ac-8dc7-41f3-bf9f-00d60d1556d0] The difficult part of using AI coding agents is not just getting code to run, but verifying that the implementation actually matches the intended product, especially as projects grow beyond a first demo.
+
+**11 people on Reddit are stuck on this — 11 posts**
+
+### X (thread)
+
+1. AI wrote your code — but how do you know it actually works? 11 people on Reddit are stuck on this.
+
+2. 11 posts this month, all the same wall: code runs, but does it do what you asked? The demo works. Then the project grows and nobody can verify it.
+
+3. The idea: a checklist that tests the real behavior of your app — not just “did it run” but “did it do the thing you wanted.”
+
+4. Would a behavior checklist actually help you? Or is this overthinking it? https://reddit.com/r/AI_Agents/comments/1urd4my/am_i_missing_something_with_cursor/ox4nvos/
+
+### LinkedIn (post)
+
+AI wrote your code. It runs. But does it actually do what you asked?
+
+That gap is where projects go to die. The demo works great. Then the feature list grows, and no one can tell if the implementation still matches the product in your head.
+
+11 people across the AI/automation communities on Reddit hit this exact wall this month. My Reddit pipeline flagged it again.
+
+The idea: a checklist that tests the app's real behavior — not "did the code compile," but "does it do what the user actually needs." You walk through what the app should do, and verify each one against what's really built.
+
+Would you use a behavior checklist on your next AI-built feature?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1urd4my/am_i_missing_something_with_cursor/ox4nvos/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-09-46b415ac-8dc7-41f3-bf9f-00d60d1556d0.mp4
+
 ## 2026-08-08 — [13b726c0-d3f6-4e21-a791-f487ec1e0671] Hard to control what the agent is allowed to do
 
 **18 people on Reddit are frustrated by this — 19 posts**
