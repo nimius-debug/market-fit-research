@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-10 — [cdc785a7-4214-4d11-9d4d-c99c7dc8f8aa] Agent loops drift off track at scale
+
+**10 people on Reddit are arguing about this — 10 posts**
+
+### X (thread)
+
+1. Your AI agent can burn money with nothing checking it. 10 people on Reddit hit this this week.
+
+2. My Reddit pipeline flagged this 10 times this week from 10 different people. Agents loop, spend, and no one stops them until the bill arrives.
+
+3. The idea: a tripwire. Set a spend limit and a kill switch that stops the agent cold when it hits the line.
+
+4. Would a tripwire like this save your agents? Or is it too blunt? https://reddit.com/r/LocalLLaMA/comments/1uxhd3n/opensource_deterministic_denylist_that_vetoes_a/
+
+### LinkedIn (post)
+
+Your AI agent can run wild and burn money with nothing stopping it.
+
+10 people across Reddit's AI communities hit this same wall this week. Different setups, same story: the agent loops, spends, and nobody catches it until the bill lands.
+
+My Reddit pipeline surfaced this pattern again and again.
+
+The idea: a tripwire. Set a hard spend limit and a kill switch. The moment the agent crosses the line, it stops cold. No gray area, no notification you'll miss — just a stop.
+
+Would a simple tripwire fix this for you?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uxhd3n/opensource_deterministic_denylist_that_vetoes_a/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-10-cdc785a7-4214-4d11-9d4d-c99c7dc8f8aa.mp4
+
 ## 2026-08-09 — [46b415ac-8dc7-41f3-bf9f-00d60d1556d0] The difficult part of using AI coding agents is not just getting code to run, but verifying that the implementation actually matches the intended product, especially as projects grow beyond a first demo.
 
 **11 people on Reddit are stuck on this — 11 posts**
