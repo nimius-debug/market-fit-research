@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-11 — [f0126582-fd57-4cbe-a2fd-c6322b97cf58] AI confidently makes mistakes that waste time tracking down bugs
+
+**10 people on Reddit are complaining about this — 11 posts**
+
+### X (thread)
+
+1. Your AI sounds sure of itself. It's just wrong. And you just burned an hour.
+
+2. 11 posts on AI/automation Reddit this week — same problem. AI gives confident answers nobody checks, then swears the bug is someone else's.
+
+3. Fix idea: auto-check AI output against real facts before it ships. No more trusting a confident guess.
+
+4. Would a built-in fact-check change how you use AI? Or is it dumb? https://reddit.com/r/artificial/comments/1vgmqhz/started_noticing_my_team_argues_less_with_ai_code/
+
+### LinkedIn (post)
+
+Your AI tells you the answer is yes. It's wrong. Now you're chasing a bug that was never yours.
+
+11 posts on the AI/automation subreddits this week, same story. Confident AI output. Nobody double-checks it. Hours lost.
+
+My Reddit pipeline flagged this pattern again. It's the most common failure I keep seeing.
+
+The idea: auto-check AI outputs against real facts before they ship. A gate that says "wait, that doesn't match reality" instead of nodding along.
+
+Would you trust that check? Or is it just another thing to maintain?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/artificial/comments/1vgmqhz/started_noticing_my_team_argues_less_with_ai_code/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-11-f0126582-fd57-4cbe-a2fd-c6322b97cf58.mp4
+
 ## 2026-08-10 — [cdc785a7-4214-4d11-9d4d-c99c7dc8f8aa] Agent loops drift off track at scale
 
 **10 people on Reddit are arguing about this — 10 posts**
