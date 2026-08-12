@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-12 — [b2b5c872-ad5e-4961-a04e-189612566a8a] Hard to find why runs failed.
+
+**13 people on Reddit are dealing with this — 13 posts**
+
+### X (thread)
+
+1. Your automation runs fail and you have no idea why.
+
+2. 13 people on Reddit hit this in the AI/automation groups. My pipeline flagged the same complaint every time.
+
+3. Fix idea: every run auto-records each step with logs and screenshots. You see exactly where it broke.
+
+4. Would that save you the digging? https://reddit.com/r/nocode/comments/1v5km4l/the_boring_bugs_checklist_the_same_90_percent/ozotbqb/
+
+### LinkedIn (post)
+
+Your automation fails. You open the logs. There's nothing useful there.
+
+13 separate people said the same thing in the AI and automation threads this week. My Reddit pipeline keeps flagging this one — runs die and no one can see why.
+
+The idea: every run records its own steps automatically. Logs plus screenshots of each stage. When it fails, the trail shows exactly where and what happened.
+
+No more guesswork. No more re-running to catch it.
+
+Would a built-in step recorder actually help you?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/nocode/comments/1v5km4l/the_boring_bugs_checklist_the_same_90_percent/ozotbqb/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-12-b2b5c872-ad5e-4961-a04e-189612566a8a.mp4
+
 ## 2026-08-11 — [f0126582-fd57-4cbe-a2fd-c6322b97cf58] AI confidently makes mistakes that waste time tracking down bugs
 
 **10 people on Reddit are complaining about this — 11 posts**
