@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-13 — [ac535423-343f-4cf9-a735-96de06767b66] Context window too small for long chats
+
+**19 people on Reddit are struggling with this — 19 posts**
+
+### X (thread)
+
+1. Your AI forgets what you told it mid-conversation. 19 people on Reddit are stuck on this.
+
+2. My Reddit pipeline flagged this again: 19 people, same wall. Long chats, and the AI just... forgets the earlier stuff.
+
+3. The fix: break big files into small chunks. The AI only reads the parts it actually needs.
+
+4. Would this fix save your chats, or is it a dumb idea? https://reddit.com/r/automation/comments/1uyvon3/how_to_better_use_claude_for_my_small_business/oy2dtzm/
+
+### LinkedIn (post)
+
+Your AI hits a wall on long chats. It forgets what you said at the start.
+
+19 people in the AI/automation subs hit this exact wall — same complaint, 19 different threads.
+
+My Reddit pipeline pulled that number out this week.
+
+The fix idea: don't feed the whole file to the AI. Cut it into small chunks. The AI pulls in only the part it needs right then.
+
+Less to remember. Fewer memory losses. Longer useful chats.
+
+Worth trying?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/automation/comments/1uyvon3/how_to_better_use_claude_for_my_small_business/oy2dtzm/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-13-ac535423-343f-4cf9-a735-96de06767b66.mp4
+
 ## 2026-08-12 — [b2b5c872-ad5e-4961-a04e-189612566a8a] Hard to find why runs failed.
 
 **13 people on Reddit are dealing with this — 13 posts**
