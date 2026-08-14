@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-14 — [c33ea03d-db10-4621-9c41-ef0800948691] User was billed after cancelling a trial within the trial period, indicating a problem with billing automation that charges after cancellation.
+
+**10 people on Reddit are frustrated by this — 13 posts**
+
+### X (thread)
+
+1. You canceled the trial. You still got charged. 13 posts on r/Automate say the same.
+
+2. 10 people on Reddit hit this in one week: cancel, get billed anyway. My pipeline flagged it as the hottest billing pain.
+
+3. The fix: a watchdog that checks every bill against cancellations and blocks charges that shouldn't exist.
+
+4. Is that a thing you'd want, or should billing just work? https://reddit.com/r/SaaS/comments/1ey5wsi/whats_the_best_reddit_marketing_app/ox4aqax/
+
+### LinkedIn (post)
+
+You cancel a trial. The confirmation says you're done. Then the charge hits.
+
+13 posts on the AI and automation subreddits this month say the exact same thing. 10 different people. One shared trap: billing automation that fires anyway after a cancel.
+
+My Reddit pipeline surfaced this one fast. Cancellation checks are just missing from most billing runs.
+
+The idea: a watchdog that checks every bill against cancellations before it goes out. No charge if the cancel came first. No refund dance. No support ticket.
+
+Would you want something like this watching your billing? Or is it on the payment providers to fix?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/SaaS/comments/1ey5wsi/whats_the_best_reddit_marketing_app/ox4aqax/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-14-c33ea03d-db10-4621-9c41-ef0800948691.mp4
+
 ## 2026-08-13 — [ac535423-343f-4cf9-a735-96de06767b66] Context window too small for long chats
 
 **19 people on Reddit are struggling with this — 19 posts**
