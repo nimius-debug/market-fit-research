@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-15 — [bb53efb0-c933-47e3-a4ab-4987ee943183] Too much time wasted on annoying setup work.
+
+**14 people on Reddit are frustrated by this — 14 posts**
+
+### X (thread)
+
+1. You spend hours on setup. The real work never starts.
+
+2. 14 separate people on Reddit are stuck on setup this month. My pipeline flagged it — same story, over and over.
+
+3. The idea: one tool that reads your stack and configures itself. No wizards. No clicking. You just hit go.
+
+4. Do we build this? Or is setup just part of the job? https://reddit.com/r/artificial/comments/1uyx6z7/if_ai_disappeared_tomorrow_what_part_of_your/oy2pc3q/
+
+### LinkedIn (post)
+
+Setup eats your whole morning. You finally start the actual work at noon.
+
+14 different people on the AI/automation subreddits hit the exact same wall this month. My Reddit pipeline flagged it as the loudest pattern going.
+
+Every thread reads the same: hours lost to config files, settings screens, and tools that fight back before they help.
+
+What if a single tool just looked at your system and configured everything for you? No setup screens. No docs. No fiddling.
+
+It reads. It sets up. You start.
+
+Dumb idea, or exactly what we all need?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/artificial/comments/1uyx6z7/if_ai_disappeared_tomorrow_what_part_of_your/oy2pc3q/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-15-bb53efb0-c933-47e3-a4ab-4987ee943183.mp4
+
 ## 2026-08-14 — [c33ea03d-db10-4621-9c41-ef0800948691] User was billed after cancelling a trial within the trial period, indicating a problem with billing automation that charges after cancellation.
 
 **10 people on Reddit are frustrated by this — 13 posts**
