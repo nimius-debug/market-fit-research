@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-16 — [68a2bd88-b74c-4225-ac7f-6a296db56fcf] Clients ask for "dashboards" when what they actually need is critical information pushed to them automatically, eliminating the need to log in and check another tool.
+
+**11 people on Reddit are still fighting this — 11 posts**
+
+### X (thread)
+
+1. You built a dashboard nobody opens. 11 people on r/AI_Agents are stuck in the same trap.
+
+2. My Reddit pipeline flagged it: clients ask for dashboards, then never log in to see them. Another tool, another tab, another ignored login.
+
+3. The fix: skip the dashboard. Push only the big alerts straight to Slack or Teams. No login needed.
+
+4. Why build a screen nobody opens when a ping does the same job? https://reddit.com/r/nocode/comments/1uukpye/should_automations_be_managed_from_whatsapp_slack/
+
+### LinkedIn (post)
+
+You built a dashboard. Your client asked for it. And now it sits there, unopened.
+
+11 people in the AI/automation subreddits are wrestling with this exact thing this week.
+
+My Reddit pipeline surfaced the pattern: clients say they want a dashboard, but what they actually want is to know when something matters. They don't want another login. They want the information to come to them.
+
+The idea: skip the dashboard entirely. Push only the critical alerts — the stuff that actually needs attention — straight into the chat app they already live in. No login, no new tab, no forgotten tool.
+
+Would you trade a dashboard for a smart ping?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/nocode/comments/1uukpye/should_automations_be_managed_from_whatsapp_slack/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-16-68a2bd88-b74c-4225-ac7f-6a296db56fcf.mp4
+
 ## 2026-08-15 — [bb53efb0-c933-47e3-a4ab-4987ee943183] Too much time wasted on annoying setup work.
 
 **14 people on Reddit are frustrated by this — 14 posts**
