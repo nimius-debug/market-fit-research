@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-17 — [628384f6-6bca-42b4-9b2a-00fae0e32686] AI/automation infrastructure tools like Langflow have security vulnerabilities that can be exploited by malicious autonomous agents, and there are insufficient guardrails to prevent purpose-built bad agents from being created from scratch.
+
+**17 people on Reddit are frustrated by this — 18 posts**
+
+### X (thread)
+
+1. Your AI agent can leak passwords and API keys without a single warning. 18 people on r/automation are stuck on this.
+
+2. My pipeline flagged this from the AI/automation subs: agents quietly hand over secrets in chats, logs, and tool calls.
+
+3. The fix idea: a guard that watches every output, spots secrets, and blocks them before they leave. Nothing built yet — but worth it?
+
+4. Would a secret-guard save you? Or is the real fix elsewhere? https://reddit.com/r/artificial/comments/1uuouu7/someone_built_an_ai_agent_that_hacks_networks_and/
+
+### LinkedIn (post)
+
+Your AI agent can leak an API key and you'd never know until it's too late.
+
+No pop-up. No pause. Just the secret, out the door.
+
+18 separate posts across the AI/automation subs in the last few weeks, all circling the same gap: agents built to talk freely don't know what they shouldn't say. Passwords, tokens, database credentials — they end up in logs, in replies, in places they don't belong.
+
+My Reddit pipeline keeps flagging this exact pattern. Same shape, different tool, every time.
+
+The idea: a guard layer that watches every output from the agent, spots anything that looks like a secret, and blocks it before transmission. Not a rewrite — a checkpoint.
+
+Would you trust a guard like that with your agents? Or does it feel like too much friction on every single call?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/artificial/comments/1uuouu7/someone_built_an_ai_agent_that_hacks_networks_and/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-17-628384f6-6bca-42b4-9b2a-00fae0e32686.mp4
+
 ## 2026-08-16 — [68a2bd88-b74c-4225-ac7f-6a296db56fcf] Clients ask for "dashboards" when what they actually need is critical information pushed to them automatically, eliminating the need to log in and check another tool.
 
 **11 people on Reddit are still fighting this — 11 posts**
