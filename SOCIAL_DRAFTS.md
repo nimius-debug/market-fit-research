@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-18 — [cad8cd29-0dc8-45f2-bb14-fc65c35f37ef] Agent memory recalls stale facts as if they're true
+
+**17 people on Reddit are dealing with this — 19 posts**
+
+### X (thread)
+
+1. Your AI agent talks about old facts like they're new today. 19 people on AI/automation Reddit are stuck on it.
+
+2. Same 12 complaints this month: agents restating yesterday's facts as today's truth. My Reddit pipeline keeps catching it.
+
+3. The fix: stamp every memory with a date. Old facts stay, but the agent knows how fresh they are.
+
+4. Should memory work like a dated notebook? https://reddit.com/r/AI_Agents/comments/1vfbda5/every_agent_memory_system_is_benchmarked_on/
+
+### LinkedIn (post)
+
+Your AI agent runs on old facts and tells them to you like they're brand new.
+
+19 people across AI/automation communities on Reddit describe the same trap. The agent remembers something from weeks ago. It states it today. Nothing checks if it's still true.
+
+My Reddit pipeline kept surfacing this pattern, so I started thinking about it.
+
+The idea: stamp every stored memory with a date. The agent keeps the fact, but knows exactly how old it is. Yesterday's prices don't get quoted as today's.
+
+Fresh facts first. Old ones clearly aged.
+
+Is that the fix, or does it miss something?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/AI_Agents/comments/1vfbda5/every_agent_memory_system_is_benchmarked_on/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-18-agent-memory-recalls-stale-facts-as-if-they-re-true.mp4
+
 ## 2026-08-17 — [628384f6-6bca-42b4-9b2a-00fae0e32686] AI/automation infrastructure tools like Langflow have security vulnerabilities that can be exploited by malicious autonomous agents, and there are insufficient guardrails to prevent purpose-built bad agents from being created from scratch.
 
 **17 people on Reddit are frustrated by this — 18 posts**
