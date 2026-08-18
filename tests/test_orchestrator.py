@@ -516,7 +516,10 @@ def test_social_draft_renders_the_video_and_queues_its_url(conn, now, make_item,
     result = run_social_draft(FakeLLMSearch(), queue, renderer, conn, social_draft_path, now)
 
     ((script, slug),) = renderer.rendered
-    assert slug == result.opportunity_id
+    # The asset is named from the (short, readable) title, not the raw uuid,
+    # so the downloaded file has a sensible name.
+    assert slug == "painpoint-animated-problem"
+    assert slug != result.opportunity_id
     # Counts on screen come from the Opportunity itself, not the LLM.
     assert script.reports == 6
     assert script.people == 6

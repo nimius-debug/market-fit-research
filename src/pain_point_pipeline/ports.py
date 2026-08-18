@@ -145,7 +145,8 @@ class VideoRendererPort(Protocol):
 
     def render(self, script: SceneScript, slug: str) -> str:
         """Render the scene script, publish the MP4, return its public URL.
-        `slug` names the asset (the opportunity id). Raise on any failure."""
+        `slug` names the asset (a short, human-readable stem derived from the
+        opportunity title). Raise on any failure."""
         ...
 
 

@@ -14,6 +14,7 @@ skips the row.
 from __future__ import annotations
 
 import json
+import re
 
 from pain_point_pipeline.models import Opportunity, SceneScript
 from pain_point_pipeline.phrasing import report_tail_for, verb_for
@@ -21,6 +22,23 @@ from pain_point_pipeline.ports import SocialDraftCopy
 from pain_point_pipeline.social import DISCLOSURE
 
 MAX_STEPS = 3
+
+# Keep the rendered asset's filename short and readable — a few words of the
+# title, not the whole thing (which can be a sentence).
+_MAX_SLUG_LEN = 60
+
+
+def video_asset_slug(opportunity: Opportunity) -> str:
+    """A short, human-readable, filesystem-safe stem for the rendered video
+    asset, taken from the Opportunity title (e.g. "Scripting is painful" ->
+    "scripting-is-painful"). Falls back to the opportunity id when the title
+    has no usable ASCII characters, so the asset always has a name."""
+    slug = re.sub(r"[^a-z0-9]+", "-", opportunity.title.lower()).strip("-")
+    if len(slug) > _MAX_SLUG_LEN:
+        # Trim to the last whole word inside the limit, not mid-word.
+        slug = slug[:_MAX_SLUG_LEN].rsplit("-", 1)[0] or slug[:_MAX_SLUG_LEN]
+    return slug or opportunity.id
+
 
 # The broken-loop scene always shows exactly three boxes (the template's
 # animation — X mark, shake — is built around that shape). A weak LLM
