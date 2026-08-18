@@ -67,7 +67,7 @@ from pain_point_pipeline.social import (
     format_social_draft,
     prepend_social_draft,
 )
-from pain_point_pipeline.video import build_scene_script
+from pain_point_pipeline.video import build_scene_script, video_asset_slug
 
 logger = logging.getLogger(__name__)
 
@@ -409,7 +409,7 @@ def run_social_draft(
     video_url = ""
     if renderer is not None:
         try:
-            video_url = renderer.render(build_scene_script(date, opportunity, copy), opportunity.id)
+            video_url = renderer.render(build_scene_script(date, opportunity, copy), video_asset_slug(opportunity))
         except Exception:
             logger.exception(
                 "Video render failed for %s; queueing the draft without a video", opportunity.id
