@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-19 — [24023cd1-8f8b-4e6f-83d6-d9c6e1f823fe] Existing full-autopilot AI messaging automation tools don't offer a human-in-the-loop review step, forcing users to choose between zero control and no AI assistance.
+
+**12 people on Reddit are arguing about this — 14 posts**
+
+### X (thread)
+
+1. Your AI sends messages you never approved. 14 people on Reddit are stuck here.
+
+2. Autopilot tools send before you can say no. 14 posts from 12 people — my Reddit pipeline flagged this again this week.
+
+3. The fix: a simple approve-or-edit step before anything sends. Your call, every time.
+
+4. Would you trust AI more if you got the final say? https://reddit.com/r/SaaS/comments/1uuvuuz/chatbot_that_can_book_a_call_when_it_gets_stuck/
+
+### LinkedIn (post)
+
+Your AI drafts a message. It sends it. You never saw it.
+
+Full-autopilot tools make you pick between zero control and no AI at all. That's not a real choice.
+
+My Reddit pipeline flagged this pattern again this week — 14 posts from 12 people, all stuck on that same wall.
+
+The fix: a quick approve-or-edit step before anything sends.
+
+You review, you tweak, you hit send. AI still does the heavy lifting, but you keep the final word.
+
+Does that balance feel right to you?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/SaaS/comments/1uuvuuz/chatbot_that_can_book_a_call_when_it_gets_stuck/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-19-existing-full-autopilot-ai-messaging-automation-tools-don-t.mp4
+
 ## 2026-08-18 — [cad8cd29-0dc8-45f2-bb14-fc65c35f37ef] Agent memory recalls stale facts as if they're true
 
 **17 people on Reddit are dealing with this — 19 posts**
