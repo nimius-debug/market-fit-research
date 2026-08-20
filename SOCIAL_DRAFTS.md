@@ -1,5 +1,43 @@
 # Social Drafts
 
+## 2026-08-20 — [49871e1d-564f-41bd-90ed-8d1b2d4a87bc] AI models blindly process messy data without asking clarifying questions when there are ambiguities like duplicate reference numbers.
+
+**10 people on Reddit are dealing with this — 10 posts**
+
+### X (thread)
+
+1. Your AI hit a duplicate reference number. It guessed. Nobody asked.
+
+2. 10 posts on Reddit's AI/automation threads, same week. Same wall: messy data, dumb guesses. My pipeline flagged it.
+
+3. The idea: AI flags a guess before acting. Asks you 'this or that?' instead of silently picking wrong.
+
+4. If AI asked first, would your trust go up? https://reddit.com/r/automation/comments/1uu8fd4/are_you_actually_better_than_ai_at_your_job/ox22ow9/
+
+### LinkedIn (post)
+
+Your AI lands on a row with two identical reference numbers. It doesn't blink. It picks one and keeps going.
+
+That pick could be a refund, a shipment, a charge. Wrong pick, wrong everything.
+
+10 people on Reddit this week described this exact wall — AI plowing ahead on messy data with zero clarifying questions.
+
+My Reddit pipeline flagged this pattern as unusually sharp.
+
+The idea: AI flags its guesses before acting. Ambiguous data triggers a simple "this or that?" prompt, not a coin flip.
+
+Small change. But it turns blind processing into a human check at the exact moment it matters.
+
+Worth building?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/automation/comments/1uu8fd4/are_you_actually_better_than_ai_at_your_job/ox22ow9/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-20-ai-models-blindly-process-messy-data-without-asking.mp4
+
 ## 2026-08-19 — [24023cd1-8f8b-4e6f-83d6-d9c6e1f823fe] Existing full-autopilot AI messaging automation tools don't offer a human-in-the-loop review step, forcing users to choose between zero control and no AI assistance.
 
 **12 people on Reddit are arguing about this — 14 posts**
