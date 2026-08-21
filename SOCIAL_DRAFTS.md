@@ -1,5 +1,41 @@
 # Social Drafts
 
+## 2026-08-21 — [6ec4745d-f619-4ca9-918f-fffd49159884] Hard to find trustworthy LLM benchmarks
+
+**17 people on Reddit are struggling with this — 17 posts**
+
+### X (thread)
+
+1. You picked the top LLM on a leaderboard. It still failed your real task.
+
+2. 17 people on Reddit are sick of benchmarks that hide real results.
+
+3. What if one open leaderboard used honest tests anyone can see and run?
+
+4. Would a public, honest leaderboard be worth building? https://reddit.com/r/LocalLLaMA/comments/1v2ky1x/i_ran_the_strictest_published_locomo_protocol_on/
+
+### LinkedIn (post)
+
+You trust a benchmark, ship the model, and it bomb your actual workload.
+
+17 people on the AI/automation subs are stuck on the same wall: leaderboards that cherry-pick tests, hide weak spots, and rank models on games nobody plays.
+
+My Reddit pipeline flagged this pattern again this week.
+
+The idea: one open leaderboard where every test is public, every run is repeatable, and real-world tasks set the bar. Not marketing numbers. Honest numbers you can verify yourself.
+
+No secret scoring. No sandbagging.
+
+Would that actually be useful to you, or are public benchmarks a lost cause?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1v2ky1x/i_ran_the_strictest_published_locomo_protocol_on/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-21-hard-to-find-trustworthy-llm-benchmarks.mp4
+
 ## 2026-08-20 — [49871e1d-564f-41bd-90ed-8d1b2d4a87bc] AI models blindly process messy data without asking clarifying questions when there are ambiguities like duplicate reference numbers.
 
 **10 people on Reddit are dealing with this — 10 posts**
