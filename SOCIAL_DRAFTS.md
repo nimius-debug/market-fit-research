@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-22 — [f67bba55-1459-4b9e-8720-e1afd115d016] GPU prices too high for local AI models
+
+**19 people on Reddit are struggling with this — 19 posts**
+
+### X (thread)
+
+1. Your local AI dreams are dead because one GPU costs more than your rent.
+
+2. 19 people on Reddit's AI/automation subs are stuck on this. Same wall: GPU too pricey for local models.
+
+3. Idea: a tool that splits the AI workload across cheap parts. Many small chips acting like one big GPU.
+
+4. Would this help you run models at home? Or is it dumb? https://reddit.com/r/LocalLLaMA/comments/1v0fued/want_to_start_using_and_training_local_llms_but/
+
+### LinkedIn (post)
+
+Your local AI models feel out of reach because one GPU costs more than a used car.
+
+19 people across the AI/automation subreddits are hitting this same wall this month. They want models at home. They can't justify the hardware.
+
+My Reddit pipeline flagged this one repeatedly. Same phrase over and over: the GPU price just doesn't work for me.
+
+The idea: a tool that splits the AI workload across cheap parts. Many small, affordable processors acting as one big GPU. No single expensive card needed.
+
+Would you trade setup hassle for a budget local setup? Or is the cost of the parts still the real problem?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1v0fued/want_to_start_using_and_training_local_llms_but/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-22-gpu-prices-too-high-for-local-ai-models.mp4
+
 ## 2026-08-21 — [6ec4745d-f619-4ca9-918f-fffd49159884] Hard to find trustworthy LLM benchmarks
 
 **17 people on Reddit are struggling with this — 17 posts**
