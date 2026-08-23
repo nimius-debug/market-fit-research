@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-23 — [9fc816ee-6bd3-4b52-b9ab-39331a789c3f] User is struggling with llama-server's KV cache checkpointing — checkpoints are missed unpredictably, older checkpoints get evicted despite configuring enough slots, and the 4096-step traversal adds latency during fast agentic loops; they need better caching behavior to avoid 10-20 minute cache-miss reprocessing on large context windows.
+
+**23 people on Reddit are venting about this — 23 posts**
+
+### X (thread)
+
+1. Your AI agent just spent 15 minutes re-reading everything. The cache lost it again.
+
+2. 23 people on Reddit's AI groups hit this. Checkpoints vanish, old ones get kicked out, and the 4096-step scan drags every loop. Same pain, over and over.
+
+3. The idea: auto-save the KV cache at key points and restore it instantly. No full re-read. No 15-minute wait. Just pick up where it left off.
+
+4. My Reddit pipeline flagged this one 23 times. Worth digging into? https://reddit.com/r/LocalLLaMA/comments/1uu8g9f/need_help_tuning_cache_in_llamaserver/
+
+### LinkedIn (post)
+
+Your agent is mid-task, and the KV cache just silently dropped its checkpoint. Now it re-reads 10-20 minutes of context from scratch. Again.
+
+This week alone, 23 separate people in the AI/automation communities on Reddit described this exact failure. Checkpoints missed unpredictably. Older ones evicted even with slots configured. The 4096-step traversal adding latency to every fast loop.
+
+My Reddit pipeline pulled this pattern out of the noise.
+
+The idea: auto-save and restore the KV cache reliably. The model picks up exactly where it stopped. No reprocessing, no full re-read.
+
+Would you build this, or is "just re-read it" good enough for your loops?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uu8g9f/need_help_tuning_cache_in_llamaserver/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-23-user-is-struggling-with-llama-server-s-kv-cache.mp4
+
 ## 2026-08-22 — [f67bba55-1459-4b9e-8720-e1afd115d016] GPU prices too high for local AI models
 
 **19 people on Reddit are struggling with this — 19 posts**
