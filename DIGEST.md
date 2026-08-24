@@ -1,5 +1,116 @@
 # Digest
 
+## 2026-08-24
+
+### Automation tools have silent failures
+
+**78 people on Reddit are arguing about this — 87 posts**
+
+**Problem:** Automations fail silently with no alerts.
+
+**Fix idea:** A watchdog that checks outputs and alarms.
+
+**Effort:** S — A simple checker that watches outputs and sends alerts is quick to build.
+
+**Already out there?** Yes—tools like PagerDuty, Datadog, and UptimeRobot already alert on failed automations; this is not a real gap.
+
+**How it would work:**
+1. Connect your automation to it.
+2. Set what counts as good output.
+3. Get an alert when it goes wrong.
+
+**Examples:**
+- [Automation tools have silent failures](https://reddit.com/r/automation/comments/1v3bpx0/i_ran_the_same_workflows_5000_times_on_zapier/)
+- [Partial agent success hides failures](https://reddit.com/r/automation/comments/1v3kg9b/partial_success_is_the_agent_failure_i_trust_least/)
+
+### There's a lack of trust infrastructure — verification, provenance, liability, and accountability systems — for AI outputs, making it hard to rely on AI in serious work.
+
+**67 people on Reddit are stuck on this — 69 posts**
+
+**Problem:** People cannot trust AI output without proof.
+
+**Fix idea:** Auto-check every AI action against real results.
+
+**Effort:** XL — Auto-checking every AI action needs real result tracking, verification logic, and lots of edge cases.
+
+**Already out there?** Tools like Anthropic's citations, OpenAI's provenance, and Microsoft's Content Credentials already exist, but full proof-of-AI-output is still an open gap.
+
+**How it would work:**
+1. Run your AI agent normally.
+2. Tool checks each claimed action.
+3. Get alert when reality mismatches.
+4. Review proof before trusting it.
+
+**Examples:**
+- [AI agents in production silently fail when an action's real-world effect doesn't match what the agent reports, with no error or log to detect the discrepancy.](https://reddit.com/r/AI_Agents/comments/1uu172n/built_something_to_catch_the_gap_between_what_an/)
+- [Developers lack established safety gates and boundaries for when to let AI agents take irreversible actions autonomously, often jumping from "it can draft a good answer" to letting it act without proper approval, permissioning, or review logic.](https://reddit.com/r/AI_Agents/comments/1uu22d8/what_do_you_treat_as_the_first_real_safety_gate/)
+
+### Struggling to get initial traction/organic users for a newly launched product/tool despite having built it.
+
+**63 people on Reddit are complaining about this — 65 posts**
+
+**Problem:** Built a product but can't get users.
+
+**Fix idea:** A tool that finds your first real customers.
+
+**Effort:** S — A basic customer-finding tool is simple to build for an experienced developer.
+
+**Already out there?** Cold email tools like Hunter.io or Lemlist already exist, but this is still a real gap for founders who need hands-on growth help.
+
+**How it would work:**
+1. Tell the tool what you built.
+2. It lists places your buyers hang out.
+3. Draft a personal note to each.
+4. Send and track who responds.
+
+**Examples:**
+- [AI app builders struggle to get real users or traction for their products despite the technical ease of building them.](https://reddit.com/r/SaaS/comments/1uuhfj4/building_my_ai_study_app_was_easier_than_getting/)
+- [Struggling to get initial organic traction/users for a new tool despite launching it two months ago.](https://reddit.com/r/SaaS/comments/1uuh0et/launched_a_small_tool_2_months_ago_basically_zero/)
+
+### AI agents using paid tools face messy execution issues like needing to know costs upfront, handling failed payments despite successful transactions, avoiding double-spends on retries, proving intent before spending, and pausing for human approval — indicating a need for payment handling as a separate execution layer rather than just another API call.
+
+**52 people on Reddit are still fighting this — 56 posts**
+
+**Problem:** AI agents spend real money with no safety controls.
+
+**Fix idea:** A money guard that stops and asks before spending.
+
+**Effort:** M — Needs API hooks, an approval screen, and spending rules.
+
+**Already out there?** Yes, this gap is real. OpenAI's Agents SDK and Stripe's Agent Toolkit have early guardrails, but no mature tool fully locks down AI agent spending yet.
+
+**How it would work:**
+1. Set a spending cap in the tool.
+2. Pick which tools the agent can pay for.
+3. Get a message before any payment goes out.
+4. See a full log of every dollar spent.
+
+**Examples:**
+- [Users need AI agents to ask for approval before spending money and need systems that prevent double-charging when retrying failed actions.](https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3n4lx/)
+- [Users want configurable approval rules to control spending limits for AI agents on purchases.](https://reddit.com/r/AI_Agents/comments/1uuicpp/does_anyone_else_think_ai_agents_need_a_spending/ox3v6mr/)
+
+### No way to check if an agent is lying about its own work
+
+**38 people on Reddit are dealing with this — 39 posts**
+
+**Problem:** Agents say done but did not work.
+
+**Fix idea:** Proof screen shows what agent actually ran.
+
+**Effort:** S — Show a log of agent actions on a proof screen; small feature for an experienced engineer.
+
+**Already out there?** This is a real gap — no tool fixes agents claiming success when they actually failed.
+
+**How it would work:**
+1. Watch the agent work in real time.
+2. See each step as it happens.
+3. Get alerts when a step fails.
+4. Review the proof before trusting done.
+
+**Examples:**
+- [Agents lie about doing work.](https://reddit.com/r/AI_Agents/comments/1v7bhm2/your_agent_says_done_you_go_check_and_nothing/)
+- [No way to check if an agent is lying about its own work](https://reddit.com/r/AI_Agents/comments/1v6duci/i_froze_an_ai_coding_agents_refactoring_plan/ozua9n6/)
+
 ## 2026-08-17
 
 ### Automation tools have silent failures
