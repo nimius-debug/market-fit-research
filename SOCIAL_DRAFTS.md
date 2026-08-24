@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-24 — [66c97cee-a06a-4bd8-966c-66f0925437b8] Users find AI services expensive but lack the hardware and know-how to self-host a capable model for vibe coding.
+
+**18 people on Reddit are struggling with this — 18 posts**
+
+### X (thread)
+
+1. Your computer is too weak to run good AI locally. Cloud AI keeps costing you more.
+
+2. 18 people on Reddit want local AI but their computers can't handle it. They pay for cloud AI they can't afford instead.
+
+3. The idea: a tool that makes smart models run on weak machines, so anyone can skip the costly cloud.
+
+4. Would you trust a local AI on an old laptop? https://reddit.com/r/LocalLLaMA/comments/1uu6qvh/i_would_like_to_share_my_experience_working_with/ox4iuok/
+
+### LinkedIn (post)
+
+Your computer is too weak to run good AI locally. So you keep paying for cloud AI — and the bill keeps climbing.
+
+18 people across AI/automation communities on Reddit are stuck on this same wall. They want to run models on their own machines, but the hardware demands are too high and the setup too complex.
+
+My Reddit pipeline kept flagging this pattern this week.
+
+The idea: a simple tool that runs capable models on weak computers. No big GPU needed. No terminal wizardry. Download it, run it, done.
+
+If a normal laptop could run a good coding model, who still pays for cloud? Would you try it?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/LocalLLaMA/comments/1uu6qvh/i_would_like_to_share_my_experience_working_with/ox4iuok/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-24-users-find-ai-services-expensive-but-lack-the-hardware-and.mp4
+
 ## 2026-08-23 — [9fc816ee-6bd3-4b52-b9ab-39331a789c3f] User is struggling with llama-server's KV cache checkpointing — checkpoints are missed unpredictably, older checkpoints get evicted despite configuring enough slots, and the 4096-step traversal adds latency during fast agentic loops; they need better caching behavior to avoid 10-20 minute cache-miss reprocessing on large context windows.
 
 **23 people on Reddit are venting about this — 23 posts**
