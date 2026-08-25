@@ -1,5 +1,39 @@
 # Social Drafts
 
+## 2026-08-25 — [073401a5-e809-40e0-b931-b9dd5ee7381b] AI coding agents still need heavy manual review.
+
+**13 people on Reddit are complaining about this — 16 posts**
+
+### X (thread)
+
+1. You trust AI code, but you still read every line by hand. 16 posts on Reddit are stuck on this.
+
+2. My Reddit pipeline flagged this again this week. People say reviewing AI code takes as long as writing it yourself.
+
+3. The idea: automated checks that flag risky code, so you only review the parts that matter.
+
+4. Is that the missing piece, or would you still read it all? https://reddit.com/r/artificial/comments/1vaqn95/has_anyone_else_found_ai_coding_agents_need_a_lot/
+
+### LinkedIn (post)
+
+You still review every line of AI code by hand.
+
+16 posts this month, same pain. People trust the model, but not enough to skip the read. So the "time saver" eats the time back.
+
+My Reddit pipeline pulled this pattern out of the AI/automation threads. It keeps showing up.
+
+The idea: automated checks that scan the code and flag only the risky parts for review. You spend your eyes where the danger is, not everywhere.
+
+Would you trust a flag list more than your own full read?
+
+### LinkedIn (first comment — post right after, keeps the link out of the main post)
+
+Source: https://reddit.com/r/artificial/comments/1vaqn95/has_anyone_else_found_ai_coding_agents_need_a_lot/
+
+### Video (attached to the LinkedIn post automatically)
+
+https://github.com/nimius-debug/market-fit-research/releases/download/social-videos/2026-08-25-ai-coding-agents-still-need-heavy-manual-review.mp4
+
 ## 2026-08-24 — [66c97cee-a06a-4bd8-966c-66f0925437b8] Users find AI services expensive but lack the hardware and know-how to self-host a capable model for vibe coding.
 
 **18 people on Reddit are struggling with this — 18 posts**
