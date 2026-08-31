@@ -1,5 +1,116 @@
 # Digest
 
+## 2026-08-31
+
+### Automation tools have silent failures
+
+**84 people on Reddit are arguing about this — 95 posts**
+
+**Problem:** Automations fail silently with no alert.
+
+**Fix idea:** A watchdog that checks work and pings you.
+
+**Effort:** S — Simple watchdog with alerting is small and straightforward.
+
+**Already out there?** Not aware of a specific tool that fully fixes silent automation failures; this is still a real gap.
+
+**How it would work:**
+1. Connect your automation tool.
+2. Pick what output should look like.
+3. Get an alert when it drifts or dies.
+
+**Examples:**
+- [Automation tools have silent failures](https://reddit.com/r/automation/comments/1v3bpx0/i_ran_the_same_workflows_5000_times_on_zapier/)
+- [Partial agent success hides failures](https://reddit.com/r/automation/comments/1v3kg9b/partial_success_is_the_agent_failure_i_trust_least/)
+
+### There's a lack of trust infrastructure — verification, provenance, liability, and accountability systems — for AI outputs, making it hard to rely on AI in serious work.
+
+**73 people on Reddit are stuck on this — 75 posts**
+
+**Problem:** AI outputs can't be trusted without proof.
+
+**Fix idea:** Auto-check every AI output against real results.
+
+**Effort:** XL — Building trusted verification across all AI outputs is a huge job.
+
+**Already out there?** No single tool names it — this is still a real gap.
+
+**How it would work:**
+1. Set check rules for your AI.
+2. Every task gets verified.
+3. See proof it actually worked.
+4. Fix fails before they spread.
+
+**Examples:**
+- [AI agents in production silently fail when an action's real-world effect doesn't match what the agent reports, with no error or log to detect the discrepancy.](https://reddit.com/r/AI_Agents/comments/1uu172n/built_something_to_catch_the_gap_between_what_an/)
+- [Developers lack established safety gates and boundaries for when to let AI agents take irreversible actions autonomously, often jumping from "it can draft a good answer" to letting it act without proper approval, permissioning, or review logic.](https://reddit.com/r/AI_Agents/comments/1uu22d8/what_do_you_treat_as_the_first_real_safety_gate/)
+
+### Struggling to get initial traction/organic users for a newly launched product/tool despite having built it.
+
+**66 people on Reddit are complaining about this — 68 posts**
+
+**Problem:** Built a product but can't get users.
+
+**Fix idea:** A tool that finds and talks to real buyers.
+
+**Effort:** M — Building discovery plus outreach needs real work but is doable alone.
+
+**Already out there?** Yes, this is a common gap. Growth tools like Product Hunt, Reddit, and cold outreach exist, but no single easy tool fixes it.
+
+**How it would work:**
+1. Paste your product link.
+2. Pick your target customer type.
+3. Get a list of places they hang out.
+4. Send a simple message to each one.
+
+**Examples:**
+- [AI app builders struggle to get real users or traction for their products despite the technical ease of building them.](https://reddit.com/r/SaaS/comments/1uuhfj4/building_my_ai_study_app_was_easier_than_getting/)
+- [Struggling to get initial organic traction/users for a new tool despite launching it two months ago.](https://reddit.com/r/SaaS/comments/1uuh0et/launched_a_small_tool_2_months_ago_basically_zero/)
+
+### Hard to control what the agent is allowed to do
+
+**36 people on Reddit are frustrated by this — 39 posts**
+
+**Problem:** Agents do destructive things with no real safety controls.
+
+**Fix idea:** A permission gate that blocks unsafe actions before they run.
+
+**Effort:** M — Needs a rule engine and action list, but it is one clear feature.
+
+**Already out there?** Yes — this is a real gap. Tools like permission systems (e.g., sandboxing in AutoGPT) exist, but full AI agent safety controls are still early and not mainstream.
+
+**How it would work:**
+1. Set rules for what agents may do.
+2. Agent tries an action.
+3. Gate checks the rule first.
+4. Block it or let it pass.
+
+**Examples:**
+- [Hard to control what the agent is allowed to do](https://reddit.com/r/AI_Agents/comments/1v2l1h4/what_is_the_hardest_part_of_letting_an_ai_agent/)
+- [Hard to design AI thinking-to-acting wiring](https://reddit.com/r/artificial/comments/1v2mysx/the_intelligence_of_ai_agents_is_rented_the_hard/)
+
+### Hard to debug and monitor AI agents
+
+**36 people on Reddit are complaining about this — 37 posts**
+
+**Problem:** Can't see why agents fail or what they did.
+
+**Fix idea:** A replay tool that records every agent step.
+
+**Effort:** M — A solo engineer can record steps and replay them in about a week.
+
+**Already out there?** Langfuse, LangSmith, and AgentOps already track agent steps and failures, so this is not a new gap.
+
+**How it would work:**
+1. Open the agent's trace view.
+2. See each step and its reason.
+3. Spot where it went wrong.
+4. Replay that branch to test a fix.
+
+**Examples:**
+- [Hard to debug and monitor AI agents](https://reddit.com/r/AI_Agents/comments/1v011b9/most_ai_agent_failures_arent_model_failures/)
+- [Evaluating agents needs testing methods](https://reddit.com/r/AI_Agents/comments/1v01wd9/anyone_using_high_volume_stats_for_evaluation/)
+
 ## 2026-08-24
 
 ### Automation tools have silent failures
