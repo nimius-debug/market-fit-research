@@ -1,5 +1,115 @@
 # Digest
 
+## 2026-09-07
+
+### AI agent integrations (Stripe, Twilio, etc.) pass tests but break on real-world scenarios like duplicate events, non-idempotent handlers, and retries hitting stale state — there's no way to catch these async failure cases before shipping to production.
+
+**30 people on Reddit are still fighting this — 35 posts**
+
+**Problem:** Retries run twice, waste money, and break.
+
+**Fix idea:** A safety layer stops duplicate side effects.
+
+**Effort:** S — A small guard checks before side effects run. Simple to build.
+
+**Already out there?** Retry libraries like Polly and Resilience4j exist, but retries that run twice, waste money, and break are still a real gap.
+
+**How it would work:**
+1. Add the safety layer to your flow.
+2. Set a max retry and cost cap.
+3. Get an alert before anything runs twice.
+
+**Examples:**
+- [Standard n8n webhook workflows crash or create thundering herd problems when downstream APIs/backends fail, lacking built-in circuit breaker patterns with exponential backoff and dead-letter queues for reliable data processing.](https://reddit.com/r/automation/comments/1uuk9l3/so_after_building_a_16agent_ai_swarm_system_i/)
+- [People struggle to build reliable AI automation because chaining prompts without error handling and validation leads to flaky results that aren't production-ready.](https://reddit.com/r/automation/comments/1utfj48/ai_automation_vs_app_vs_saas/ox3i4kh/)
+
+### Setting up automation workflows feels like more effort than just continuing to do repetitive manual tasks manually, especially when the automation tools require too much upfront work or make wrong assumptions that need fixing.
+
+**30 people on Reddit are struggling with this — 34 posts**
+
+**Problem:** Automation setup takes too long and breaks often.
+
+**Fix idea:** A shared library of ready-to-use workflow templates.
+
+**Effort:** M — A template library needs design, docs, and testing but is straightforward work.
+
+**Already out there?** Ansible already exists for automation setup, but setup that breaks often is still a real pain point.
+
+**How it would work:**
+1. Pick a workflow you need.
+2. Fill in your API keys.
+3. Watch it run automatically.
+4. Fix only what truly breaks.
+
+**Examples:**
+- [Connecting WhatsApp to automation tools like Zapier requires dealing with Meta's complex setup, which is difficult and frustrating, especially for non-technical users.](https://reddit.com/r/nocode/comments/1uthoo2/whats_the_one_workflow_you_still_havent_automated/ox28u1q/)
+- [Users are frustrated by having to repeatedly rebuild the same quote-to-PDF workflow from scratch for each client, lacking a reusable template or blueprint.](https://reddit.com/r/nocode/comments/1uubvzl/stopped_rebuilding_the_same_quotetopdf_flow_for/)
+
+### Can't run bigger AI models
+
+**33 people on Reddit are struggling with this — 34 posts**
+
+**Problem:** Big AI models won't fit on normal computers.
+
+**Fix idea:** Auto-split models across RAM and GPU smartly.
+
+**Effort:** XL — Mixing memory types for AI models is very tricky and needs deep, careful expert work.
+
+**Already out there?** This is a real gap — nothing fixes that AI models need big computers.
+
+**How it would work:**
+1. Pick your model.
+2. Let the tool split it.
+3. Run it on any PC.
+
+**Examples:**
+- [Can't run the model on my hardware.](https://reddit.com/r/LocalLLaMA/comments/1uvshpl/better_than_fable_5/)
+- [Can't run bigger AI models](https://reddit.com/r/LocalLLaMA/comments/1uvelii/upgrade_path_for_ryzen_9_64_gb_rtx_5080/)
+
+### AI SaaS founders lack granular tracking of AI costs per customer, per feature, and per pricing plan, relying only on total monthly bills without understanding profitability or cost drivers.
+
+**32 people on Reddit are dealing with this — 33 posts**
+
+**Problem:** AI costs are a surprise every month.
+
+**Fix idea:** A spending dashboard that tracks every AI call.
+
+**Effort:** S — A simple dashboard tracking AI calls is straightforward for an experienced generalist.
+
+**Already out there?** Cloud cost tracking tools like Vantage and CloudZero exist, but AI-specific spend forecasting is still a gap.
+
+**How it would work:**
+1. Connect your AI accounts.
+2. See costs per customer and feature.
+3. Get an alert before you overspend.
+4. Fix what costs too much.
+
+**Examples:**
+- [AI SaaS founders lack granular tracking of AI costs per customer, per feature, and per pricing plan, relying only on total monthly bills without understanding profitability or cost drivers.](https://reddit.com/r/SaaS/comments/1uuosax/how_are_you_tracking_ai_costs_in_your_saas/)
+- [Users are concerned about the high cost of API calls once free tier credits are exhausted.](https://reddit.com/r/SaaS/comments/1uum1yr/seeking_advice_i_am_a_nontech_founder_learning/ox5cnx6/)
+
+### Context window too small for long chats
+
+**31 people on Reddit are struggling with this — 31 posts**
+
+**Problem:** AI runs out of room and forgets what was said.
+
+**Fix idea:** Read only the key parts the AI needs.
+
+**Effort:** S — Summarize or pick key parts of chat history before sending it.
+
+**Already out there?** Context windows already exist in tools like ChatGPT and Claude, but long-term memory for AI is still a real gap.
+
+**How it would work:**
+1. Pick the big file or chat.
+2. Mark what matters most.
+3. AI reads only the marked parts.
+4. Get answers without hitting the limit.
+
+**Examples:**
+- [Hitting context window limits with large docs](https://reddit.com/r/automation/comments/1uyvon3/how_to_better_use_claude_for_my_small_business/oy2dtzm/)
+- [Context window too small for long chats](https://reddit.com/r/artificial/comments/1uytrcl/my_ai_agents_have_now_run_on_four_model/oy2c2y2/)
+
 ## 2026-08-31
 
 ### Automation tools have silent failures
