@@ -1,5 +1,115 @@
 # Digest
 
+## 2026-09-14
+
+### Users need a structured database for tracking agent execution state (runs, tasks, events, learnings) beyond simple markdown files or observability/logging tools, to provide continuity and persistence for agent behavior over time.
+
+**27 people on Reddit are complaining about this — 29 posts**
+
+**Problem:** Agents forget everything between runs.
+
+**Fix idea:** Give agents shared memory that lasts.
+
+**Effort:** M — Building shared persistent memory for agents is medium work.
+
+**Already out there?** LangChain, CrewAI, and AutoGen all have memory features for this. Still a real gap for easy, drop-in long-term memory.
+
+**How it would work:**
+1. Save what the agent learned.
+2. Point all agents to same store.
+3. Pull old lessons on next run.
+
+**Examples:**
+- [Running a multi-agent content fleet without a circuit breaker or fleet-level health signal to detect when an agent is systematically failing QA gates, rather than just handling per-output failures in isolation.](https://reddit.com/r/AI_Agents/comments/1uu22d8/what_do_you_treat_as_the_first_real_safety_gate/ox3zfap/)
+- [Users need a structured database for tracking agent execution state (runs, tasks, events, learnings) beyond simple markdown files or observability/logging tools, to provide continuity and persistence for agent behavior over time.](https://reddit.com/r/AI_Agents/comments/1uug5pv/i_built_6_agent_harnesses_in_the_last_6_months/)
+
+### Hard to get users
+
+**25 people on Reddit are dealing with this — 28 posts**
+
+**Problem:** Building is easy, but getting users is still hard.
+
+**Fix idea:** A tool that finds and ranks your best-fit users.
+
+**Effort:** L — Needs data gathering, ranking logic, and a web interface.
+
+**Already out there?** Many tools exist for user growth, like Product Hunt, AppSumo, and growth marketing platforms, so this is not a new gap.
+
+**How it would work:**
+1. Paste your app link.
+2. Choose your target audience.
+3. Get a list of real users.
+4. Message them with a ready-made pitch.
+
+**Examples:**
+- [Hard to get users](https://reddit.com/r/SaaS/comments/1uwyy2d/wispr_flow_raised_260m_i_built_the_same_core/oxowd64/)
+- [Getting 3x fewer new customers](https://reddit.com/r/SaaS/comments/1uxbu3s/july_effects/)
+
+### Agent memory recalls stale facts as if they're true
+
+**26 people on Reddit are dealing with this — 28 posts**
+
+**Problem:** AI memory gets stale and lies as truth.
+
+**Fix idea:** Flag old facts automatically for re-checking.
+
+**Effort:** M — Build a timer, check facts, and alert when old. Doable but not quick.
+
+**Already out there?** Yes, this problem exists. Tools like Mem0 and Letta already help, but stale or false AI memory is still a real gap.
+
+**How it would work:**
+1. Tag a fact with a date.
+2. Get a warning when it ages.
+3. Confirm it's still true or retire it.
+
+**Examples:**
+- [Agent memory recalls stale facts as if they're true](https://reddit.com/r/AI_Agents/comments/1vfbda5/every_agent_memory_system_is_benchmarked_on/)
+- [AI forgets things, lies, and struggles with permissions.](https://reddit.com/r/AI_Agents/comments/1vg3jhj/just_a_question/p1tytxv/)
+
+### Coding agents leak tokens through noisy tool output, model verbosity, and always-loaded instruction files, with existing tools only addressing individual channels rather than providing a coordinated solution.
+
+**24 people on Reddit are still fighting this — 25 posts**
+
+**Problem:** AI agents burn too many tokens on noisy output.
+
+**Fix idea:** A tool that trims and summaries agent output automatically.
+
+**Effort:** M — Core trimming and summarizing is straightforward for an experienced engineer.
+
+**Already out there?** No clean single tool fits this; some exist for prompt compression but it's still a gap.
+
+**How it would work:**
+1. Turn on the trimmer for your agent.
+2. It shortens tool output and logs.
+3. It cuts repeated terminal text.
+4. Get alerts when tokens get low.
+
+**Examples:**
+- [Users struggle with bloated LLM tool outputs consuming too much context window space in AI coding agents, requiring a reliable way to reduce that context usage without depending on models to cooperate.](https://reddit.com/r/LocalLLaMA/comments/1uubbsb/harnesstrim_a_deterministic_benchmarked/ox42ozk/)
+- [Coding agents leak tokens through noisy tool output, model verbosity, and always-loaded instruction files, with existing tools only addressing individual channels rather than providing a coordinated solution.](https://reddit.com/r/LocalLLaMA/comments/1uubbsb/harnesstrim_a_deterministic_benchmarked/)
+
+### User is struggling with llama-server's KV cache checkpointing — checkpoints are missed unpredictably, older checkpoints get evicted despite configuring enough slots, and the 4096-step traversal adds latency during fast agentic loops; they need better caching behavior to avoid 10-20 minute cache-miss reprocessing on large context windows.
+
+**24 people on Reddit are venting about this — 24 posts**
+
+**Problem:** Cached prompts keep getting lost and reprocessed from scratch.
+
+**Fix idea:** Persistent KV cache that survives new turns and sessions.
+
+**Effort:** M — Need storage design, cache lookup, and lifecycle handling across turns.
+
+**Already out there?** Yes; Redis or Memcached cache systems exist, but prompt-caching tools are still a real gap.
+
+**How it would work:**
+1. Set your cache slot count.
+2. Start a long agent session.
+3. Watch the cache hold through turns.
+4. Skip full reprocessing on follow-ups.
+
+**Examples:**
+- [User is struggling with llama-server's KV cache checkpointing — checkpoints are missed unpredictably, older checkpoints get evicted despite configuring enough slots, and the 4096-step traversal adds latency during fast agentic loops; they need better caching behavior to avoid 10-20 minute cache-miss reprocessing on large context windows.](https://reddit.com/r/LocalLLaMA/comments/1uu8g9f/need_help_tuning_cache_in_llamaserver/)
+- [Users need better visibility into how prompt-processing vs generation throughput behaves at full context length, and whether the KV-cache can sustain large contexts without performance degradation from swapping or throughput collapse.](https://reddit.com/r/LocalLLaMA/comments/1uukj2m/24gb_vram_llamaserver_config_exchange_thread/ox48s7a/)
+
 ## 2026-09-07
 
 ### AI agent integrations (Stripe, Twilio, etc.) pass tests but break on real-world scenarios like duplicate events, non-idempotent handlers, and retries hitting stale state — there's no way to catch these async failure cases before shipping to production.
