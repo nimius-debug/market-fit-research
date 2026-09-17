@@ -11,10 +11,8 @@ name: Social draft
 # Make.com posts text-only.
 
 on:
-  schedule:
-    # Daily 12:30 UTC -- after that day's 08:17 UTC ingestion (fresh pool)
-    # and before Monday's 15:23 UTC digest build.
-    - cron: "30 12 * * *"
+  # Automatic runs are paused while the project direction is reconsidered.
+  # Keep manual dispatch available for intentional one-off runs.
   workflow_dispatch: {}
 
 permissions:

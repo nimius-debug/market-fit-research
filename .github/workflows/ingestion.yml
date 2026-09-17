@@ -1,12 +1,8 @@
 name: Daily ingestion
 
 on:
-  schedule:
-    # Daily 08:17 UTC — well before the 12:30 UTC social draft and Monday's
-    # 15:23 UTC digest build, off the :00/:30 mark. Daily keeps the social
-    # candidate pool refilled for the daily posting cadence; the `since`
-    # watermark means each run only classifies genuinely new posts.
-    - cron: "17 8 * * *"
+  # Automatic runs are paused while the project direction is reconsidered.
+  # Keep manual dispatch available for intentional one-off runs.
   workflow_dispatch: {}
 
 permissions:
