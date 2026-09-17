@@ -1,9 +1,8 @@
 name: Weekly digest
 
 on:
-  schedule:
-    # Monday 15:23 UTC — well after that day's ingestion run, off the :00/:30 mark.
-    - cron: "23 15 * * 1"
+  # Automatic runs are paused while the project direction is reconsidered.
+  # Keep manual dispatch available for intentional one-off runs.
   workflow_dispatch: {}
 
 permissions:
